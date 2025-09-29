@@ -1,0 +1,125 @@
+@import '../global.css';
+
+body {
+  padding: 0;
+  margin: 0;
+  background-color: black;
+
+}
+
+.mainContainer {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+}
+
+.loginFormContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--secondary-background-color);
+  width: 28vw;
+  height: 60vh;
+  border-radius: 5%;
+  box-shadow: inset 0 0 20px 10px rgba(var(--primary-color), 0.5);
+  position: relative;
+  gap: 12px;
+}
+
+.inputField, .submitButton {
+  font-family: var(--primary-font-family);
+  border-radius: 5px;
+  overflow: hidden;
+  font-size: 120%;
+  border: none;
+}
+
+.inputField {
+  background-color: var(--primary-input-background-color);
+  color: #ffffff;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: 60%;
+  height: 7%;
+}
+
+.inputField::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.inputField:focus {
+  border: none;
+  outline: none;
+}
+
+.submitButton{
+  color: white;
+  cursor: pointer;
+  background-color: rgba(var(--primary-color));
+  transition: background-color 0.1s linear,
+              color 0.1s linear;
+
+  width: 63%;
+  height: 7%;
+}
+
+.submitButton:hover {
+  background-color: white;
+  color: rgba(var(--primary-color));
+}
+
+.signInHeader {
+  color: white;
+  font-size: 250%;
+  font-family: var(--primary-font-family);
+  position: absolute;
+  top: 0;
+  left: 15%;
+  padding: 0;
+}
+
+.loginRedirectContainer {
+  display: flex;
+  flex-wrap: wrap;
+  width: 70px;
+  height: 30px;
+  align-items: center; /* vertically centers text and SVG */
+  gap: 2px;
+  color: white;
+  transition: color 0.1s linear;
+  position: absolute;
+  top: 7.5%;
+  right: 15%;
+  
+}
+
+.loginRedirectContainer:hover {
+  color: rgba(var(--primary-color));
+  cursor: pointer;
+}
+
+.loginHeader {
+  font-size: 100%;
+  font-family: var(--primary-font-family);
+  padding: 0;
+}
+
+.disclaimerContainer {
+  width: 70%;
+  text-align: center;
+  color: white;
+  font-family: var(--secondary-font-family);
+  font-weight: 200;
+  font-size: 13px;
+}
+
+.disclaimerLinks {
+  color: rgba(var(--primary-color));
+  text-decoration: none;
+}
