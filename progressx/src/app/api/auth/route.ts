@@ -6,9 +6,3 @@ export async function GET() {
         { status: 200 }
     )
 }
-
-export async function POST(request: Request) {
-    const body = await request.json()
-
-    const { username, password } = body
-}

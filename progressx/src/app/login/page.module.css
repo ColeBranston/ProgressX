@@ -82,9 +82,11 @@ body {
   top: 0;
   left: 15%;
   padding: 0;
+  user-select: none;
 }
 
 .loginRedirectContainer {
+  user-select: none;
   display: flex;
   flex-wrap: wrap;
   width: 70px;
