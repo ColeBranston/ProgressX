@@ -13,10 +13,14 @@ export async function middleware(req: NextRequest) {
     await jwtVerify(token, new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET!))
     return NextResponse.next()
   } catch {
-    return NextResponse.redirect(new URL("/login", req.url))
+
+    const res = NextResponse.redirect(new URL("/login", req.url))
+    res.cookies.delete("token")
+
+    return res;
   }
 }
 
 export const config = {
-  matcher: ["/", "/about"],
+  matcher: ["/", "/research"],
 }

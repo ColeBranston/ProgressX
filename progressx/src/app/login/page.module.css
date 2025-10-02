@@ -1,12 +1,5 @@
 @import '../global.css';
 
-body {
-  padding: 0;
-  margin: 0;
-  background-color: black;
-
-}
-
 .mainContainer {
   width: 100vw;
   height: 100vh;
@@ -47,6 +40,10 @@ body {
   padding-right: 10px;
   width: 60%;
   height: 7%;
+}
+
+.inputField[type="email"] {
+  margin-top: 10%;
 }
 
 .inputField::placeholder {
@@ -124,4 +121,55 @@ body {
 .disclaimerLinks {
   color: rgba(var(--primary-color));
   text-decoration: none;
+}
+
+.forgotPasswordContainer {
+  display: flex;
+  width: 66%;
+}
+
+.forgotPasswordContainer a{
+  color: white;
+  font-family: var(--primary-font-family);
+  transition: color 0.1s linear;
+  margin-left: 3%;
+}
+
+.forgotPasswordContainer a:hover{
+  color: rgb(255, 255, 255, 0.7);
+  font-family: var(--primary-font-family);
+}
+
+.loginFormContainer .orText {
+  color: grey;
+  font-family: var(--primary-font-family);
+  font-size: 25px;
+  margin: 0;
+  padding: 0;
+}
+
+.loginFormContainer .googleText {
+  color: black;
+  font-family: var(--secondary-font-family);
+  text-decoration: none;
+}
+
+.googleAuthButton {
+  background-color: white;
+  width: 17.5vw;
+  height: 40px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  transition: background-color 0.1s linear;
+}
+
+.googleAuthButton svg {
+  width: 25px;
+}
+
+.googleAuthButton:hover{
+  background-color: rgb(255, 255, 255, 0.9);
 }

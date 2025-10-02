@@ -1,0 +1,52 @@
+
+.navBar {
+    width: 30%;
+    height: 100vh;
+    background-color: blue;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--primary-font-family);
+}
+
+.navbarList{
+    padding: 0;
+}
+
+.navbarList li{
+    color: black;
+    list-style-type: none;
+    background-color: white;
+    width: 30%;
+    transition: color 0.1s linear;
+    margin: 0;
+}
+
+.navbarList li:hover{
+    cursor: pointer;
+    color: rgba(var(--primary-color));
+}
+
+.navbarList .active{
+    color: rgba(var(--primary-color)) !important;
+  }
+
+.submitButton{
+    font-family: var(--primary-font-family);
+    border-radius: 5px;
+    overflow: hidden;
+    font-size: 15px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    background-color: rgba(var(--primary-color));
+    transition: background-color 0.1s linear,
+                color 0.1s linear;
+  
+    width: 125px;
+    height: 30px;
+  }
+
+  .submitButton:hover {
+    background-color: white;
+    color: rgba(var(--primary-color));
+  }

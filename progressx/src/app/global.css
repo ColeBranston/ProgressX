@@ -17,6 +17,13 @@
     --primary-input-background-color: rgb(113, 113, 113, 0.1);
 }
 
+body {
+    display: flex;
+    background-color: var(--primary-background-color);
+    padding: 0;
+    margin: 0;
+}
+
 
 .mainLogo {
     display: flex;
