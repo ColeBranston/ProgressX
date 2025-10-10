@@ -1,0 +1,230 @@
+@import '../../global.css';
+
+body {
+    overflow-y: hidden;
+}
+
+.mainContainer {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.welcomeContainer {
+    display: flex;
+    flex-wrap: wrap;
+    position: absolute;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--primary-font-family);
+
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+.welcomeText {
+    display: inline;
+    overflow: hidden;
+    white-space: nowrap;
+    animation: typing 2s steps(30) forwards;
+}
+
+@keyframes shrink {
+    from {
+        scale: 1;
+    }
+    to {
+        scale: 0.6;
+    }
+}
+
+.welcomeTextComplete {
+    display: inline;
+    overflow: hidden;
+    white-space: nowrap;
+    animation: shrink 2s forwards;
+}
+
+@keyframes shiftUp {
+    from {
+        top: 45vh;
+    }
+    to {
+        top: 2.5vh;
+    }
+}
+
+.welcomeContainerComplete {
+    display: flex;
+    position: absolute;
+    flex-wrap: wrap;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--primary-font-family);
+    animation: shiftUp 2s forwards;
+}
+
+.welcomeInitialText {
+    font-size: 64px;
+}
+
+.logoExtra {
+    font-size: 64px;
+    width: 20vw;
+}
+
+@keyframes formShiftUp {
+    0% {
+        top: 100vh;
+        box-shadow: 0 0 30px 20px rgba(var(--primary-color), 0.5);
+    }
+    25% {
+        top: 12.5vh;
+        box-shadow: 0 0 20px 10px rgba(var(--primary-color), 0.5);
+
+    }
+    30% {
+        top: 12.5vh;
+        box-shadow: 0 0 0px 0px rgba(var(--primary-color), 0.5),
+                inset 0 0 20px 10px rgba(var(--primary-color), 0.5);  
+
+    }
+    100% {
+        top: 12.5vh;
+        box-shadow: inset 0 0 20px 10px rgba(var(--primary-color), 0.5); 
+    }
+}
+
+.emailContainer {
+    text-align: left;
+    width: 80%;
+    height: 7.5%;
+}
+
+.emailHeader {
+  color: white;
+  font-size: 200%;
+  font-family: var(--primary-font-family);
+  padding: 0;
+  margin: 0;
+  user-select: none;
+}
+
+.userEmail {
+    color: var(--tertiary-color);
+}
+
+.onboardingForm {
+    width: 40vw;
+    height: 80vh;
+    position: absolute;
+    animation: formShiftUp 8s forwards;
+    border-radius: 5%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5vh;
+    background: var(--secondary-background-color);
+}
+
+.inputFieldContainer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1vh;
+}
+
+.inputField {
+  font-family: var(--primary-font-family);
+  border-radius: 5px;
+  overflow: hidden;
+  font-size: 120%;
+  border: none;
+  background-color: var(--primary-input-background-color);
+  color: #ffffff;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: 60%;
+  height: 5vh;
+  display: flex;
+  text-decoration: none !important;
+}
+
+ /* Remove arrows in most browsers */
+.inputField[type="number"]::-webkit-inner-spin-button,
+.inputField[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* For Firefox */
+.inputField[type="number"] {
+    -moz-appearance: textfield;
+        }
+
+.inputField::placeholder, .selectField::placeholder{
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.inputField:focus, .selectField:focus{
+  border: none;
+  outline: none;
+}
+
+.inputWrapper {
+    display: flex;
+    width: 75%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.selectField {
+    font-family: var(--primary-font-family);
+    border-radius: 5px;
+    overflow: hidden;
+    font-size: 120%;
+    border: none;
+    background-color: var(--primary-input-background-color);
+    color: rgba(var(--primary-color));
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 64%;
+    height: 5vh;
+    display: flex;
+}
+
+.selectField option {
+    background: var(--secondary-background-color);
+}
+
+.submitButton {
+  font-family: var(--primary-font-family);
+  border-radius: 5px;
+  overflow: hidden;
+  font-size: 120%;
+  border: none;
+  color: white;
+  cursor: pointer;
+  background-color: rgba(var(--primary-color));
+  transition: background-color 0.1s linear,
+              color 0.1s linear;
+
+  width: 25%;
+  height: 5%;
+}
+
+.submitButton:hover {
+  background-color: white;
+  color: rgba(var(--primary-color));
+}

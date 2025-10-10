@@ -3,7 +3,7 @@
 import styles from './page.module.css';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
-import { IsLoadingContext } from '../contexts/isLoading';
+import { IsLoadingContext } from '../../contexts/isLoading';
 
 export default function Login() {
     const [loginActive, setLoginActive] = useState(true)
@@ -11,17 +11,17 @@ export default function Login() {
     const [password, setPassword] = useState('')
     const [tempPassword, setTempPassword] = useState('')
     const router = useRouter();
-    const { isLoading, setIsLoading} = useContext(IsLoadingContext)
+    const { isLoading, setIsLoading } = useContext(IsLoadingContext)
 
 
     useEffect(() => {
       console.log("Searching for token: ")
-      if (window.location.hash){
-        setIsLoading(true)
+      const tokens = window?.location?.hash?.substring(1)
+      const googleToken = new URLSearchParams(tokens)?.get("access_token")
 
+      if (googleToken){
+        setIsLoading(true)
         console.log("token found")
-        const tokens = window.location.hash.substring(1)
-        const googleToken = new URLSearchParams(tokens).get("access_token")
         console.log(googleToken)
         try {
           async function tokenClean(googleToken: String){

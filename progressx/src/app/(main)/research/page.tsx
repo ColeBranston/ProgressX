@@ -1,6 +1,8 @@
 const ResearchPage = () => {
     return (
-    <div>This is the research page</div>
+        <div className='mainWrapper'>
+            this is the container div
+        </div>
     )
 }
 

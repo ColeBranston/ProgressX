@@ -2,10 +2,11 @@
 .navBar {
     width: 30%;
     height: 100vh;
-    background-color: blue;
+    background-color: none;
     display: flex;
     flex-direction: column;
     font-family: var(--primary-font-family);
+    padding: 4%;
 }
 
 .navbarList{
@@ -13,10 +14,14 @@
 }
 
 .navbarList li{
-    color: black;
+    color: white;
     list-style-type: none;
-    background-color: white;
-    width: 30%;
+    background-color: none;
+    display: flex;
+    gap: 15px;
+    width: 50%;
+    font-size: 23px;
+    margin-top: 10px !important;
     transition: color 0.1s linear;
     margin: 0;
 }
@@ -29,6 +34,20 @@
 .navbarList .active{
     color: rgba(var(--primary-color)) !important;
   }
+
+.navbarList svg {
+  fill: white;
+  transition: fill 0.1s linear;
+}
+
+.navbarList .active svg{
+  fill: red !important;
+}
+
+.navbarList li:hover svg{
+  fill: red !important;
+}
+
 
 .submitButton{
     font-family: var(--primary-font-family);

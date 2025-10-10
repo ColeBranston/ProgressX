@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   })
 
   if (userError || !userData?.user) {
-    return NextResponse.json({ error: userError.message }, { status: 400 })
+    return NextResponse.json({ error: userError?.message || "error fetching user data" }, { status: 400 })
   }
 
   const userId = userData.user.id

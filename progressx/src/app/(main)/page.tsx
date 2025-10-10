@@ -1,16 +1,14 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
-export default function Homepage() {
+import '@/app/global.css'
 
-  const router = useRouter()
+export default function Homepage() {
 
   return (
     
-  <div className={styles.mainContainer}>
-    <div className={styles.videoDisplay}>this is the video display is the video display</div>
-    <div className={styles.sideMisc}>This is the side bar</div>
+  <div className='mainWrapper'>
+    this is the container div
   </div>
   );
 }
