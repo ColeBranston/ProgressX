@@ -30,7 +30,8 @@ body {
 }
 
 .welcomeText {
-    display: inline;
+    display: flex;
+    gap: 15px;
     overflow: hidden;
     white-space: nowrap;
     animation: typing 2s steps(30) forwards;
@@ -46,9 +47,11 @@ body {
 }
 
 .welcomeTextComplete {
-    display: inline;
-    overflow: hidden;
+    display: flex;
     white-space: nowrap;
+    flex-wrap: nowrap;
+    width: 100%;
+    gap: 15px;
     animation: shrink 2s forwards;
 }
 
@@ -74,11 +77,18 @@ body {
 
 .welcomeInitialText {
     font-size: 64px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .logoExtra {
     font-size: 64px;
-    width: 20vw;
+    width: 100%;
+    height: max-content;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 @keyframes formShiftUp {

@@ -7,11 +7,14 @@ export async function POST(req: NextRequest) {
     const json = await req.json()
     const { name, height, weight, age, gender} = json
 
+    console.log(name, height, weight, age, gender)
+
     const token = req.cookies?.get('token')?.value
 
     try {
         if (token) {
             const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET)))?.payload?.sub
+            console.log("id: ", id)
 
             if (id) {
                 const { error: onboardingError } = await supabase.from("profiles").update({

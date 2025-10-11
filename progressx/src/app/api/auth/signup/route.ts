@@ -24,5 +24,10 @@ export async function POST(req: Request) {
     profile_image: "/default.png",
   })
 
+  if (profileError) {
+    console.log("Error adding user to profiles table: ", profileError)
+    return NextResponse.json({message: `Error adding user to profiles table: ${profileError}`},{status: 505})
+  }
+
   return NextResponse.json({ status: 201 })
 }

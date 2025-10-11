@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { jwtVerify } from "jose"
 import { supabase } from "./app/supabaseClient/client"
+import { encoder } from "./app/api/auth/login/google/route"
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value
@@ -11,7 +12,7 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
-    const decoded = await jwtVerify(token, new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET!))
+    const decoded = await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET!))
 
     const userID = decoded?.payload?.sub
                         
