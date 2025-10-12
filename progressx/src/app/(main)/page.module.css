@@ -1,8 +1,62 @@
 
-.mainContainer {
+.videoPlayerContainer {
     width: 100%;
-    height: 100%;
+    height: 100vh;
     display: flex;
-    color: white;
     justify-content: center;
+    align-items: center;
+}
+
+.videoPlayer {
+    width: 40%;
+    height: 90%;
+    border-radius: 2.5%;
+    background-color: var(--secondary-background-color);
+    position: relative;
+    overflow: hidden;
+}
+
+.videoPlayer::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 2%;
+    background-color: grey;
+}
+
+.volumeButton, .moreButton {
+    position: absolute;
+    fill: white;
+    top: 3%;
+    transition: fill 0.1s linear;
+}
+
+.volumeButton {
+    left: 6%;
+}
+
+.moreButton {
+    right: 6%;
+}
+
+.volumeButton:hover, .moreButton:hover {
+    cursor: pointer;
+    fill: grey;
+}
+
+.engagementBar {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    list-style: none;
+    margin-top: 20%;
+    padding-left: 20px;
+}
+
+.engagementBar li{
+    width: 45px;
+    height: 45px;
+    background-color: var(--secondary-background-color);
+    border-radius: 100%;
 }

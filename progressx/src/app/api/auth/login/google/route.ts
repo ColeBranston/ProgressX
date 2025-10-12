@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { supabase } from "@/app/supabaseClient/client" // use anon client for login
 import { redirect } from "next/navigation"
 import { jwtVerify } from "jose"
-import { TextEncoder } from "util"
 
 export async function GET() {
     const{ data, error } = await supabase.auth.signInWithOAuth({

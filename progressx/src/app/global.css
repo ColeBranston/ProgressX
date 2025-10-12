@@ -10,7 +10,7 @@
     --primary-background-color: #000000;
     --secondary-background-color: rgba(28, 28, 30, 0.4);
 
-    --primary-accent-color: #8E8E93;
+    --primary-accent-color: rgba(142, 142, 147, 0.836);
     --primary-font-family: Anton;
     --secondary-font-family:'Inter', sans-serif;
 
@@ -54,5 +54,4 @@ body {
     height: 100%;
     display: flex;
     color: white;
-    justify-content: center;
 }
