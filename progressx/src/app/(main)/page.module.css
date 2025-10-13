@@ -59,4 +59,80 @@
     height: 45px;
     background-color: var(--secondary-background-color);
     border-radius: 100%;
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+}
+
+.engagementBar li:hover {
+    cursor: pointer;
+}
+
+.engagementBar li svg {
+    fill: white;
+    transition: fill 0.1s linear;
+}
+
+.engagementBar li:hover svg {
+    fill: rgba(var(--primary-color));
+}
+
+.addFollowingButton {
+    width: 20px;
+    height: 20px;
+    top: 70%;
+    border-radius: 50%;
+    position: absolute;
+    background-color: rgba(var(--primary-color));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.videoNavigation {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 15%;
+}
+
+.videoNavigation ul{
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.videoNavigation li{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--secondary-background-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.videoNavigation li:hover {
+    cursor: pointer;
+}
+
+.videoNavigation li svg {
+    fill: white;
+    transition: fill 0.1s linear;
+}
+
+.videoNavigation li:hover svg {
+    fill: rgba(255, 255, 255, 0.664);
+}
+
+.navUpArrow {
+    transform: rotate(-90deg);
+}
+
+.navDownArrow {
+    transform: rotate(90deg);
 }

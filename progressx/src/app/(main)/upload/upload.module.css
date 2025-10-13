@@ -1,0 +1,79 @@
+@import '../../global.css';
+
+.uploadContainer {
+    font-family: var(--primary-font-family);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+    padding: 0;
+    gap: 5%;
+}
+
+.uploadHeaderContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.uploadHeader, .uploadBodyText {
+    margin: 0;
+}
+
+.uploadHeader {
+    font-size: 32px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.uploadBodyText {
+    font-family: var(--secondary-font-family);
+}
+
+.uploadButtonContainer {
+    display: flex;
+    gap: 40px;
+    width: 95%;
+}
+
+.uploadButtonContainer div {
+    width: 600;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    box-shadow: inset 0 0 20px 10px grey;
+    transition: box-shadow 0.1s linear,
+                color 0.1s linear;
+}
+
+.uploadButtonContainer div:hover {
+    box-shadow: inset 0 0 20px 10px rgba(var(--primary-color), .5);
+    cursor: pointer;
+}
+
+.uploadButtonContainer div p {
+    font-size: 48px;
+    display: flex;
+    color: grey;
+    margin: 0;
+    height: min-content;
+}
+
+.uploadButtonContainer div:hover p {
+    color: rgba(var(--primary-color));
+}
+
+.uploadButtonContainer div svg {
+    fill: grey;
+}
+
+.uploadButtonContainer div:hover svg {
+    fill: rgba(var(--primary-color));
+}
