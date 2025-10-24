@@ -8,7 +8,6 @@
     align-items: center;
     width: 100%;
     height: 100vh;
-    padding: 0;
     gap: 5%;
 }
 
@@ -36,13 +35,15 @@
 
 .uploadButtonContainer {
     display: flex;
+    justify-content: flex-start;
+    align-items: center;
     gap: 40px;
-    width: 95%;
+    width: 100%;
 }
 
 .uploadButtonContainer div {
-    width: 600;
-    height: 400px;
+    width: 500px;
+    height: 350px;
     display: flex;
     flex-direction: column;
     justify-content: center;

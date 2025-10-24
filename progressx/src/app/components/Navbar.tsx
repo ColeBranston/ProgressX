@@ -15,8 +15,22 @@ export default function Navbar(){
           <span className="X">X</span>
         </div>
         <div>
-          <form>
-            <input className={styles.searchbar} type={"search"}></input>
+          <form className={styles.searchForm}>
+            <svg xmlns="http://www.w3.org/2000/svg"
+              className={styles.searchIcon}
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke-width="2" 
+              stroke-linecap="round" 
+              stroke-linejoin="round" 
+              width="20" 
+              height="20"
+              aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+
+            <input className={styles.searchbar} placeholder="Search" type={"text"}/>
           </form>
           <ul className={styles.navbarList}>
             <li className={pathname == "/" ? styles.active : ""} onClick={()=>{router.push("/")}}>
