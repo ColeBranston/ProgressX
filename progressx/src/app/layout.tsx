@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import './global.css';
 import { IsLoadingProvider } from './contexts/isLoading'
 import LoadingScreen  from './components/LoadingScreen'
+import { UserDataProvider } from "./contexts/userData";
 
 
 const geistSans = Geist({
@@ -28,10 +29,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <IsLoadingProvider>
-          <LoadingScreen/>
-          {children}
-        </IsLoadingProvider>
+          <UserDataProvider>
+            <IsLoadingProvider>
+              <LoadingScreen/>
+              {children}
+            </IsLoadingProvider>
+          </UserDataProvider>
       </body>
     </html>
   );

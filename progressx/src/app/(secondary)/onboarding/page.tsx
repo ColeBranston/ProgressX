@@ -12,6 +12,7 @@ export default function Onboarding() {
     const [userEmail, setUserEmail] = useState('')
 
     // form states
+    const [username, setUsername] = useState('')
     const [name, setName] = useState('')
     const [height, setHeight] = useState('')
     const [weight, setWeight] = useState('')
@@ -65,6 +66,7 @@ export default function Onboarding() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            username: username,
             name: name,
             height: height,
             weight: weight,
@@ -75,9 +77,9 @@ export default function Onboarding() {
 
         if (data.ok) {
             setIsLoading(false)
+            console.log("Data has been entered")
             router.push('/')
         }
-
     }
 
     return(
@@ -96,6 +98,10 @@ export default function Onboarding() {
                                     <p className={styles.emailHeader}>Email: <span className={styles.userEmail}>{userEmail}</span></p>
                                 </div>
                                 <div className={styles.inputFieldContainer}>
+                                <div className={styles.inputWrapper}>
+                                        <label htmlFor='Username'>Username</label>
+                                        <input required id='Username' className={styles.inputField} placeholder='Username' type="text" onChange={(e) => {setUsername(e.target.value)}}/>
+                                    </div>
                                     <div className={styles.inputWrapper}>
                                         <label htmlFor='Name'>Name</label>
                                         <input required id='Name' className={styles.inputField} placeholder='Name' type="text" onChange={(e) => {setName(e.target.value)}}/>

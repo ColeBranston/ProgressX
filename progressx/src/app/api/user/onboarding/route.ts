@@ -5,9 +5,9 @@ import { supabase } from "@/app/supabaseClient/client";
 
 export async function POST(req: NextRequest) {
     const json = await req.json()
-    const { name, height, weight, age, gender} = json
+    const { username, name, height, weight, age, gender} = json
 
-    console.log(name, height, weight, age, gender)
+    console.log("Incoming details: ", username, name, height, weight, age, gender)
 
     const token = req.cookies?.get('token')?.value
 
@@ -18,6 +18,8 @@ export async function POST(req: NextRequest) {
 
             if (id) {
                 const { error: onboardingError } = await supabase.from("profiles").update({
+                    display_username: username,
+                    isOnboarded: true,
                     display_name: name,
                     height_cm: height,
                     weight_lbs: weight,
@@ -26,13 +28,7 @@ export async function POST(req: NextRequest) {
                 }).eq('id', id)
 
                 if (!onboardingError) {
-                    const { error: clearOnboardingError } = await supabase.from('profiles').update({
-                        isOnboarded: true
-                    }).eq('id', id)
-
-                    if (!clearOnboardingError) {
-                        return NextResponse.json({message: "onboarding information updated sucessfully"},{status: 201})
-                    }
+                    return NextResponse.json({message: "onboarding information updated sucessfully"},{status: 201})
                 }
 
                 return NextResponse.json({message: "Error updating onboarded status"}, {status: 505})

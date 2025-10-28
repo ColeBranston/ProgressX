@@ -1,0 +1,219 @@
+@import '../../global.css';
+
+.mainContainer {
+    font-family: var(--primary-font-family);
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    padding-right: 100px;
+    padding-top: 100px;
+}
+
+.profileHeaderContainer {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    height: 25%;
+    gap: 30px;
+}
+
+.profilePhotoContainer {
+    width: 180px;
+    height: 180px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--secondary-color);
+    border-radius: 50%;
+    border: 5px solid rgba(var(--primary-color));
+}
+
+.profileInfoContainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: center;
+}
+
+.profileInfoRow {
+    display: flex;
+    gap: 10px;
+    height: min-content;
+    align-items: center;
+}
+
+.profileInfoRow svg {
+    fill: white;
+    display: flex;
+    width: 30px;
+    height: 30px;
+    transition: fill 0.1s linear;
+}
+
+.profileStatsContainer {
+    display: flex;
+    gap: 4px;
+}
+
+.profileStatsText {
+    color: rgba(var(--primary-color));
+}
+
+.nameText {
+    color: var(--tertiary-color);
+    padding: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    margin-block-start: 1.5em;
+}
+
+.usernameText {
+    font-size: 30px;
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+.bioText {
+    font-family: var(--secondary-font-family);
+}
+
+.editProfileButton {
+    height: 45px;
+    width: 120px;
+    border-radius: 10px;
+    border: none;
+    font-family: var(--primary-font-family);
+    color: white;
+    font-size: 18px;
+    background-color: rgba(var(--primary-color));
+    transition: background-color 0.1s linear, 
+                color 0.1s linear;
+}
+
+.editProfileButton:hover {
+    cursor: pointer;
+    background-color: var(--secondary-color);
+    color: rgba(var(--primary-color));
+}
+
+.auxillaryButtons {
+    background-color: rgb(113, 113, 113, 0.2);
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 50px;
+    border-radius: 10px;
+    transition: background-color 0.1s linear;
+}
+
+.auxillaryButtons:hover {
+    cursor: pointer;
+    background-color: rgb(113, 113, 113, 0.1);
+}
+
+.auxillaryButtons:hover svg{
+    fill: rgba(var(--primary-color));
+}
+
+.selectorsList {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+    width: 70%;
+    margin: 0;
+    padding: 0;
+    font-size: 24px;
+    border-bottom: 2px solid rgb(113, 113, 113, 0.5);
+    position: relative;
+}
+
+.selectorsList li {
+    transition: color 0.1s linear;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    
+}
+
+.selectorsList li svg{
+    transition: fill 0.1s linear;
+    fill: var(--secondary-color);
+}
+
+.armSVG {
+    fill: black !important;
+    stroke: var(--secondary-color);
+    transition: stroke 0.1s linear !important;
+}
+
+.selectorsList li:hover {
+    color: rgba(var(--primary-color));
+    cursor: pointer;
+}
+
+.selectorsList li:hover svg{
+    fill: rgba(var(--primary-color));
+    cursor: pointer;
+}
+
+.selectorsList li:hover .armSVG{
+    stroke: rgba(var(--primary-color));
+    cursor: pointer;
+}
+
+.activeSelector {
+    color: rgba(var(--primary-color));
+}
+
+.activeSelector svg {
+    fill: rgba(var(--primary-color)) !important;
+}
+
+.activeSelector .armSVG {
+    fill: none !important;
+    stroke: rgba(var(--primary-color));
+}
+
+.firstPosition, .secondPosition, .thirdPosition, .fourthPosition {
+    position: absolute;
+    top: 97%;
+    height: 5px;
+    background-color: rgba(var(--primary-color));
+    transition: left 0.2s ease,
+                width 0.2s ease;
+    
+    border-radius: 5px;
+}
+
+.firstPosition {
+    left: 0;
+    width: 105px;
+}
+
+.secondPosition {
+    left: 120px;
+    width: 195px;
+}
+
+.thirdPosition {
+    left: 330px;
+    width: 145px;
+}
+
+.fourthPosition {
+    left: 485px;
+    width: 95px;
+}
+
+.selectedContentContainer {
+    width: 75%;
+    height: 100%;
+    background-color: purple;
+    margin-top: 30px;
+}

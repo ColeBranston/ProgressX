@@ -16,7 +16,7 @@ export async function middleware(req: NextRequest) {
 
     const userID = decoded?.payload?.sub
                         
-    const { error: isOnboardingError, data: userData } = await supabase.from("profiles").select("*").eq("id", userID).single()
+    const { error: isOnboardingError, data: userData } = await supabase.from("profiles").select("*", ).eq("id", userID).single()
 
     console.log("user data: ", userData)
 
@@ -42,5 +42,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/research"],
+  matcher: ["/", "/research", "/profile", "/mystats"],
 }

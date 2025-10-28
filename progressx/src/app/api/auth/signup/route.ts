@@ -20,13 +20,12 @@ export async function POST(req: Request) {
 
   const { error: profileError } = await supabase.from("profiles").insert({
     id: userId,
-    email,
-    profile_image: "/default.png",
+    email
   })
 
   if (profileError) {
     console.log("Error adding user to profiles table: ", profileError)
-    return NextResponse.json({message: `Error adding user to profiles table: ${profileError}`},{status: 505})
+    return NextResponse.json({message: `Error adding user to profiles table: ${profileError.message}`},{status: 505})
   }
 
   return NextResponse.json({ status: 201 })
