@@ -8,6 +8,7 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value
 
   if (!token) {
+    console.log("No token found, redirecting to login")
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
@@ -32,7 +33,9 @@ export async function middleware(req: NextRequest) {
     }
 
     return NextResponse.next()
-  } catch {
+  } catch (e){
+
+    console.log("Redirecting to Login with error: ", e)
 
     const res = NextResponse.redirect(new URL("/login", req.url))
     res.cookies.delete("token")

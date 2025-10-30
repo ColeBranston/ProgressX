@@ -5,6 +5,8 @@ import { useContext, useState } from "react";
 import "../../global.css"
 import styles from "./profile.module.css"
 
+import { VideosComponent } from '../../components/index'
+
 export default function profilePage() {
 
     const { userData } = useContext(userDataContext)
@@ -91,7 +93,25 @@ export default function profilePage() {
                     <div className={selector == 0? styles.firstPosition: selector == 1? styles.secondPosition: selector == 2? styles.thirdPosition: styles.fourthPosition}></div>
                 </ul>
                 <div className={styles.selectedContentContainer}>
+                    {selector == 0? 
 
+                     <VideosComponent/>
+                    
+                    : 
+                    
+                    selector == 1? 
+                    
+                    null 
+                    
+                    : 
+                    
+                    selector == 2? 
+                    
+                    null 
+                    
+                    : 
+                    
+                    null}
                 </div>
             </div>
         </div>
