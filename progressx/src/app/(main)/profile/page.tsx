@@ -5,7 +5,7 @@ import { useContext, useState } from "react";
 import "../../global.css"
 import styles from "./profile.module.css"
 
-import { VideosComponent } from '../../components/index'
+import { VideosComponent, ProgressPhotosComponent, FavouriteVideosComponent, LikedPhotosComponent } from '../../components/index'
 
 export default function profilePage() {
 
@@ -101,17 +101,18 @@ export default function profilePage() {
                     
                     selector == 1? 
                     
-                    null 
+                    <ProgressPhotosComponent/>
                     
                     : 
                     
                     selector == 2? 
                     
-                    null 
+                    <FavouriteVideosComponent/> 
                     
                     : 
                     
-                    null}
+                    <LikedPhotosComponent/>
+                    }
                 </div>
             </div>
         </div>

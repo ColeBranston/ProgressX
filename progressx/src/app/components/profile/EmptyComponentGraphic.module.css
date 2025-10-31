@@ -1,0 +1,14 @@
+.emptyComponentContainer {
+    width: 90%;
+    height: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+}
+
+.emptyComponentContainer img {
+    position: absolute;
+    right: 25%;
+    top: 43%;
+}

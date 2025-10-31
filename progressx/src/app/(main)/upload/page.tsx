@@ -54,14 +54,14 @@ export default function UploadPage() {
         </div>
 
         <div className={styles.uploadButtonContainer}>
-          <div onClick={() => {router.push('/')}} style={{ cursor: 'pointer' }}>
+          <div onClick={() => {router.push('/profile')}} style={{ cursor: 'pointer' }}>
             <svg width="130" height="130" viewBox="0 0 52 39" xmlns="http://www.w3.org/2000/svg">
                 <path d="M0.520996 14.6755C0.520996 11.5525 3.06015 9.01331 6.18322 9.01331H28.8321C31.9552 9.01331 34.4943 11.5525 34.4943 14.6755V37.3244C34.4943 40.4475 31.9552 42.9866 28.8321 42.9866H6.18322C3.06015 42.9866 0.520996 40.4475 0.520996 37.3244V14.6755ZM49.9858 12.1806C50.9059 12.6761 51.481 13.6316 51.481 14.6755V37.3244C51.481 38.3684 50.9059 39.3239 49.9858 39.8193C49.0657 40.3148 47.951 40.2617 47.0751 39.6778L38.5817 34.0156L37.3254 33.1751V18.8249L38.5817 17.9844L47.0751 12.3222C47.9421 11.7471 49.0569 11.6852 49.9858 12.1806Z"/>
             </svg>
             <p>Videos</p>
           </div>
 
-          <div onClick={() => {router.push('/')}} style={{ cursor: 'pointer' }}>
+          <div onClick={() => {router.push('/profile')}} style={{ cursor: 'pointer' }}>
             <svg width="130" height="130" viewBox="0 0 37 37" xmlns="http://www.w3.org/2000/svg">
                 <g clipPath="url(#clip0_97_63)">
                 <path d="M30.0625 13.875C33.8941 13.875 37 10.769 37 6.9375C37 3.10603 33.8941 0 30.0625 0C26.2309 0 23.125 3.10603 23.125 6.9375C23.125 10.769 26.2309 13.875 30.0625 13.875Z"/>
