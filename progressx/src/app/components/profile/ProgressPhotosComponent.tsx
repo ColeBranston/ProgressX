@@ -1,22 +1,91 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { IsLoadingContext } from "@/app/contexts/isLoading";
+import { ChangeEvent, HTMLInputTypeAttribute, useContext, useEffect, useRef, useState } from "react";
 import styles from './VideosComponent.module.css'
 
 export default function ProgressPhotosComponent() {
 
-    useEffect(()=> {
-        console.log("Videos Mounted")
-    },[])
-
-    async function handleVideoChange(e){
-          const file = e.target.files[0];
-          console.log('Selected image:', file);
-          // do something with the image file
-        };
-
     const videoForm = useRef<HTMLInputElement | null>(null)
     const [ isFormVisible, setIsFormVisible ] = useState(false)
+    const [ selectedImage, setSelectedImage ] = useState(null)
+    const [ selectedImageURL, setSelectedImageURL ]= useState('')
+    const [ isImageSelected, setIsImageSelected] = useState(false)
+
+    const [ toggleImageAdded, setToggleImageAdded ] = useState(false)
+
+    const [ userImages, setUserImages ] = useState(null)
+
+    const { setIsLoading } = useContext(IsLoadingContext)
+
+    useEffect(()=> {
+        console.log("Photos Mounted")
+
+        async function getData() {
+            const data = await fetch('api/user/userImages/getUserImages',{
+                method: "GET",
+            })
+
+            if (data.ok){
+                const body = await data.json()
+
+                setUserImages(body.images)
+
+                console.log("Incoming data: ", body.images)
+
+            } else {
+                console.error("Error fetching images: ", data)
+            }
+
+
+        }
+        
+        getData()
+        
+    },[toggleImageAdded])
+
+    function handleVideoChange(e: ChangeEvent<HTMLInputElement>){
+          const file: any = e?.target?.files?.[0]
+
+          setSelectedImage(file)
+          setSelectedImageURL(file? URL.createObjectURL(file): '')
+          setIsFormVisible(false)
+          setIsImageSelected(true)
+
+          console.log('Selected image:', file);
+          console.log("Form Visibility: ", isFormVisible)
+
+          e.target.value = ''
+        };
+
+    async function handleImageSubmit(){
+
+        if (!selectedImage) return
+
+        setIsLoading(true)
+
+        const form_data = new FormData()
+
+        form_data.append("file", selectedImage)
+
+        const data = await fetch('api/user/userImages/uploadUserImages',{
+            method: "POST",
+            body: form_data
+        })
+
+        if (data.ok) {
+            console.log("Fetch responded with: ", data)
+            
+            setSelectedImage(null)
+            setSelectedImageURL('')
+            setIsFormVisible(false)
+            setIsImageSelected(false)
+
+            setToggleImageAdded(!toggleImageAdded)
+        }
+
+        setIsLoading(false)
+    }
 
     return (
         <div className={styles.videosContainer}>
@@ -28,6 +97,21 @@ export default function ProgressPhotosComponent() {
                 </div>
                 <p>Add New Photo</p>
             </div>
+            {userImages?
+                Object.entries(userImages).map(([key, image]) => {
+                    return (
+                        <div className={styles.addVideoButtonContainer}>
+                            <div className={styles.addVideoButton} onClick={() => {
+
+                            }}>
+                                <img src={`${image.image_link}`} width={"100px"} height={"100px"}/>
+                            </div>
+                            <p>{image.created_at}</p>
+                        </div>
+                    )
+                })
+            :
+            null}
             {isFormVisible?
             <div className={styles.customFormContainer}>
                 <div className={styles.customForm} onClick={() => {videoForm?.current ? videoForm.current.click(): null}}>
@@ -42,7 +126,20 @@ export default function ProgressPhotosComponent() {
                 <p className={styles.exitButton} onClick={()=>{setIsFormVisible(false)}}>X</p>
             </div>
             :
-            null}
+            isImageSelected?
+            <div className={styles.customFormContainer}>
+                <div className={styles.customForm} onClick={() => {videoForm?.current ? videoForm.current.click(): null}}>
+                    <img src={selectedImageURL} width={"300px"} height={'300px'}/>
+                </div>
+                <button className={styles.submitImageButton} onClick={handleImageSubmit}>
+                    <svg width="30" height="30" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 3.3125V12.6875M12.6875 8H3.3125" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Add New
+                </button>
+                <p className={styles.exitButton} onClick={()=>{setIsImageSelected(false)}}>X</p>
+            </div>
+            :null}
 
             <form>
                 <input type="file"
