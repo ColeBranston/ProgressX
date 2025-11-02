@@ -36,6 +36,11 @@
     color: rgba(var(--primary-color));
 }
 
+.addVideoButtonContainer img{
+    border: 2px solid rgba(var(--primary-color), 0.2);
+
+}
+
 .addVideoButton {
     width: 150px;
     height: 200px;
@@ -111,6 +116,7 @@
     margin-block-end: 0;
     margin-block-start: 0;
     transition: color 0.1s linear;
+    user-select: none;
 }
 
 .exitButton:hover {
@@ -172,4 +178,118 @@
     color: rgba(var(--primary-color));
     stroke: rgba(var(--primary-color));
     background-color: var(--secondary-color);
+}
+
+.progressPhotoContainer {
+    width: 80%;
+}
+
+.highlightedImageContainer {
+    position: absolute;
+    top: 10%;
+    left: 27.5%;
+    width: 30%;
+    height: 45%;
+    padding: 10%;
+    background-color: black;
+    box-shadow: inset 0 0 20px 10px rgba(var(--primary-color), .5);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    animation: appear 0.1s forwards;
+}
+
+.highlightedImageContainer img {
+    border: 5px solid rgba(var(--primary-color));
+}
+
+.highlightedImageContainer svg{
+    stroke: white;
+    position: absolute;
+    top: 7%;
+    left: 7%;
+    transition: stroke 0.1s linear;
+}
+
+.highlightedImageContainer svg:hover {
+    stroke: rgba(var(--primary-color));
+    cursor: pointer;
+}
+
+.highlightedImageCreatedText {
+    position: absolute;
+    bottom: 20px;
+    font-family: var(--secondary-font-family);
+}
+
+.highlightedImageMoreSVG {
+    stroke: rgba(var(--primary-color)) !important;
+}
+
+.moreImageOptions {
+    width: 60px;
+    position: absolute;
+    top: 12.5%;
+    left: 7%;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    animation: optionsAppear 0.5s forwards;
+}
+
+@keyframes optionsAppear {
+    0% {
+        height: 0;
+    }
+    100%{
+        height: 60%;
+
+    }
+}
+
+.moreImageOptions svg {
+    fill: white;
+    stroke: black;
+    margin: 0;
+    transition: fill 0.1s linear;
+}
+
+.moreImageOptions svg:hover {
+    fill: rgba(var(--primary-color));
+    stroke: black;
+}
+
+.confirmDeleteContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.confirmDeleteContainer p {
+    font-size: 24px;
+    margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+.confirmDeleteContainer button {
+    height: 45px;
+    width: 120px;
+    border-radius: 10px;
+    border: none;
+    font-family: var(--primary-font-family);
+    color: white;
+    font-size: 18px;
+    background-color: rgba(var(--primary-color));
+    transition: background-color 0.1s linear, 
+                color 0.1s linear;
+}
+
+.confirmDeleteContainer button:hover {
+    cursor: pointer;
+    background-color: var(--secondary-color);
+    color: rgba(var(--primary-color));
 }

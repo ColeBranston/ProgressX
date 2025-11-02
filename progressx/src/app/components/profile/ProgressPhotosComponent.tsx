@@ -4,6 +4,8 @@ import { IsLoadingContext } from "@/app/contexts/isLoading";
 import { ChangeEvent, HTMLInputTypeAttribute, useContext, useEffect, useRef, useState } from "react";
 import styles from './VideosComponent.module.css'
 
+import dayjs from 'dayjs'
+
 export default function ProgressPhotosComponent() {
 
     const videoForm = useRef<HTMLInputElement | null>(null)
@@ -13,8 +15,13 @@ export default function ProgressPhotosComponent() {
     const [ isImageSelected, setIsImageSelected] = useState(false)
 
     const [ toggleImageAdded, setToggleImageAdded ] = useState(false)
+    const [ isSynced, setIsSynced ] = useState(false)
 
-    const [ userImages, setUserImages ] = useState(null)
+    const [ userImages, setUserImages ] = useState<string | null>(null)
+    const [ highlightedImage, setHighlightedImage ] = useState(null)
+
+    const [ isMore, setIsMore ] = useState(false)
+    const [ confirmDelete, setConfirmDelete ] = useState(false) 
 
     const { setIsLoading } = useContext(IsLoadingContext)
 
@@ -22,41 +29,73 @@ export default function ProgressPhotosComponent() {
         console.log("Photos Mounted")
 
         async function getData() {
-            const data = await fetch('api/user/userImages/getUserImages',{
-                method: "GET",
-            })
+            console.log(toggleImageAdded, isSynced)
+            if (!localStorage.getItem("user_photos")) {
+                const data = await fetch('api/user/userImages/getUserImages',{
+                    method: "GET",
+                })
 
-            if (data.ok){
-                const body = await data.json()
+                if (data.ok){
+                    const body = await data.json()
 
-                setUserImages(body.images)
+                    setUserImages(body.images)
 
-                console.log("Incoming data: ", body.images)
+                    localStorage.setItem("user_photos", JSON.stringify(body.images))
+
+                    console.log("Incoming data: ", body.images)
+
+                } else {
+                    console.error("Error fetching images: ", data)
+                }
 
             } else {
-                console.error("Error fetching images: ", data)
+                if (toggleImageAdded  != isSynced) {
+                    
+                    const data = await fetch('api/user/userImages/getUserImages',{
+                        method: "GET",
+                    })
+    
+                    if (data.ok){
+                        const body = await data.json()
+    
+                        setUserImages(body.images)
+    
+                        localStorage.setItem("user_photos", JSON.stringify(body.images))
+    
+                        console.log("Incoming data: ", body.images)
+    
+                    } else {
+                        console.error("Error fetching images: ", data)
+                    }
+
+                    setIsSynced(!isSynced)
+                } else{
+                    const images = localStorage.getItem("user_photos")
+                    setUserImages(JSON.parse(images))
+
+                    console.log("Found images from cache")
+                }
             }
 
-
+            
         }
         
         getData()
         
     },[toggleImageAdded])
 
-    function handleVideoChange(e: ChangeEvent<HTMLInputElement>){
-          const file: any = e?.target?.files?.[0]
+    async function handleVideoChange(e: ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
 
-          setSelectedImage(file)
-          setSelectedImageURL(file? URL.createObjectURL(file): '')
-          setIsFormVisible(false)
-          setIsImageSelected(true)
+        if (!file) return;
 
-          console.log('Selected image:', file);
-          console.log("Form Visibility: ", isFormVisible)
+        setSelectedImage(file);
+        setSelectedImageURL(URL.createObjectURL(file));
+        setIsFormVisible(false);
+        setIsImageSelected(true);
 
-          e.target.value = ''
-        };
+        e.target.value = "";
+    }
 
     async function handleImageSubmit(){
 
@@ -87,6 +126,34 @@ export default function ProgressPhotosComponent() {
         setIsLoading(false)
     }
 
+    async function handleDeleteImage() {
+
+        setIsLoading(true)
+
+        const data = await fetch('api/user/userImages/deleteUserImages',{
+            method: "POST",
+            body: JSON.stringify({
+                imageLink: JSON.stringify(highlightedImage.image_link)
+            })
+        })
+
+        if (data.ok) {
+            console.log("Image has been deleted successfully")
+
+            setHighlightedImage(null)
+            setIsMore(false)
+            setConfirmDelete(false)
+
+            setToggleImageAdded(!toggleImageAdded)
+
+        } else{
+            console.log("Image failed to be deleted")
+        }
+
+        setIsLoading(false)
+
+    }
+
     return (
         <div className={styles.videosContainer}>
             <div className={styles.addVideoButtonContainer}>
@@ -98,15 +165,15 @@ export default function ProgressPhotosComponent() {
                 <p>Add New Photo</p>
             </div>
             {userImages?
-                Object.entries(userImages).map(([key, image]) => {
+                Object.entries(userImages).reverse().map(([key, image]) => {
                     return (
                         <div className={styles.addVideoButtonContainer}>
-                            <div className={styles.addVideoButton} onClick={() => {
-
-                            }}>
-                                <img src={`${image.image_link}`} width={"100px"} height={"100px"}/>
+                            <div className={styles.addVideoButton} onClick={() => {setHighlightedImage(image)}}>
+                                <div className={styles.progressPhotoContainer}>
+                                    <img src={`${image.image_link}`} width={'100%'} height={"auto"}/>
+                                </div>
                             </div>
-                            <p>{image.created_at}</p>
+                            <p>{dayjs(image.created_at).format("MMMM D, YYYY")}</p>
                         </div>
                     )
                 })
@@ -140,6 +207,47 @@ export default function ProgressPhotosComponent() {
                 <p className={styles.exitButton} onClick={()=>{setIsImageSelected(false)}}>X</p>
             </div>
             :null}
+
+            { highlightedImage?
+
+            <div className={styles.highlightedImageContainer}>
+                {confirmDelete?
+                <div className={styles.confirmDeleteContainer}>
+                    <p>Confirm You Want to Delete This Image</p>
+                    <div style={{display: "flex", gap: "10px"}}>
+                        <button onClick={()=>{setConfirmDelete(false)}}>Cancel</button>
+                        <button onClick={handleDeleteImage}>Delete</button>
+                    </div>
+                </div>
+                :
+                <img src={highlightedImage.image_link} width={'auto'} height={'400px'}/>
+                }
+                <p className={styles.highlightedImageCreatedText}>{dayjs(highlightedImage.created_at).format("MMMM D, YYYY")}</p>
+                <svg className={isMore? styles.highlightedImageMoreSVG:''} width="60" height="60" viewBox="0 0 24 24"  xmlns="http://www.w3.org/2000/svg" onClick={()=> {setIsMore(!isMore)}}>
+                    <path d="M19.6668 7.20837H4.3335" stroke-linecap="round"/>
+                    <path d="M19.6668 12H4.3335" stroke-linecap="round"/>
+                    <path d="M19.6668 16.7916H4.3335" stroke-linecap="round"/>
+                </svg>
+                
+                {isMore?
+                    <div className={styles.moreImageOptions}>
+                        <svg width="50" height="50" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" onClick={()=> setConfirmDelete(!confirmDelete)}>
+                            <path d="M6.525 21C6.1125 21 5.7594 20.8531 5.46575 20.5592C5.1719 20.2656 5.025 19.9125 5.025 19.5V5.25H4.75C4.5375 5.25 4.35942 5.17765 4.21575 5.033C4.07192 4.8885 4 4.70934 4 4.4955C4 4.28184 4.07192 4.10417 4.21575 3.9625C4.35942 3.82084 4.5375 3.75 4.75 3.75H8.7C8.7 3.53334 8.7719 3.35417 8.91575 3.2125C9.0594 3.07084 9.2375 3 9.45 3H14.55C14.7625 3 14.9407 3.07184 15.0845 3.2155C15.2282 3.35934 15.3 3.5375 15.3 3.75H19.25C19.4625 3.75 19.6407 3.82234 19.7845 3.967C19.9282 4.1115 20 4.29066 20 4.5045C20 4.71816 19.9282 4.89583 19.7845 5.0375C19.6407 5.17915 19.4625 5.25 19.25 5.25H18.975V19.5C18.975 19.9125 18.8282 20.2656 18.5345 20.5592C18.2407 20.8531 17.8875 21 17.475 21H6.525ZM9.9295 17.35C10.1431 17.35 10.3208 17.2781 10.4625 17.1343C10.6041 16.9906 10.675 16.8125 10.675 16.6V8.125C10.675 7.9125 10.6027 7.73435 10.458 7.5905C10.3135 7.44685 10.1343 7.375 9.9205 7.375C9.70685 7.375 9.52915 7.44685 9.3875 7.5905C9.24585 7.73435 9.175 7.9125 9.175 8.125V16.6C9.175 16.8125 9.24735 16.9906 9.392 17.1343C9.5365 17.2781 9.71565 17.35 9.9295 17.35ZM14.0795 17.35C14.2932 17.35 14.4709 17.2781 14.6125 17.1343C14.7542 16.9906 14.825 16.8125 14.825 16.6V8.125C14.825 7.9125 14.7526 7.73435 14.608 7.5905C14.4635 7.44685 14.2844 7.375 14.0705 7.375C13.8569 7.375 13.6792 7.44685 13.5375 7.5905C13.3959 7.73435 13.325 7.9125 13.325 8.125V16.6C13.325 16.8125 13.3973 16.9906 13.542 17.1343C13.6865 17.2781 13.8657 17.35 14.0795 17.35Z" />
+                        </svg>
+                    </div>
+                : null
+                }
+
+                <p className={styles.exitButton} onClick={()=>{
+                    setHighlightedImage(null)
+                    setIsMore(false)
+                    setConfirmDelete(false)
+                    }}>X</p>
+            </div>
+
+            :null
+
+            }
 
             <form>
                 <input type="file"
