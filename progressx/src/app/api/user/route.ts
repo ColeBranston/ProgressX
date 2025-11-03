@@ -21,3 +21,11 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({Error: e})
     }
 }
+
+export async function POST(req: NextRequest) {
+    const { data } = await req.json()
+
+    console.log("Incoming user data: ", data)
+
+    return NextResponse.json({message: `Recieved user update, new data: ${data}`})
+}

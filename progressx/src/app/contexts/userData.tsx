@@ -6,6 +6,18 @@ export const userDataContext = createContext<any>(false)
 
 export function UserDataProvider({ children }: {children: any}){
 
+    async function syncUserData() {
+        const data = await fetch('api/user', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                data: userData
+            })
+        })
+    }
+
     const [userData, setUserData] = useState({
         username: null,
         name: null,

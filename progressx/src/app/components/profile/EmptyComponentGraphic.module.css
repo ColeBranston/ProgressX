@@ -10,5 +10,6 @@
 .emptyComponentContainer img {
     position: absolute;
     right: 25%;
-    top: 45%;
+    top: 0;
+    transform: translateY(400px) !important;
 }
