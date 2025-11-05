@@ -6,18 +6,6 @@ export const userDataContext = createContext<any>(false)
 
 export function UserDataProvider({ children }: {children: any}){
 
-    async function syncUserData() {
-        const data = await fetch('api/user', {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                data: userData
-            })
-        })
-    }
-
     const [userData, setUserData] = useState({
         username: null,
         name: null,
@@ -44,7 +32,28 @@ export function UserDataProvider({ children }: {children: any}){
     }, [])
 
     useEffect(()=> {
-        localStorage.setItem("userData", JSON.stringify(userData))
+        (async () => {
+            try {
+                localStorage.setItem("userData", JSON.stringify(userData));
+                console.log("User Data Changed: UserData: ", userData);
+                
+                const res = await fetch("/api/user", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ user: userData }),
+                });
+
+                if (!res.ok) {
+                console.error("User Data Update Failed");
+                } else {
+                console.log("User Data Update Completed Successfully");
+                }
+            } catch (err) {
+                console.error("Sync failed: ", err);
+            }
+            })();
     }, [userData])
 
     return(

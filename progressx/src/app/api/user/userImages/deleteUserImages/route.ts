@@ -1,3 +1,4 @@
+import { getPublicIdFromCloudinaryUrl } from "@/app/api/libs/helpers";
 import CloudinaryService from "@/app/cloundinaryClient/CloudinaryService";
 import { supabase } from "@/app/supabaseClient/client";
 import { NextRequest, NextResponse } from "next/server";
@@ -9,7 +10,7 @@ export async function POST(req: NextRequest) {
 
     console.log("Incoming image for deletion: ", imageLink)
 
-    const imageID = getPublicIdFromUrl(imageLink)
+    const imageID = getPublicIdFromCloudinaryUrl(imageLink)
 
     console.log("Image ID: ", imageID)
 
@@ -25,13 +26,3 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({message: `Error deleting image: supabase: ${deleteImageError}, cloudinary: ${deleteResponse}`}, {status: 500})
     }
 }
-
-function getPublicIdFromUrl(url: string) {
-    // remove domain + version + extension
-    const parts = url.split("/upload/");
-    const pathAndFile = parts[1]; // "v1698765432/uploads/my-image.jpg"
-    const withoutVersion = pathAndFile.split("/").slice(1).join("/"); // "uploads/my-image.jpg"
-    const publicId = withoutVersion.replace(/\.[^/.]+$/, ""); // remove extension
-    return publicId;
-  }
-  

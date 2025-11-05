@@ -23,9 +23,23 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const { data } = await req.json()
+    try {
+        const { user } = await req.json()
 
-    console.log("Incoming user data: ", data)
+        const token = req.cookies.get("token")?.value
 
-    return NextResponse.json({message: `Recieved user update, new data: ${data}`})
+        const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET)))?.payload?.sub
+
+        const { error: onboardingError } = await supabase.from("profiles").update({
+                    profile_image: user.pfp
+                }).eq('id', id)
+
+        if (onboardingError) {
+            throw new Error(`${onboardingError}`)
+        }
+
+        return NextResponse.json({message: `Recieved user update`})
+    } catch(e) {
+        console.log("Error: ", e)
+    }
 }

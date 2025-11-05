@@ -29,6 +29,8 @@
     background-color: var(--secondary-color);
     border-radius: 50%;
     border: 5px solid rgba(var(--primary-color));
+    user-select: none;
+    overflow: hidden;
 }
 
 .profileInfoContainer {
@@ -98,6 +100,23 @@
     cursor: pointer;
     background-color: var(--secondary-color);
     color: rgba(var(--primary-color));
+}
+
+.editProfileButtonActive {
+    background-color: var(--secondary-color);
+    color: rgba(var(--primary-color));
+    height: 45px;
+    width: 120px;
+    border-radius: 10px;
+    border: none;
+    font-family: var(--primary-font-family);
+    font-size: 18px;
+    transition: background-color 0.1s linear, 
+                color 0.1s linear;
+}
+
+.editProfileButtonActive:hover {
+    cursor: pointer;
 }
 
 .auxillaryButtons {
@@ -227,6 +246,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    user-select: none;
 
 }
 
