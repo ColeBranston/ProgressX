@@ -262,3 +262,12 @@
 .editProfileImageCover:hover svg{
     fill: rgba(var(--primary-color));
 }
+
+.togglePrivacyButton {
+    
+}
+
+.togglePrivacyButton:hover {
+    fill: rgba(var(--primary-color));
+    cursor: pointer;
+}

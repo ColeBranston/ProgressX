@@ -31,7 +31,8 @@ export async function POST(req: NextRequest) {
         const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET)))?.payload?.sub
 
         const { error: onboardingError } = await supabase.from("profiles").update({
-                    profile_image: user.pfp
+                    profile_image: user.pfp,
+                    profile_privacy: user.privacy
                 }).eq('id', id)
 
         if (onboardingError) {
@@ -40,6 +41,9 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({message: `Recieved user update`})
     } catch(e) {
-        console.log("Error: ", e)
+        console.log("Error: ", e.message)
+
+        return NextResponse.json({error: `Error updating profile: ${e.message}`}, {status: 500})
+
     }
 }
