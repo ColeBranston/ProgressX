@@ -1,11 +1,13 @@
 "use client";
+export const ssr = false;
 
 import { userDataContext } from "@/app/contexts/userData";
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import "../../global.css"
 import styles from "./profile.module.css"
 
 import { VideosComponent, ProgressPhotosComponent, FavouriteVideosComponent, LikedPhotosComponent } from '../../components/index'
+import { useParams, useSearchParams } from "next/navigation";
 
 export default function profilePage() {
 
@@ -74,6 +76,32 @@ export default function profilePage() {
         }
     }
 
+    const page = useSearchParams()?.get("page")
+
+    useEffect(() => {
+
+        if (page) {
+            switch(page) {
+                case "videos":
+                    setSelector(0)
+                    break
+                case "photos":
+                    setSelector(1)
+                    break
+                case "favourites":
+                    setSelector(2)
+                    break
+                case "liked":
+                    setSelector(3)
+                    break
+                default:
+                    console.error("Page Param Doesn't Exist: ", page)
+                    break
+            }
+        }
+        
+    }, [])
+
     return (
         <div className="mainWrapper">
             <div className={styles.mainContainer}>
@@ -107,7 +135,7 @@ export default function profilePage() {
                             <p className={styles.nameText}>{userData.name}</p>
                         </div>
                         <div className={styles.profileInfoRow}>
-                            <button className={isEdit? styles.editProfileButtonActive: styles.editProfileButton} onClick={()=>{setIsEdit(!isEdit)}}>Edit Profile</button>
+                            <button className={isEdit? styles.editProfileButtonActive: styles.editProfileButton} onClick={()=>{setIsEdit(!isEdit)}}>{isEdit? "Save Profile" : "Edit Profile"}</button>
                             <button className={styles.auxillaryButtons}>
                                 <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
                                     <g clipPath="url(#clip0_59_683)">
@@ -128,12 +156,23 @@ export default function profilePage() {
                             </button>
                         </div>
                         <div className={styles.profileInfoRow}>
-                            <p className={styles.profileStatsContainer}><span className={styles.profileStatsText}>{userData.following}</span>Following</p>
-                            <p className={styles.profileStatsContainer}><span className={styles.profileStatsText}>{userData.followers}</span>Followers</p>
-                            <p className={styles.profileStatsContainer}><span className={styles.profileStatsText}>{userData.likes}</span>Likes</p>
+                            <p className={styles.profileStatsContainer}><span className={styles.profileStatsText}>{userData.following ?? 0}</span>Following</p>
+                            <p className={styles.profileStatsContainer}><span className={styles.profileStatsText}>{userData.followers ?? 0}</span>Followers</p>
+                            <p className={styles.profileStatsContainer}><span className={styles.profileStatsText}>{userData.likes ?? 0}</span>Likes</p>
                         </div>
                         <div className={styles.profileInfoRow}>
-                            <p className={styles.bioText}> {userData.bio ?? "No Bio Yet"}</p>
+                            {isEdit? 
+                            <form style={{width: '100%', height: '100%'}}>
+                                <textarea className={styles.bioTextArea} placeholder={ userData.bio ? userData.bio :"No Bio Yet" } onChange={ 
+                                    (e) => setUserData(prev => ({
+                                                        ...prev,
+                                                        bio: e.target.value,
+                                                    }))}>
+                                </textarea>
+                            </form>
+                            :
+                            <p className={styles.bioText}>{ userData.bio ? userData.bio :"No Bio Yet" }</p>
+                            }
                         </div>
                     </div>
                 </div>

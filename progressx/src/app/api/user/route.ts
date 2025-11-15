@@ -32,7 +32,8 @@ export async function POST(req: NextRequest) {
 
         const { error: onboardingError } = await supabase.from("profiles").update({
                     profile_image: user.pfp,
-                    profile_privacy: user.privacy
+                    profile_privacy: user.privacy,
+                    profile_bio: user.bio
                 }).eq('id', id)
 
         if (onboardingError) {

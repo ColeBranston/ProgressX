@@ -5,10 +5,11 @@
     justify-content: center;
     align-items: center;
     font-size: 32px;
+    position: relative;
 }
 
 .emptyComponentContainer img {
     position: absolute;
-    right: 25%;
-    top: 46%;
+    right: 0;
+    top: 0;
 }

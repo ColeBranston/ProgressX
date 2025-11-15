@@ -55,7 +55,7 @@ export function UserDataProvider({ children }: { children: any }) {
         } catch (err) {
           console.error("Sync failed:", err);
         }
-      }, 10000), // ← 1 second debounce
+      }, 10000), // ← 10 second debounce
     []
   );
 

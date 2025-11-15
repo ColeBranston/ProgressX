@@ -5,6 +5,7 @@ import { ChangeEvent, HTMLInputTypeAttribute, useContext, useEffect, useRef, use
 import styles from './VideosComponent.module.css'
 
 import dayjs from 'dayjs'
+import { useSearchParams } from "next/navigation";
 
 export default function ProgressPhotosComponent() {
 
@@ -83,6 +84,15 @@ export default function ProgressPhotosComponent() {
         getData()
         
     },[toggleImageAdded])
+
+    const params = useSearchParams()
+    const submit = params.get("submit")
+
+    useEffect(() => {
+        if (submit) {
+            submit === "true"? setIsFormVisible(true) : null
+        }
+    }, [])
 
     async function handleVideoChange(e: ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
@@ -188,7 +198,7 @@ export default function ProgressPhotosComponent() {
                     </svg>
                     <p className={styles.customFormSelectHeader}>Select Photo to Upload</p>
                     <p className={styles.customFormSelectBody}>or drag and drop it here</p>
-                    <div className={styles.customFormButton}> Select Video </div>
+                    <div className={styles.customFormButton}> Select Image </div>
                 </div>
                 <p className={styles.exitButton} onClick={()=>{setIsFormVisible(false)}}>X</p>
             </div>
@@ -196,7 +206,7 @@ export default function ProgressPhotosComponent() {
             isImageSelected?
             <div className={styles.customFormContainer}>
                 <div className={styles.customForm} onClick={() => {videoForm?.current ? videoForm.current.click(): null}}>
-                    <img src={selectedImageURL} width={"300px"} height={'300px'}/>
+                    <img src={selectedImageURL} width={"auto"} height={'100%'}/>
                 </div>
                 <button className={styles.submitImageButton} onClick={handleImageSubmit}>
                     <svg width="30" height="30" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">

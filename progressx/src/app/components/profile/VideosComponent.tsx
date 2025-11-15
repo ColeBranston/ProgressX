@@ -2,11 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import styles from './VideosComponent.module.css'
+import { useSearchParams } from "next/navigation";
 
 export default function VideosComponent() {
 
+    const submit = useSearchParams().get("submit")
+
     useEffect(()=> {
         console.log("Videos Mounted")
+
+        if (submit) {
+                submit === "true"? setIsFormVisible(true) : null
+            }
     },[])
 
     async function handleVideoChange(e){

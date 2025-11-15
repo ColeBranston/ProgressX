@@ -81,6 +81,11 @@
 
 .bioText {
     font-family: var(--secondary-font-family);
+    font-size: 16px;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+    margin-block-start: 0;
+    margin-block-end: 1em;
 }
 
 .editProfileButton {
@@ -263,11 +268,31 @@
     fill: rgba(var(--primary-color));
 }
 
-.togglePrivacyButton {
-    
-}
-
 .togglePrivacyButton:hover {
     fill: rgba(var(--primary-color));
     cursor: pointer;
+}
+
+.bioTextArea {
+    width: 100%;
+    height: 100%;
+    background: none;
+    border: none;
+    text-decoration: none;
+    font-family: var(--secondary-font-family);
+    font-size: 16px;
+    outline: none;
+    color: rgba(var(--secondary-color));
+    resize: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.bioTextArea::placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
