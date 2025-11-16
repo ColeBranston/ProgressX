@@ -3,10 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import styles from './VideosComponent.module.css'
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "../../../../node_modules/next/navigation";
 
 export default function VideosComponent() {
 
-    const submit = useSearchParams().get("submit")
+    const params = useSearchParams()
+    const submit = params.get("videoSubmit")
+    const router = useRouter()
 
     useEffect(()=> {
         console.log("Videos Mounted")
@@ -14,6 +17,14 @@ export default function VideosComponent() {
         if (submit) {
                 submit === "true"? setIsFormVisible(true) : null
             }
+
+        if (params.get("photoSubmit")) {
+            const tempPath = window.location.pathname
+
+            tempPath.replace("photoSubmit=true", "")
+
+            router.replace(tempPath)
+        }
     },[])
 
     async function handleVideoChange(e){

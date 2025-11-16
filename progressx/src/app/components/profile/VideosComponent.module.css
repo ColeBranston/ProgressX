@@ -92,7 +92,7 @@
 }
 
 .customForm {
-    border: 3px dotted rgba(28, 28, 30, 0.6);
+    border: 3px dashed rgba(28, 28, 30, 0.6);
     border-radius: 15px;
     width: 60%;
     height: 60%;
@@ -104,7 +104,7 @@
 }
 
 .customForm:hover {
-    border: 3px dotted rgba(var(--primary-color), 0.6);
+    border: 3px dashed rgba(var(--primary-color), 0.6);
     cursor: pointer;
 }
 

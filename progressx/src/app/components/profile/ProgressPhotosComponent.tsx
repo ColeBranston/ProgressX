@@ -6,6 +6,7 @@ import styles from './VideosComponent.module.css'
 
 import dayjs from 'dayjs'
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "../../../../node_modules/next/navigation";
 
 export default function ProgressPhotosComponent() {
 
@@ -86,11 +87,22 @@ export default function ProgressPhotosComponent() {
     },[toggleImageAdded])
 
     const params = useSearchParams()
-    const submit = params.get("submit")
+    const submit = params.get("photoSubmit")
+
+    const router = useRouter()
 
     useEffect(() => {
         if (submit) {
             submit === "true"? setIsFormVisible(true) : null
+        }
+
+
+        if (params.get("videoSubmit")) {
+            const tempPath = window.location.pathname
+
+            tempPath.replace("videoSubmit=true", "")
+
+            router.replace(tempPath)
         }
     }, [])
 
