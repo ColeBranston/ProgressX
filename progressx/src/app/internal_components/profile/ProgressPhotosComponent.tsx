@@ -246,9 +246,9 @@ export default function ProgressPhotosComponent() {
                 }
                 <p className={styles.highlightedImageCreatedText}>{dayjs(highlightedImage.created_at).format("MMMM D, YYYY")}</p>
                 <svg className={isMore? styles.highlightedImageMoreSVG:''} width="60" height="60" viewBox="0 0 24 24"  xmlns="http://www.w3.org/2000/svg" onClick={()=> {setIsMore(!isMore)}}>
-                    <path d="M19.6668 7.20837H4.3335" stroke-linecap="round"/>
-                    <path d="M19.6668 12H4.3335" stroke-linecap="round"/>
-                    <path d="M19.6668 16.7916H4.3335" stroke-linecap="round"/>
+                    <path d="M19.6668 7.20837H4.3335" strokeLinecap="round"/>
+                    <path d="M19.6668 12H4.3335" strokeLinecap="round"/>
+                    <path d="M19.6668 16.7916H4.3335" strokeLinecap="round"/>
                 </svg>
                 
                 {isMore?

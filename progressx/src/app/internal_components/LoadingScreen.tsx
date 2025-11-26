@@ -1,7 +1,6 @@
 "use client"
 
 import styles from './loadingScreen.module.css'
-import '../global.css'
 import { useContext } from 'react'
 import { IsLoadingContext } from '../contexts/isLoading'
 

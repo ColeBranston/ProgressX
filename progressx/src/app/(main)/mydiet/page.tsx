@@ -3,14 +3,21 @@
 import { useEffect, useState } from 'react';
 import dayjs from 'dayjs'
 import styles from './dietpage.module.css'
+import { MacroBreakdown } from "../../internal_components/index"
+
+import "@radix-ui/themes/styles.css";
 
 export default function DietPage() {
 
     const [ daySelector, setDaySelector ] = useState(dayjs().day())
     const [ toggleAddItem, setToggleAddItem] = useState(false)
 
+    const [ addItemType, setAddItemType ] = useState<string | null>(null)
+
     function getDay(x: Number) {
         switch(x) {
+            case 0:
+                return "Sunday"
             case 1:
                 return "Monday"
             case 2:
@@ -23,8 +30,6 @@ export default function DietPage() {
                 return "Friday"
             case 6:
                 return "Saturday"
-            case 7:
-                return "Sunday"
             default:
                 console.error("No Day Found: ", x)
         }
@@ -62,22 +67,22 @@ export default function DietPage() {
                     <table>
                         <tbody>
                             <tr>
+                                <td><p>S</p></td>
                                 <td><p>M</p></td>
                                 <td><p>T</p></td>
                                 <td><p>W</p></td>
                                 <td><p>Th</p></td>
                                 <td><p>F</p></td>
                                 <td><p>S</p></td>
-                                <td><p>S</p></td>
                             </tr>
                             <tr>
-                                <td><button className={daySelector == 1? styles.selectedDay: undefined} disabled={dayjs().day() < 2} onClick={()=>setDaySelector(1)}/></td>
+                                <td><button className={daySelector == 0? styles.selectedDay: undefined} disabled={dayjs().day() < 0} onClick={()=>setDaySelector(0)}/></td>
+                                <td><button className={daySelector == 1? styles.selectedDay: undefined} disabled={dayjs().day() < 1} onClick={()=>setDaySelector(1)}/></td>
                                 <td><button className={daySelector == 2? styles.selectedDay: undefined} disabled={dayjs().day() < 2} onClick={()=>setDaySelector(2)}/></td>
                                 <td><button className={daySelector == 3? styles.selectedDay: undefined} disabled={dayjs().day() < 3} onClick={()=>setDaySelector(3)}/></td>
                                 <td><button className={daySelector == 4? styles.selectedDay: undefined} disabled={dayjs().day() < 4} onClick={()=>setDaySelector(4)}/></td>
                                 <td><button className={daySelector == 5? styles.selectedDay: undefined} disabled={dayjs().day() < 5} onClick={()=>setDaySelector(5)}/></td>
                                 <td><button className={daySelector == 6? styles.selectedDay: undefined} disabled={dayjs().day() < 6} onClick={()=>setDaySelector(6)}/></td>
-                                <td><button className={daySelector == 7? styles.selectedDay: undefined} disabled={dayjs().day() < 7} onClick={()=>setDaySelector(7)}/></td>
                             </tr>
                         </tbody>
                     </table>
@@ -91,20 +96,41 @@ export default function DietPage() {
                             </svg>
                         </button>
                     </div>
-                    {toggleAddItem ?
+                    {toggleAddItem?
 
                     <div className={styles.addFoodItemContainer}>
-                        <div className={styles.addFoodItemButtons}>
-                            <p>Add Manually</p>
-                        </div>
-                        <div className={styles.addFoodItemButtons}>
-                            <p>Quick Add</p>
-                        </div>    
+                        {addItemType?
+                        
+                        (addItemType === "manual" ?
+                            <button onClick={()=>setAddItemType(null)}>Back</button>
+
+                            :
+
+                            addItemType === "quick" ?
+                                <button onClick={()=>setAddItemType(null)}>Back</button>
+
+                            :
+                            
+                            null
+                        )
+                        :
+                        <>
+                            <div className={styles.addFoodItemButtons} onClick={()=>setAddItemType("manual")}>
+                                <p>Add Manually</p>
+                            </div>
+                            <div className={styles.addFoodItemButtons} onClick={()=>setAddItemType("quick")}>
+                                <p>Quick Add</p>
+                            </div>
+                        </>
+                        }
                     </div>
                     
                     :
-                    
-                    null}
+
+                    <div className={styles.macroBreakdownContainer}>
+                        <MacroBreakdown p={5} c={10} f={15}/>
+                    </div>
+                    }
                 </div>
             </div>
         </div>

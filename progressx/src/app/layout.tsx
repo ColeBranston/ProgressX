@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+
 import './global.css';
+
 import { IsLoadingProvider } from './contexts/isLoading'
-import LoadingScreen  from './components/LoadingScreen'
+import LoadingScreen  from './internal_components/LoadingScreen'
 import { UserDataProvider } from "./contexts/userData";
 
 

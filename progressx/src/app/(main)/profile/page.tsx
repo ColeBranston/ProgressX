@@ -3,10 +3,9 @@ export const ssr = false;
 
 import { userDataContext } from "@/app/contexts/userData";
 import { useContext, useEffect, useRef, useState } from "react";
-import "../../global.css"
 import styles from "./profile.module.css"
 
-import { VideosComponent, ProgressPhotosComponent, FavouriteVideosComponent, LikedPhotosComponent } from '../../components/index'
+import { VideosComponent, ProgressPhotosComponent, FavouriteVideosComponent, LikedPhotosComponent } from '../../internal_components/index'
 import { useParams, useSearchParams } from "next/navigation";
 
 export default function profilePage() {

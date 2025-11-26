@@ -1,7 +1,6 @@
 "use client";
 
 import styles from './page.module.css';
-import '@/app/global.css'
 import { useContext, useEffect } from 'react';
 import { userDataContext } from '../contexts/userData';
 

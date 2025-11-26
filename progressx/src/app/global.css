@@ -3,55 +3,55 @@
 
 :root {
     --primary-color: 226, 0, 0;
-    --dont-use-color-rgb: rgb(226, 0, 0);
+    --dont-use-color-rgb: rgb(226, 0, 0) !important;
 
-    --secondary-color: #FFFFFF;
-    --tertiary-color: rgb(226, 0, 0, 0.5);
-    --primary-background-color: #000000;
-    --secondary-background-color: rgba(28, 28, 30, 0.4);
+    --secondary-color: #FFFFFF !important;
+    --tertiary-color: rgb(226, 0, 0, 0.5) !important;
+    --primary-background-color: #000000 !important;
+    --secondary-background-color: rgba(28, 28, 30, 0.4) !important;
 
-    --primary-accent-color: rgba(142, 142, 147, 0.836);
-    --primary-font-family: Anton;
-    --secondary-font-family:'Inter', sans-serif;
+    --primary-accent-color: rgba(142, 142, 147, 0.836) !important;
+    --primary-font-family: Anton !important;
+    --secondary-font-family:'Inter', sans-serif !important;
 
-    --primary-input-background-color: rgb(113, 113, 113, 0.1);
+    --primary-input-background-color: rgb(113, 113, 113, 0.1) !important;
 }
 
 body {
-    display: flex;
-    background-color: var(--primary-background-color);
-    padding: 0;
-    margin: 0;
-    overflow-y: hidden;
+    display: flex !important;
+    background-color: var(--primary-background-color) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow-y: hidden !important;
 }
 
 
 .mainLogo {
-    display: flex inline;
-    justify-content: center;
-    align-items: center;
-    font-family: var(--primary-font-family);
-    width: 150px;
-    height: 50px;
-    font-size: 200%;
-    position: relative;
-    user-select: none;
-    font-family: var(--primary-font-family);
+    display: flex inline !important;
+    justify-content: center !important;
+    align-items: center !important;
+    font-family: var(--primary-font-family) !important;
+    width: 150px !important;
+    height: 50px !important;
+    font-size: 200% !important;
+    position: relative !important;
+    user-select: none !important;
+    font-family: var(--primary-font-family) !important;
 }
 
 .mainLogo .progress {
-    color: white;
+    color: white !important;
 }
 
 .mainLogo .X {
-    color: rgba(var(--primary-color));
-    font-size: 150%;
-    padding-top: 2px;
+    color: rgba(var(--primary-color)) !important;
+    font-size: 150% !important;
+    padding-top: 2px !important;
 }
 
 .mainWrapper {
-    width: 75%;
-    height: 100%;
-    display: flex;
-    color: white;
+    width: 75% !important;
+    height: 100% !important;
+    display: flex !important;
+    color: white !important;
 }
