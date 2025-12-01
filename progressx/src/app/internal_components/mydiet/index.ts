@@ -1,1 +1,1 @@
-export { default as MacroBreakdown } from './MacroBreakdown'
+export { default as MacroBreakdown } from './AnalyticsBar'

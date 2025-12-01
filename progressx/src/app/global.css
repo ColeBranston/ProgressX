@@ -14,7 +14,7 @@
     --primary-font-family: Anton !important;
     --secondary-font-family:'Inter', sans-serif !important;
 
-    --primary-input-background-color: rgb(113, 113, 113, 0.1) !important;
+    --primary-input-background-color: rgb(11, 11, 11) !important;
 }
 
 body {
@@ -50,7 +50,8 @@ body {
 }
 
 .mainWrapper {
-    width: 75% !important;
+    padding-left: 5%;
+    width: 100% !important;
     height: 100% !important;
     display: flex !important;
     color: white !important;

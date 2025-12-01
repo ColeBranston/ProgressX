@@ -1,0 +1,51 @@
+.outerBarContainer {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: var(--primary-font-family);
+}
+
+.smallBar {
+    width: 200px;
+    height: 50px;
+}
+
+.normalBar {
+    width: 280px;
+    height: 70px;
+}
+
+.outerBarContainer p {
+    margin-block: 0;
+    margin-inline: 0;
+    z-index: 2;
+}
+
+.barContainer {
+    --barColour: red;
+    --barSize: 0px;
+
+    background-color: var(--barColour);
+    width: 100%;
+    height: 100%;
+    opacity: 0.2;
+    position: absolute;
+    z-index: 0;
+}
+
+ .innerBarContainer {
+    --barColour: red;
+    --barSize: 0px;
+
+    background-color: var(--barColour);
+    opacity: 1;
+    width: var(--barSize);
+    height: 100%;
+    position: absolute;
+    left: 0;
+    transition: width 0.1s ease-out;
+    z-index: 1;
+}

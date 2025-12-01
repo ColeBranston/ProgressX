@@ -15,23 +15,25 @@ export default function Navbar(){
           <span className="X">X</span>
         </div>
         <div>
-          <form className={styles.searchForm}>
-            <svg xmlns="http://www.w3.org/2000/svg"
-              className={styles.searchIcon}
-              viewBox="0 0 24 24" 
-              fill="none" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              width="20" 
-              height="20"
-              aria-hidden="true">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
+          <div className={styles.searchFormContainer}>
+            <form className={styles.searchForm}>
+              <svg xmlns="http://www.w3.org/2000/svg"
+                className={styles.searchIcon}
+                viewBox="0 0 24 24" 
+                fill="none" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                width="20" 
+                height="20"
+                aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
 
-            <input className={styles.searchbar} placeholder="Search" type={"text"}/>
-          </form>
+              <input className={styles.searchbar} placeholder="Search" type={"text"}/>
+            </form>
+          </div>
           <ul className={styles.navbarList}>
             <li className={pathname == "/" ? styles.active : ""} onClick={()=>{router.push("/")}}>
               <svg width="30" height="33" viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">

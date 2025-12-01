@@ -1,3 +1,6 @@
+.searchFormContainer {
+  width: 175px;
+}
 
 .searchForm {
   position: relative;
@@ -5,13 +8,13 @@
 
 .searchIcon {
   position: absolute;
-  top: 40%;
-  left: 5%;
+  top: 42.5%;
+  left: 15px;
   stroke: white;
 }
 
 .navBar {
-    width: 25%;
+    width: auto;
     height: 100vh;
     background-color: none;
     display: flex;
@@ -53,6 +56,7 @@
     display: flex;
     flex-direction: column;
     margin-top: 30px;
+    width: min-content;
 }
 
 .navbarList li{
@@ -61,7 +65,7 @@
     background-color: none;
     display: flex;
     gap: 15px;
-    width: 50%;
+    width: auto;
     font-size: 23px;
     margin-top: 10px !important;
     transition: color 0.1s linear;

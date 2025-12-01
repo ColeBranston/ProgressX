@@ -5,8 +5,6 @@ import dayjs from 'dayjs'
 import styles from './dietpage.module.css'
 import { MacroBreakdown } from "../../internal_components/index"
 
-import "@radix-ui/themes/styles.css";
-
 export default function DietPage() {
 
     const [ daySelector, setDaySelector ] = useState(dayjs().day())
@@ -102,8 +100,9 @@ export default function DietPage() {
                         {addItemType?
                         
                         (addItemType === "manual" ?
+                            <>
                             <button onClick={()=>setAddItemType(null)}>Back</button>
-
+                            </>
                             :
 
                             addItemType === "quick" ?
@@ -127,10 +126,27 @@ export default function DietPage() {
                     
                     :
 
-                    <div className={styles.macroBreakdownContainer}>
-                        <MacroBreakdown p={5} c={10} f={15}/>
-                    </div>
+                    null
                     }
+                     <div className={styles.dietAnalytics}>
+                        <p className={styles.dietAnalyticsHeaders}>Macros</p>
+                        <MacroBreakdown name={'Protein'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
+                        <MacroBreakdown name={'Carbohydrates'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
+                        <MacroBreakdown name={'Fats'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
+
+                        <p className={styles.dietAnalyticsHeaders}>Micros</p>
+                        <MacroBreakdown name={'Vitamin D'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                        <MacroBreakdown name={'Vitamin B(12)'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                        <MacroBreakdown name={'Folate (B9)'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                        <MacroBreakdown name={'Vitamin C'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                        <MacroBreakdown name={'Iron'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                        <MacroBreakdown name={'Calcium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                        <MacroBreakdown name={'Magnesium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                        <MacroBreakdown name={'Potassium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                        <MacroBreakdown name={'Zinc'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                        <MacroBreakdown name={'Iodine'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+
+                    </div>
                 </div>
             </div>
         </div>

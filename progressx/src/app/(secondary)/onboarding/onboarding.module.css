@@ -82,12 +82,12 @@ body {
 }
 
 .logoExtra {
-    font-size: 64px;
-    width: 100%;
-    height: max-content;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    font-size: 64px !important;
+    width: 100% !important;
+    height: max-content !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
 @keyframes formShiftUp {
