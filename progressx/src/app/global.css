@@ -14,7 +14,7 @@
     --primary-font-family: Anton !important;
     --secondary-font-family:'Inter', sans-serif !important;
 
-    --primary-input-background-color: rgb(11, 11, 11) !important;
+    --primary-input-background-color: rgb(113, 113, 113, 0.1) !important;
 }
 
 body {
