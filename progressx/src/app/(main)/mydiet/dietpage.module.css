@@ -99,7 +99,7 @@
     align-items: center;
     flex-direction: column;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 
 }
 
@@ -119,6 +119,7 @@
     justify-content: center;
     align-items: center;
     gap: 20px;
+    z-index: 1;
 }
 
 @keyframes toggleAddItem {
@@ -193,17 +194,25 @@
 
 .dietAnalytics {
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
-    width: 50%;
+    width: min-content;
     height: 95%;
     left: 51%;
     top: 2.5%;
     position: absolute;
-    z-index: -1;
+    z-index: 0;
     padding-left: 5%;
+    gap: 30px;
+}
+
+.analyticsContainer {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-direction: column;
+    width: min-content;
+    height: 100%;
+    gap: 10px;
+
 }
 
 .dietAnalyticsHeaders {
@@ -212,4 +221,85 @@
     margin: 0;
     width: 66%;
     color: var(--tertiary-color);
+}
+
+.calorieContainer {
+    width: min-content;
+    height: 100%;
+    position: absolute;
+    right: -70%;
+    top: -5px;
+    display: flex;
+    gap: 60px;
+}
+
+.customButtonContainer {
+    height: 100% !important;
+    width: 50%;
+    display: flex;
+    position: relative;
+}
+
+.customButton {
+    height: 100px;
+    width: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 2px solid var(--secondary-color);
+    font-family: var(--primary-font-family);
+    position: absolute;
+    top: 32.5%;
+    gap: 10px;
+    user-select: none;
+    transition: color 0.1s linear,
+                border-bottom 0.1s linear;
+}
+
+.customButton:hover {
+    cursor: pointer;
+    color: rgba(var(--primary-color));
+    border-bottom: 2px solid rgba(var(--primary-color));
+
+}
+
+.customButton ul {
+    list-style: none;
+    width: min-content;
+    height: min-content;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    gap: 10px;
+}
+
+.customButton li {
+    background-color: white;
+    border-radius: 100%;
+    transition: background-color 0.15s linear;
+
+}
+
+.customButton p {
+    margin: 0;
+    width: 50px;
+}
+
+.highlightedGoalItem {
+    background-color: rgba(var(--primary-color)) !important;
+    transition: background-color 0.15s linear;
+}
+
+.caloriesHeader {
+    position: absolute;
+    font-family: var(--primary-font-family);
+    color: var(--tertiary-color);
+    font-size: 40px;
+    width: 500px;
+    bottom: 250px;
+    left: -325px;
+    transform: rotate(-90deg);
 }

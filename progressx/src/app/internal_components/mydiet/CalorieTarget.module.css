@@ -1,0 +1,27 @@
+.calorieBarContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: min-content;
+    height: min-content;
+    color: var(--secondary-color);
+    font-family: var(--primary-font-family);
+}
+
+.segment {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 10%;
+    width: 100px;
+    border-left: 3px solid rgba(var(--primary-color));
+    border-right: 3px solid rgba(var(--primary-color));
+    border-top: 3px dashed rgba(var(--primary-color))
+}
+
+.segment p {
+    margin: 0;
+    padding-top: 12.5px;
+    padding-bottom: 12.5px;
+}

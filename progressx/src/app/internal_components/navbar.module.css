@@ -22,10 +22,12 @@
     justify-content: center;
     font-family: var(--primary-font-family);
     padding-left: 4%;
+    padding-right: 4%;
+    background-color: rgb(11, 11, 11); /* Still deciding on this */
 }
 
 .searchbar {
-  background-color: var(--primary-input-background-color);
+  background-color: rgb(11, 11, 11);
   border-radius: 100px;
   outline: none;
   border: none;

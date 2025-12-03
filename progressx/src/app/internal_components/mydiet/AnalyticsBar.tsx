@@ -23,7 +23,7 @@ export default function AnalyticsBar({
     <div className={`${styles.outerBarContainer} ${size=="small"? styles.smallBar : size=="normal"? styles.normalBar : undefined}`}>
       <div className={styles.barContainer} style={{"--barColour":`${colour}`} as React.CSSProperties}></div>
       <div className={styles.innerBarContainer} style={{"--barColour":`${colour}`, "--barSize":`${(val/total)*100}%`} as React.CSSProperties}></div>
-      <p>{name}: {val}/{total} {measure}</p>
+      <p style={size=="small"? {fontSize: "13px"} : size=="normal"? {fontSize: "16px"} : undefined}>{name}: {val}/{total} {measure}</p>
     </div>
   )
 }

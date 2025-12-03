@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import dayjs from 'dayjs'
 import styles from './dietpage.module.css'
-import { MacroBreakdown } from "../../internal_components/index"
+import { AnalyticsBar, CalorieTarget, goalType } from "../../internal_components/index"
 
 export default function DietPage() {
 
@@ -12,6 +12,8 @@ export default function DietPage() {
 
     const [ addItemType, setAddItemType ] = useState<string | null>(null)
 
+    const [ goalState, setGoalState ] = useState<goalType>("Maintain")
+
     function getDay(x: Number) {
         switch(x) {
             case 0:
@@ -19,7 +21,7 @@ export default function DietPage() {
             case 1:
                 return "Monday"
             case 2:
-                return "Tueseday"
+                return "Tuesday"
             case 3:
                 return "Wednesday"
             case 4:
@@ -30,6 +32,25 @@ export default function DietPage() {
                 return "Saturday"
             default:
                 console.error("No Day Found: ", x)
+        }
+    }
+
+    function cycleGoalState() {
+        switch(goalState) {
+            case "Deficit":
+                setGoalState("Maintain")
+                break;
+
+            case "Maintain":
+                setGoalState("Surplus")
+                break;
+
+            case "Surplus":
+                setGoalState("Deficit")
+                break;
+
+            default:
+                console.error("Improper Goal State Found: ", goalState)
         }
     }
 
@@ -129,23 +150,39 @@ export default function DietPage() {
                     null
                     }
                      <div className={styles.dietAnalytics}>
-                        <p className={styles.dietAnalyticsHeaders}>Macros</p>
-                        <MacroBreakdown name={'Protein'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
-                        <MacroBreakdown name={'Carbohydrates'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
-                        <MacroBreakdown name={'Fats'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
+                        <div className={styles.analyticsContainer}>
+                            <p className={styles.dietAnalyticsHeaders}>Macros</p>
+                            <AnalyticsBar name={'Protein'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
+                            <AnalyticsBar name={'Carbohydrates'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
+                            <AnalyticsBar name={'Fats'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
 
-                        <p className={styles.dietAnalyticsHeaders}>Micros</p>
-                        <MacroBreakdown name={'Vitamin D'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                        <MacroBreakdown name={'Vitamin B(12)'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                        <MacroBreakdown name={'Folate (B9)'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                        <MacroBreakdown name={'Vitamin C'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                        <MacroBreakdown name={'Iron'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                        <MacroBreakdown name={'Calcium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                        <MacroBreakdown name={'Magnesium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                        <MacroBreakdown name={'Potassium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                        <MacroBreakdown name={'Zinc'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                        <MacroBreakdown name={'Iodine'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <p className={styles.dietAnalyticsHeaders}>Micros</p>
+                            <AnalyticsBar name={'Vitamin D'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <AnalyticsBar name={'Vitamin B(12)'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <AnalyticsBar name={'Folate (B9)'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <AnalyticsBar name={'Vitamin C'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <AnalyticsBar name={'Iron'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <AnalyticsBar name={'Calcium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <AnalyticsBar name={'Magnesium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <AnalyticsBar name={'Potassium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <AnalyticsBar name={'Zinc'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <AnalyticsBar name={'Iodine'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                        </div>
+                        <div className={styles.calorieContainer}>
+                            <p className={styles.caloriesHeader}>Caloric Intake</p>
+                            <CalorieTarget goal={goalState} upper={2000} lower={1000}/>
+                            <div className={styles.customButtonContainer}>
+                                <div onClick={cycleGoalState} className={styles.customButton}>                               
+                                    <ul>
+                                        <li style={{height: "15px", width: "15px"}} className={goalState=='Surplus'? styles.highlightedGoalItem : undefined}/>
+                                        <li style={{height: "12.5px", width: "12.5px"}} className={goalState=='Maintain'? styles.highlightedGoalItem : undefined}/>
+                                        <li style={{height: "10px", width: "10px"}} className={goalState=='Deficit'? styles.highlightedGoalItem : undefined}/>
+                                    </ul>
 
+                                    <p>{goalState}</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
