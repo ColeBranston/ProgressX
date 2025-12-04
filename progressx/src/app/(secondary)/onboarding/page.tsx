@@ -18,10 +18,20 @@ export default function Onboarding() {
     const [weight, setWeight] = useState('')
     const [age, setAge] = useState('')
     const [gender, setGender] = useState('male')
+    const [activity, setActivity] = useState<string>("Sedentary")
 
     const {setIsLoading} = useContext(IsLoadingContext)
 
     const router = useRouter()
+
+    //Activity Options and there associated value for faster database indexing
+    const activityMap: Record<string, number> = {
+        "Sedentary (Little to no exercise)": 1,
+        "Lightly Active (Light exercise 1-3 days/week)": 2,
+        "Moderately Active (Moderate exercise 3-5 days/week)": 3,
+        "Very Active (Hard exercise 6-7 days/week)": 4, 
+        "Extra Active (Very hard exercise, physical job)": 5
+    }
 
     useEffect(() => {
         async function checkToken() {
@@ -71,14 +81,18 @@ export default function Onboarding() {
             height: height,
             weight: weight,
             age: age,
-            gender: gender
+            gender: gender,
+            activity: activityMap[activity]
           }),
         });
 
         if (data.ok) {
             setIsLoading(false)
-            console.log("Data has been entered")
-            router.push('/')
+            console.log("Data has been entered: ", await data.json())
+            router.replace("/")
+        } else {
+            setIsLoading(false)
+
         }
     }
 
@@ -119,10 +133,20 @@ export default function Onboarding() {
                                         <input required id='Weight' className={styles.inputField} placeholder='Weight' type="number" onChange={(e) => {setWeight(e.target.value)}}/>
                                     </div>
                                     <div className={styles.inputWrapper}>
+                                        <label htmlFor='Activity'>Workout Frequency</label>
+                                        <select id='Activity' className={styles.selectField} onChange={(e) => {setActivity(e.target.value)}}>
+                                            {
+                                                Object.keys(activityMap).map((Word) => {
+                                                    return <option value={Word}>{Word}</option>
+                                                })
+                                            }
+                                        </select>
+                                    </div>
+                                    <div className={styles.inputWrapper}>
                                         <label htmlFor='Gender'>Gender</label>
                                         <select id='Gender' className={styles.selectField} onChange={(e) => {setGender(e.target.value)}}>
-                                            <option className={styles.maleSelect} value={'male'}>Male</option>
-                                            <option className={styles.femaleSelect} value={'female'}>Female</option>
+                                            <option value={'male'}>Male</option>
+                                            <option value={'female'}>Female</option>
                                         </select>
                                     </div>
                                 </div>

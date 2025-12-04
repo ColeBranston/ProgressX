@@ -214,7 +214,7 @@ body {
 }
 
 .selectField option {
-    background: var(--secondary-background-color);
+    background: black;
 }
 
 .submitButton {

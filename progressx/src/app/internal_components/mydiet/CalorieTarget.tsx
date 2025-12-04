@@ -6,7 +6,8 @@ import styles from './CalorieTarget.module.css'
 export type goalType = ("Deficit" | "Maintain" | "Surplus") 
 
 type targetType = {
-    goal?: goalType
+    upperGoal?: number,
+    lowerGoal?: number
     upper?: number,
     lower?: number,
     curr?: number
@@ -21,9 +22,9 @@ function getSegment(upper: number, lower: number) {
 }
 
 export default function CalorieTarget({
-    goal = "maintain",
-    upper = 0,
-    lower = 0,
+    
+    upper = 1500,
+    lower = 500,
     curr = 0
 }: targetType) {
 

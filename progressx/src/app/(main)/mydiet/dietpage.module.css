@@ -6,6 +6,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    padding-left: 5%;
 }
 
 .daysDots {
@@ -298,8 +299,8 @@
     font-family: var(--primary-font-family);
     color: var(--tertiary-color);
     font-size: 40px;
-    width: 500px;
+    width: 300px;
     bottom: 250px;
-    left: -325px;
-    transform: rotate(-90deg);
+    left: 100%;
+    margin: 0;
 }

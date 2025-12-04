@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import dayjs from 'dayjs'
 import styles from './dietpage.module.css'
 import { AnalyticsBar, CalorieTarget, goalType } from "../../internal_components/index"
+import { userDataContext } from '@/app/contexts/userData';
 
 export default function DietPage() {
+
+    const config = {
+
+    }
 
     const [ daySelector, setDaySelector ] = useState(dayjs().day())
     const [ toggleAddItem, setToggleAddItem] = useState(false)
@@ -13,6 +18,8 @@ export default function DietPage() {
     const [ addItemType, setAddItemType ] = useState<string | null>(null)
 
     const [ goalState, setGoalState ] = useState<goalType>("Maintain")
+
+    const { userData } = useContext(userDataContext)
 
     function getDay(x: Number) {
         switch(x) {
@@ -170,7 +177,7 @@ export default function DietPage() {
                         </div>
                         <div className={styles.calorieContainer}>
                             <p className={styles.caloriesHeader}>Caloric Intake</p>
-                            <CalorieTarget goal={goalState} upper={2000} lower={1000}/>
+                            <CalorieTarget upper={2000} lower={1000}/>
                             <div className={styles.customButtonContainer}>
                                 <div onClick={cycleGoalState} className={styles.customButton}>                               
                                     <ul>

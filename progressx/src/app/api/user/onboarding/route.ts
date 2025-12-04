@@ -5,9 +5,9 @@ import { supabase } from "@/app/supabaseClient/client";
 
 export async function POST(req: NextRequest) {
     const json = await req.json()
-    const { username, name, height, weight, age, gender} = json
+    const { username, name, height, weight, age, gender, activity} = json
 
-    console.log("Incoming details: ", username, name, height, weight, age, gender)
+    console.log("Incoming details: ", username, name, height, weight, age, gender, activity)
 
     const token = req.cookies?.get('token')?.value
 
@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
                     height_cm: height,
                     weight_lbs: weight,
                     age,
-                    gender
+                    gender,
+                    activity_level: activity
                 }).eq('id', id)
 
                 if (!onboardingError) {
@@ -40,6 +41,6 @@ export async function POST(req: NextRequest) {
 
     } catch(e) {
         console.log("Error adding user onboarding details: ", e)
-        return NextResponse.redirect("/login")
+        return NextResponse.json({message: "Error validating user"})
     }
 }

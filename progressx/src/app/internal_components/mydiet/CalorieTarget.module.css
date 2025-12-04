@@ -7,6 +7,7 @@
     height: min-content;
     color: var(--secondary-color);
     font-family: var(--primary-font-family);
+    padding-top: 50px;
 }
 
 .segment {

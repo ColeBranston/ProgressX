@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
         if (id) {
             const {error: userError, data: userData} = await supabase.from('profiles').select('*').eq("id", id).single()
 
-            if (userError) throw new Error(userError.message)
+            if (userError) throw new Error(await userError.message)
 
             return NextResponse.json({userData: userData})
         }
