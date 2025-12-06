@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     const token = req.cookies?.get("token")?.value
 
     try {
-        const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET!)))?.payload?.sub
+        const id = (await jwtVerify(token as string, encoder.encode(process.env.SUPABASE_JWT_SECRET!)))?.payload?.sub
 
         if (id) {
             const {error: userError, data: userData} = await supabase.from('profiles').select('*').eq("id", id).single()
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
         const token = req.cookies.get("token")?.value
 
-        const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET)))?.payload?.sub
+        const id = (await jwtVerify(token as string, encoder.encode(process.env.SUPABASE_JWT_SECRET)))?.payload?.sub
 
         const { error: onboardingError } = await supabase.from("profiles").update({
                     profile_image: user.pfp,
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({message: `Recieved user update`})
-    } catch(e) {
+    } catch(e: any) {
         console.log("Error: ", e.message)
 
         return NextResponse.json({error: `Error updating profile: ${e.message}`}, {status: 500})
