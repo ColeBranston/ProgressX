@@ -5,7 +5,7 @@
     align-items: center;
     width: min-content;
     height: min-content;
-    color: var(--secondary-color);
+    color: rgb(255, 255, 255, 0.2);
     font-family: var(--primary-font-family);
     padding-top: 50px;
 }
@@ -25,4 +25,11 @@
     margin: 0;
     padding-top: 12.5px;
     padding-bottom: 12.5px;
+}
+
+.highlightGoal {
+    width: 100%;
+    background-color: rgb(255, 255, 255, 0.5);
+    color: white;
+    text-align: center;
 }

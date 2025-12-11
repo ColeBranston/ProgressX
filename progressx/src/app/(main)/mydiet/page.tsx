@@ -8,9 +8,24 @@ import { userDataContext } from '@/app/contexts/userData';
 
 export default function DietPage() {
 
-    const config = {
-
+    
+    type dietConfigType = {
+        POUND2KG: number,
+        ActivityWeighting: Record<string, number>
     }
+
+    const config: dietConfigType = {
+        POUND2KG: 0.45359237,
+        ActivityWeighting: {
+            "1": 1.2,
+            "2": 1.375,
+            "3": 1.55,
+            "4": 1.725,
+            "5": 1.9, 
+        }
+    }
+
+    const { userData } = useContext(userDataContext)
 
     const [ daySelector, setDaySelector ] = useState(dayjs().day())
     const [ toggleAddItem, setToggleAddItem] = useState(false)
@@ -19,7 +34,29 @@ export default function DietPage() {
 
     const [ goalState, setGoalState ] = useState<goalType>("Maintain")
 
-    const { userData } = useContext(userDataContext)
+    const [ totalExpenditure, setTotalExpenditure ] = useState<number | null>(null)
+
+
+    // Accurate equation for calculating the BMR of a man or woman without using body fat percentage (%)
+    function Mifflin_St_Jeor_BMR() {
+        switch (userData.gender) {
+            case "male":
+                return (10 * (userData.weight * config.POUND2KG) + (6.25 * userData.height) - (5 * userData.age) + 5)
+
+            case "female":  
+                return (10 * (userData.weight * config.POUND2KG) + (6.25 * userData.height) - (5 * userData.age) - 161)
+
+            default:
+                console.error("User's Gender is apparently alien: ", userData.gender)
+                return 0
+        }
+    }
+
+    function calcTotalExpenditure() {
+        const BMR = Mifflin_St_Jeor_BMR()
+
+        return config.ActivityWeighting[userData.activity] * BMR
+    }
 
     function getDay(x: Number) {
         switch(x) {
@@ -62,8 +99,17 @@ export default function DietPage() {
     }
 
     useEffect(() => {
-        console.log(dayjs())
-    }, [])
+        const stored = localStorage.getItem("TotalExpenditure");
+
+        if (stored !== null) {
+            setTotalExpenditure(Number(stored));
+            return;
+        }
+
+        const expenditure = calcTotalExpenditure();
+        setTotalExpenditure(expenditure);
+        localStorage.setItem("TotalExpenditure", String(expenditure));
+    }, []);
 
     return(
         <div className="mainWrapper">
@@ -177,7 +223,7 @@ export default function DietPage() {
                         </div>
                         <div className={styles.calorieContainer}>
                             <p className={styles.caloriesHeader}>Caloric Intake</p>
-                            <CalorieTarget upper={2000} lower={1000}/>
+                            <CalorieTarget totalExpenditure={totalExpenditure}/>
                             <div className={styles.customButtonContainer}>
                                 <div onClick={cycleGoalState} className={styles.customButton}>                               
                                     <ul>

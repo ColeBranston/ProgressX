@@ -35,7 +35,8 @@ export default function Homepage() {
           weight: json?.userData?.weight_lbs,
           followers: json?.userData?.followers_count,
           following: json?.userData?.following_count,
-          likes: json?.userData?.likes_count
+          likes: json?.userData?.likes_count,
+          activity: json?.userData?.activity_level
       })
       } else {
         console.error("Error Fetching User Info: ", json)

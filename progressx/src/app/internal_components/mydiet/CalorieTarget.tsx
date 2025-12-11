@@ -1,72 +1,79 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './CalorieTarget.module.css'
 
 export type goalType = ("Deficit" | "Maintain" | "Surplus") 
 
 type targetType = {
-    upperGoal?: number,
-    lowerGoal?: number
-    upper?: number,
-    lower?: number,
-    curr?: number
+    curr?: number,
+    totalExpenditure: number,
+    goal?: goalType
 }
 
 const config = {
-    NUM_SEGMENTS: 10 // number of segments for target
+    NUM_SEGMENTS: 10
 }
 
 function getSegment(upper: number, lower: number) {
-    return [config.NUM_SEGMENTS - 1, (upper - lower) / config.NUM_SEGMENTS]
+    return [config.NUM_SEGMENTS - 1, (upper - lower) / config.NUM_SEGMENTS] as const
 }
 
 export default function CalorieTarget({
-    
-    upper = 1500,
-    lower = 500,
-    curr = 0
+    totalExpenditure = 2000,
+    curr = 0,
+    goal = "Maintain"
 }: targetType) {
 
-    const [total, val] = getSegment(upper, lower)
-
-    const [ boxArray, setBoxArray ] = useState<any>([])// if I make of type ReactNode it breaks, while there is a fix, pretty dumb to figure out
+    const [upper, setUpper] = useState(0)
+    const [lower, setLower] = useState(0)
+    const [boxArray, setBoxArray] = useState<number[]>([])
 
     useEffect(() => {
-        const tempArray = []
-        let trailPointer = lower
+        // compute the dynamic range
+        const tempUpper = totalExpenditure + 1000
+        const tempLower = totalExpenditure - 1000
+
+        setUpper(tempUpper)
+        setLower(tempLower)
+
+        // compute segment size
+        const [total, val] = getSegment(tempUpper, tempLower)
+
+        // build segment values using local variables (NOT state)
+        const tempArray: number[] = []
+        let trailPointer = tempLower
 
         for (let i = 0; i < total; i++) {
-            tempArray.push(Math.round(trailPointer + val))
-            trailPointer = trailPointer + val
+            trailPointer += val
+            tempArray.push(Math.round(trailPointer))
         }
 
+        // reverse for your UI requirement
         setBoxArray(tempArray.reverse())
-
-    }, [upper, lower])
-
-    useEffect(() => {
-        console.log(boxArray)
-    }, [boxArray])
+    }, [totalExpenditure])
 
     return (
         <div className={styles.calorieBarContainer}>
+            
             <div className={styles.segment}>
-                <p>{upper}</p>
+                <p>{Math.round(upper)}</p>
             </div>
-             {
-                boxArray.map((num: number) => {
-                    return (
-                        <div className={styles.segment}>
-                            <p>{num}</p>
-                        </div>
-                    )
-                })
 
-            }
+            {boxArray.map((num) => (
+                <div className={styles.segment} key={num}>
+                    <p>{num}</p>
+                </div>
+            ))}
+
             <div className={styles.segment}>
-                <p>{lower}</p>
+                <p>{Math.round(lower)}</p>
             </div>
+
+            <div className={styles.highlightGoal}>
+                {Math.round(totalExpenditure)}
+            </div>
+
         </div>
     )
 }

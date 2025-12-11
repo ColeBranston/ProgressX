@@ -22,9 +22,8 @@ body {
     background-color: var(--primary-background-color) !important;
     padding: 0 !important;
     margin: 0 !important;
-    overflow-y: hidden !important;
+    overflow: hidden !important;
 }
-
 
 .mainLogo {
     display: flex inline !important;

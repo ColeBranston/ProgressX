@@ -20,6 +20,7 @@ export function UserDataProvider({ children }: { children: any }) {
     followers: 0,
     following: 0,
     likes: 0,
+    activity: -1
   });
 
   // ✅ Load from localStorage once on mount
