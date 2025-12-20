@@ -1,13 +1,14 @@
 .calorieBarContainer {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end;
     align-items: center;
     width: min-content;
     height: min-content;
     color: rgb(255, 255, 255, 0.2);
     font-family: var(--primary-font-family);
-    padding-top: 50px;
+    margin-top: 50px;
+    position: relative;
 }
 
 .segment {
@@ -27,9 +28,27 @@
     padding-bottom: 12.5px;
 }
 
-.highlightGoal {
+.currProgress {
+    --curr-scale: 0;
+    
     width: 100%;
-    background-color: rgb(255, 255, 255, 0.5);
+    height: 100%;
+    transform-origin: bottom center;
+    transform: scaleY(var(--curr-scale));
+    transition: transform 0.3s ease-in-out;
+    background-color: rgb(255, 255, 255, 0.1);
     color: white;
     text-align: center;
+    position: absolute;
+    z-index: -1;
 }
+
+.goalHightlight {
+    --offset: 0;
+
+    width: 100%;
+    height: 100px;
+    position: absolute;
+    background-color: rgba(var(--primary-color), 0.2);
+    bottom: var(--offset);
+}   

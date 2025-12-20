@@ -126,6 +126,13 @@
     align-items: center;
     gap: 20px;
     z-index: 1;
+    user-select: none;
+}
+
+@media (min-width: 1600px) {
+    .addFoodItemContainer {
+        width: 40% !important;
+    }
 }
 
 @keyframes toggleAddItem {
@@ -153,7 +160,7 @@
     justify-content: center;
     align-items: center;
     position: absolute;
-    bottom: 50%;
+    top: 46%;
     right: -22px;
     transition: background-color 0.1s linear,
                 stroke 0.1s linear;
@@ -234,7 +241,7 @@
     height: 100%;
     position: absolute;
     right: -70%;
-    top: -10%;
+    top: -5%;
     display: flex;
     gap: 60px;
 }
@@ -299,13 +306,31 @@
     transition: background-color 0.15s linear;
 }
 
-.caloriesHeader {
+.caloriesHeader, .caloriesText {
     position: absolute;
     font-family: var(--primary-font-family);
-    color: var(--tertiary-color);
     font-size: 40px;
     width: 300px;
     bottom: 35%;
-    left: 80%;
+    left: 100%;
     margin: 0;
+}
+
+.caloriesHeader {
+    color: var(--tertiary-color);
+}
+
+.caloriesText {
+    transform: translateY(60px);
+    animation: calChange 0.3s linear forwards;
+}
+
+@keyframes calChange {
+    from{
+        color: rgba(var(--primary-color));
+    }
+
+    to{
+        color: var(--secondary-color);
+    }
 }

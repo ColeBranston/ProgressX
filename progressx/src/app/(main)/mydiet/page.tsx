@@ -7,8 +7,7 @@ import { AnalyticsBar, CalorieTarget, goalType } from "../../internal_components
 import { userDataContext } from '@/app/contexts/userData';
 
 export default function DietPage() {
-
-    
+     
     type dietConfigType = {
         POUND2KG: number,
         ActivityWeighting: Record<string, number>
@@ -34,8 +33,9 @@ export default function DietPage() {
 
     const [ goalState, setGoalState ] = useState<goalType>("Maintain")
 
-    const [ totalExpenditure, setTotalExpenditure ] = useState<number | null>(null)
+    const [ totalExpenditure, setTotalExpenditure ] = useState<number>(0)
 
+    const [ totalCal, setTotalCal ] = useState<number>(2000)
 
     // Accurate equation for calculating the BMR of a man or woman without using body fat percentage (%)
     function Mifflin_St_Jeor_BMR() {
@@ -54,7 +54,7 @@ export default function DietPage() {
 
     function calcTotalExpenditure() {
         const BMR = Mifflin_St_Jeor_BMR()
-
+        console.log("Activity Number: ", userData.activity, "BMR: ", BMR)
         return config.ActivityWeighting[userData.activity] * BMR
     }
 
@@ -223,7 +223,8 @@ export default function DietPage() {
                         </div>
                         <div className={styles.calorieContainer}>
                             <p className={styles.caloriesHeader}>Caloric Intake</p>
-                            <CalorieTarget totalExpenditure={totalExpenditure}/>
+                            <p key={totalCal} className={styles.caloriesText}>{totalCal} kCal</p>
+                            <CalorieTarget curr={totalCal} totalExpenditure={totalExpenditure}/>
                             <div className={styles.customButtonContainer}>
                                 <div onClick={cycleGoalState} className={styles.customButton}>                               
                                     <ul>
@@ -231,7 +232,6 @@ export default function DietPage() {
                                         <li style={{height: "12.5px", width: "12.5px"}} className={goalState=='Maintain'? styles.highlightedGoalItem : undefined}/>
                                         <li style={{height: "10px", width: "10px"}} className={goalState=='Deficit'? styles.highlightedGoalItem : undefined}/>
                                     </ul>
-
                                     <p>{goalState}</p>
                                 </div>
                             </div>
