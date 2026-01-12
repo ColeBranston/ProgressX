@@ -35,7 +35,7 @@ export default function DietPage() {
 
     const [ totalExpenditure, setTotalExpenditure ] = useState<number>(0)
 
-    const [ totalCal, setTotalCal ] = useState<number>(2000)
+    const [ totalCal, setTotalCal ] = useState<number>(2100)
 
     // Accurate equation for calculating the BMR of a man or woman without using body fat percentage (%)
     function Mifflin_St_Jeor_BMR() {
@@ -224,7 +224,7 @@ export default function DietPage() {
                         <div className={styles.calorieContainer}>
                             <p className={styles.caloriesHeader}>Caloric Intake</p>
                             <p key={totalCal} className={styles.caloriesText}>{totalCal} kCal</p>
-                            <CalorieTarget curr={totalCal} totalExpenditure={totalExpenditure}/>
+                            <CalorieTarget curr={totalCal} totalExpenditure={totalExpenditure} goal={goalState}/>
                             <div className={styles.customButtonContainer}>
                                 <div onClick={cycleGoalState} className={styles.customButton}>                               
                                     <ul>

@@ -33,6 +33,13 @@ export default function CalorieTarget({
     const [lower, setLower] = useState(0)
     const [boxArray, setBoxArray] = useState<number[]>([])
     const [intakeOffset, setIntakeOffset] = useState<number>(0)
+    const [goalState, setGoalState] = useState<goalType>("Maintain")
+
+    const [goalBoundaries, setGoalBoundaries] = useState<Record<goalType, number[]>>({
+        "Deficit": [0,0],
+        "Maintain": [0,0],
+        "Surplus": [0,0]
+    })
 
     useEffect(() => {
         // compute the dynamic range
@@ -56,13 +63,30 @@ export default function CalorieTarget({
 
         // reverse for your UI requirement
         setBoxArray(tempArray.reverse())
+
     }, [totalExpenditure])
 
     useEffect(()=> {
         const tempOffset = getCurrOffset(curr, lower, upper)
-        console.log("Curr: ", curr, ", Lower: ", lower, ", Upper: ", upper)
         setIntakeOffset(tempOffset)
     }, [lower, upper])
+
+    useEffect(()=> {
+        setGoalState(goal)
+        console.log(goalBoundaries)
+
+        /*
+            Setting the boundaries for each goal depending on the daily expenditure
+        */
+
+        const tempBoundaries = goalBoundaries
+
+        tempBoundaries.Deficit = [totalExpenditure-1000, totalExpenditure-1] // 1000kCal max deficit since thats A. 2Lbs/week, and B. the accepted ammount before you begin to get excess skin
+        tempBoundaries.Maintain = [totalExpenditure-50, totalExpenditure+50] // +- 50 acceptance for maintainence
+        tempBoundaries.Surplus = [totalExpenditure+1, totalExpenditure+500] // stop is at 500 kCal surplus because any calories over that is just fat tissue
+
+        setGoalBoundaries(tempBoundaries)
+    }, [goal])
 
     return (
         <div className={styles.calorieBarContainer}>
@@ -88,7 +112,9 @@ export default function CalorieTarget({
                 <p>{Math.round(lower)}</p>
             </div>
 
-            <div className={styles.goalHightlight}></div>
+            <div className={styles.goalHightlight} style={{"--offset": goalState==="Deficit"? "9%" : goalState==="Maintain"? "52%": goalState==="Surplus"? "54%" : "0",
+                                                            "--height": goalState==="Deficit"? "43%" : goalState==="Maintain"? "20px": goalState==="Surplus"? "22%" : "0",
+                                                            "--background": (curr > goalBoundaries[goalState][0] && curr < goalBoundaries[goalState][1])? "rgba(0, 255, 0, 0.4)" : "rgba(var(--primary-color), 0.2)"} as CSSProperties}></div>
             
             {/* This is the vertical progress bar indicating the user's current daily intake */}
             <div className={styles.currProgress} style={{"--curr-scale": intakeOffset} as CSSProperties}></div>

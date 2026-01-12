@@ -4,7 +4,7 @@
     justify-content: flex-end;
     align-items: center;
     width: min-content;
-    height: min-content;
+    height: 600px;
     color: rgb(255, 255, 255, 0.2);
     font-family: var(--primary-font-family);
     margin-top: 50px;
@@ -45,10 +45,17 @@
 
 .goalHightlight {
     --offset: 0;
-
-    width: 100%;
-    height: 100px;
+    --height: 20px;
+    --background: rgba(var(--primary-color), 0.2);
+    
+    width: 100px;
+    height: var(--height);
     position: absolute;
-    background-color: rgba(var(--primary-color), 0.2);
+    background-color: var(--background);
+    border: 3px solid white;
+    border-radius: 5px;
     bottom: var(--offset);
+    transition: bottom 0.1s ease-in-out,
+                height 0.1s ease-in-out,
+                background-color 0.1s ease-in-out;
 }   
