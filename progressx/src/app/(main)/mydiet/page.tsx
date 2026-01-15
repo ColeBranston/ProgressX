@@ -37,14 +37,18 @@ export default function DietPage() {
 
     const [ totalCal, setTotalCal ] = useState<number>(2100)
 
+    function get_weight_kg() {
+        return userData.weight * config.POUND2KG
+    }
+
     // Accurate equation for calculating the BMR of a man or woman without using body fat percentage (%)
     function Mifflin_St_Jeor_BMR() {
         switch (userData.gender) {
             case "male":
-                return (10 * (userData.weight * config.POUND2KG) + (6.25 * userData.height) - (5 * userData.age) + 5)
+                return (10 * get_weight_kg() + (6.25 * userData.height) - (5 * userData.age) + 5)
 
             case "female":  
-                return (10 * (userData.weight * config.POUND2KG) + (6.25 * userData.height) - (5 * userData.age) - 161)
+                return (10 * get_weight_kg() + (6.25 * userData.height) - (5 * userData.age) - 161)
 
             default:
                 console.error("User's Gender is apparently alien: ", userData.gender)
@@ -205,9 +209,9 @@ export default function DietPage() {
                      <div className={styles.dietAnalytics}>
                         <div className={styles.analyticsContainer}>
                             <p className={styles.dietAnalyticsHeaders}>Macros</p>
-                            <AnalyticsBar name={'Protein'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
-                            <AnalyticsBar name={'Carbohydrates'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
-                            <AnalyticsBar name={'Fats'} val={5} total={15} colour={"red"} measure={"g"} size={'normal'}/>
+                            <AnalyticsBar name={'Protein'} val={5} total={Math.round(2.4*get_weight_kg())} colour={"red"} measure={"g"} size={'normal'}/>
+                            <AnalyticsBar name={'Carbohydrates'} val={5} total={Math.round((totalCal - (2.4*get_weight_kg()*4 + Math.max(0.6*get_weight_kg(), 0.2*totalCal/9)*9))/4)} colour={"red"} measure={"g"} size={'normal'}/>
+                            <AnalyticsBar name={'Fats'} val={5} total={Math.round(Math.max(0.6*get_weight_kg(), 0.2*totalCal/9))} colour={"red"} measure={"g"} size={'normal'}/>
 
                             <p className={styles.dietAnalyticsHeaders}>Micros</p>
                             <AnalyticsBar name={'Vitamin D'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
@@ -215,6 +219,7 @@ export default function DietPage() {
                             <AnalyticsBar name={'Folate (B9)'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
                             <AnalyticsBar name={'Vitamin C'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
                             <AnalyticsBar name={'Iron'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <AnalyticsBar name={'Fibre'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
                             <AnalyticsBar name={'Calcium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
                             <AnalyticsBar name={'Magnesium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
                             <AnalyticsBar name={'Potassium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>

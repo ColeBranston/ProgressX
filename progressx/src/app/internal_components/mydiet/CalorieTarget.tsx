@@ -112,7 +112,7 @@ export default function CalorieTarget({
                 <p>{Math.round(lower)}</p>
             </div>
 
-            <div className={styles.goalHightlight} style={{"--offset": goalState==="Deficit"? "9%" : goalState==="Maintain"? "52%": goalState==="Surplus"? "54%" : "0",
+            <div className={styles.goalHightlight} style={{"--offset": goalState==="Deficit"? "9%" : goalState==="Maintain"? "54%": goalState==="Surplus"? "54%" : "0",
                                                             "--height": goalState==="Deficit"? "43%" : goalState==="Maintain"? "20px": goalState==="Surplus"? "22%" : "0",
                                                             "--background": (curr > goalBoundaries[goalState][0] && curr < goalBoundaries[goalState][1])? "rgba(0, 255, 0, 0.4)" : "rgba(var(--primary-color), 0.2)"} as CSSProperties}></div>
             

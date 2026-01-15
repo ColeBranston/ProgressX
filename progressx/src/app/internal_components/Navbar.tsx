@@ -99,7 +99,7 @@ export default function Navbar(){
             <a href="/"><li>Company</li></a>
             <a href="/"><li>Program</li></a>
             <a href="/"><li>Terms & Policies</li></a>
-            <li className={styles.watermark}>@2025 progressX</li>
+            <li className={styles.watermark}>@2026 progressX</li>
           </ul>
         </div>
       </div>)
