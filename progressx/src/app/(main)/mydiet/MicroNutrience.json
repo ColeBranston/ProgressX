@@ -18,12 +18,13 @@
     "Iron",
     "Biotin",+
     "Choline",+
-    "Fibre",
+    "Fibre",+
     "Calcium",
     "Magnesium",
     "Potassium",
     "Zinc",
-    "Iodine"
+    "Iodine",
+    "Water"+
   ]
 
   {
@@ -199,6 +200,45 @@
         "pregnancy": 450,
         "lactation": 550
       }
+    },
+
+    "Iron": {
+        "unit": "mg",
+        "rda": {
+          "child_1_3": 7,
+          "child_4_8": 10,
+    
+          "male_9_13": 8,
+          "male_14_18": 11,
+          "male_19_plus": 8,
+    
+          "female_9_13": 8,
+          "female_14_18": 15,
+          "female_19_50": 18,
+          "female_51_plus": 8,
+    
+          "pregnancy": 27,
+          "lactation": 9
+        }
+      },
+
+    "Water": {
+        "unit": "litres",
+        "rda": {
+            "child_1_3": 1.3,
+            "child_4_8": 1.7,
+
+            "male_9_13": 2.4,
+            "male_14_18": 3.3,
+            "male_19_plus": 3.7,
+
+            "female_9_13": 2.1,
+            "female_14_18": 2.3,
+            "female_19_plus": 2.7,
+
+            "pregnancy": 3.0,
+            "lactation": 3.8
+        }
     }
   }
   
