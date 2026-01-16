@@ -1,0 +1,204 @@
+{
+    
+}
+
+[
+    "Vitamin A",+
+    "Vitamin D",+
+    "Vitamin E",+
+    "Vitamin K",+
+    "Thiamin",+
+    "Niacin",+
+    "Riboflavin",+
+    "Vitamin B12",+
+    "Folate (B9)",+
+    "Vitamin B6",+
+    "Pantothenic Acid",+
+    "Vitamin C",+
+    "Iron",
+    "Biotin",+
+    "Choline",+
+    "Fibre",
+    "Calcium",
+    "Magnesium",
+    "Potassium",
+    "Zinc",
+    "Iodine"
+  ]
+
+  {
+    "Vitamin A": {
+      "unit": "μg RAE",
+      "rda": {
+        "child_1_3": 300,
+        "child_4_8": 400,
+        "male_9_13": 600,
+        "male_14_18": 900,
+        "male_19_plus": 900,
+        "female_9_13": 600,
+        "female_14_18": 700,
+        "female_19_plus": 700,
+        "pregnancy": 770,
+        "lactation": 1300
+      }
+    },
+  
+    "Vitamin D": {
+      "unit": "IU",
+      "rda": {
+        "child_1_3": 600,
+        "child_4_8": 600,
+        "male_9_70": 600,
+        "male_70_plus": 800,
+        "female_9_70": 600,
+        "female_70_plus": 800,
+        "pregnancy": 600,
+        "lactation": 600
+      }
+    },
+  
+    "Vitamin E": {
+      "unit": "mg",
+      "rda": {
+        "child_1_3": 6,
+        "child_4_8": 7,
+        "male_9_plus": 15,
+        "female_9_plus": 15,
+        "pregnancy": 15,
+        "lactation": 19
+      }
+    },
+  
+    "Vitamin K": {
+      "unit": "μg",
+      "rda": {
+        "child_1_3": 30,
+        "child_4_8": 55,
+        "male_19_plus": 120,
+        "female_19_plus": 90,
+        "pregnancy": 90,
+        "lactation": 90
+      }
+    },
+  
+    "Vitamin C": {
+      "unit": "mg",
+      "rda": {
+        "child_1_3": 15,
+        "child_4_8": 25,
+        "male_14_18": 75,
+        "male_19_plus": 90,
+        "female_14_18": 65,
+        "female_19_plus": 75,
+        "pregnancy": 85,
+        "lactation": 120
+      }
+    },
+  
+    "Thiamin": {
+      "unit": "mg",
+      "rda": {
+        "child_1_3": 0.5,
+        "child_4_8": 0.6,
+        "male_14_plus": 1.2,
+        "female_14_plus": 1.1,
+        "pregnancy": 1.4,
+        "lactation": 1.4
+      }
+    },
+  
+    "Riboflavin": {
+      "unit": "mg",
+      "rda": {
+        "child_1_3": 0.5,
+        "child_4_8": 0.6,
+        "male_14_plus": 1.3,
+        "female_14_plus": 1.1,
+        "pregnancy": 1.4,
+        "lactation": 1.6
+      }
+    },
+  
+    "Niacin": {
+      "unit": "mg NE",
+      "rda": {
+        "child_1_3": 6,
+        "child_4_8": 8,
+        "male_14_plus": 16,
+        "female_14_plus": 14,
+        "pregnancy": 18,
+        "lactation": 17
+      }
+    },
+  
+    "Vitamin B6": {
+      "unit": "mg",
+      "rda": {
+        "child_1_3": 0.5,
+        "child_4_8": 0.6,
+        "male_19_50": 1.3,
+        "male_51_plus": 1.7,
+        "female_19_50": 1.3,
+        "female_51_plus": 1.5,
+        "pregnancy": 1.9,
+        "lactation": 2.0
+      }
+    },
+  
+    "Folate (B9)": {
+      "unit": "μg DFE",
+      "rda": {
+        "child_1_3": 150,
+        "child_4_8": 200,
+        "adult": 400,
+        "pregnancy": 600,
+        "lactation": 500
+      }
+    },
+  
+    "Vitamin B12": {
+      "unit": "μg",
+      "rda": {
+        "child_1_3": 0.9,
+        "child_4_8": 1.2,
+        "adult": 2.4,
+        "pregnancy": 2.6,
+        "lactation": 2.8
+      }
+    },
+  
+    "Pantothenic Acid": {
+      "unit": "mg",
+      "rda": {
+        "child_1_3": 2,
+        "child_4_8": 3,
+        "adult": 5,
+        "pregnancy": 6,
+        "lactation": 7
+      }
+    },
+  
+    "Biotin": {
+      "unit": "μg",
+      "rda": {
+        "child_1_3": 8,
+        "child_4_8": 12,
+        "adult": 30,
+        "pregnancy": 30,
+        "lactation": 35
+      }
+    },
+  
+    "Choline": {
+      "unit": "mg",
+      "rda": {
+        "child_1_3": 200,
+        "child_4_8": 250,
+        "male_19_plus": 550,
+        "female_19_plus": 425,
+        "pregnancy": 450,
+        "lactation": 550
+      }
+    }
+  }
+  

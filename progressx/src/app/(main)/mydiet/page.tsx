@@ -214,17 +214,27 @@ export default function DietPage() {
                             <AnalyticsBar name={'Fats'} val={5} total={Math.round(Math.max(0.6*get_weight_kg(), 0.2*totalCal/9))} colour={"red"} measure={"g"} size={'normal'}/>
 
                             <p className={styles.dietAnalyticsHeaders}>Micros</p>
-                            <AnalyticsBar name={'Vitamin D'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                            <AnalyticsBar name={'Vitamin B(12)'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                            <AnalyticsBar name={'Folate (B9)'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                            <AnalyticsBar name={'Vitamin C'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                            <AnalyticsBar name={'Iron'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                            <AnalyticsBar name={'Fibre'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                            <AnalyticsBar name={'Calcium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                            <AnalyticsBar name={'Magnesium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                            <AnalyticsBar name={'Potassium'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                            <AnalyticsBar name={'Zinc'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
-                            <AnalyticsBar name={'Iodine'} val={5} total={15} colour={"red"} measure={"g"} size={'small'}/>
+                            <AnalyticsBar name={'Vitamin A'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Vitamin D'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Vitamin E'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Vitamin K'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Thiamin'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Niacin'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Riboflavin'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Vitamin B12'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Folate (B9)'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Vitamin B6'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Pantothenic Acid'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Vitamin C'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Iron'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Biotin'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Choline'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Fibre'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Calcium'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Magnesium'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Potassium'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Zinc'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <AnalyticsBar name={'Iodine'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
                         </div>
                         <div className={styles.calorieContainer}>
                             <p className={styles.caloriesHeader}>Caloric Intake</p>
