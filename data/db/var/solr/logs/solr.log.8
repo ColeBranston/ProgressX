@@ -1,0 +1,86 @@
+2026-02-07 01:49:21.663 INFO  (main) [] o.e.j.s.Server jetty-10.0.26; built: 2025-08-14T15:56:56.454Z; git: 65a55c55a68c56d5f2e8232164439bd6e76e53d1; jvm 17.0.18+8
+2026-02-07 01:49:22.088 WARN  (main) [] o.e.j.u.DeprecationWarning Using @Deprecated Class org.eclipse.jetty.servlet.listener.ELContextCleaner
+2026-02-07 01:49:22.129 INFO  (main) [] o.a.s.s.CoreContainerProvider Using logger factory org.apache.logging.slf4j.Log4jLoggerFactory
+2026-02-07 01:49:22.142 INFO  (main) [] o.a.s.s.CoreContainerProvider  ___      _       Welcome to Apache Solr™ version 9.10.1
+2026-02-07 01:49:22.142 INFO  (main) [] o.a.s.s.CoreContainerProvider / __| ___| |_ _   Starting in standalone mode on port 8983
+2026-02-07 01:49:22.143 INFO  (main) [] o.a.s.s.CoreContainerProvider \__ \/ _ \ | '_|  Install dir: /opt/solr-9.10.1
+2026-02-07 01:49:22.143 INFO  (main) [] o.a.s.s.CoreContainerProvider |___/\___/_|_|    Start time: 2026-02-07T01:49:22.143665419Z
+2026-02-07 01:49:22.148 INFO  (main) [] o.a.s.s.CoreContainerProvider Solr started with "-XX:+CrashOnOutOfMemoryError" that will crash on any OutOfMemoryError exception. The cause of the OOME will be logged in the crash file at the following path: /var/solr/logs/jvm_crash_11.log
+2026-02-07 01:49:22.194 INFO  (main) [] o.a.s.s.CoreContainerProvider Solr Home: /var/solr/data (source: system property: solr.solr.home)
+2026-02-07 01:49:22.215 INFO  (main) [] o.a.s.c.SolrXmlConfig solr.xml not found in SOLR_HOME, using built-in default
+2026-02-07 01:49:22.215 INFO  (main) [] o.a.s.c.SolrXmlConfig Loading solr.xml from /opt/solr-9.10.1/server/solr/solr.xml
+2026-02-07 01:49:22.329 INFO  (main) [] o.a.s.c.SolrResourceLoader Added 1 libs to classloader, from paths: [/opt/solr-9.10.1/lib]
+2026-02-07 01:49:23.198 INFO  (main) [] o.a.s.u.t.SimplePropagator Always-on trace id generation enabled.
+2026-02-07 01:49:23.571 WARN  (main) [] o.a.s.u.StartupLoggingUtils Jetty request logging enabled. Will retain logs for last 3 days. See chapter "Configuring Logging" in reference guide for how to configure.
+2026-02-07 01:49:23.576 WARN  (main) [] o.a.s.c.CoreContainer Not all security plugins configured!  authentication=disabled authorization=disabled.  Solr is only as secure as you make it. Consider configuring authentication/authorization before exposing Solr to users internal or external.  See https://s.apache.org/solrsecurity for more info
+2026-02-07 01:49:24.085 INFO  (main) [] o.a.s.c.CorePropertiesLocator Found 2 core definitions underneath /var/solr/data
+2026-02-07 01:49:24.086 INFO  (main) [] o.a.s.c.CorePropertiesLocator Cores are: [clean_ingestion_data, raw_ingestion_data]
+2026-02-07 01:49:24.233 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.c.SolrConfig Using Lucene MatchVersion: 9.12.0
+2026-02-07 01:49:24.233 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.c.SolrConfig Using Lucene MatchVersion: 9.12.0
+2026-02-07 01:49:24.354 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.s.IndexSchema Schema name=raw_ingestion_data
+2026-02-07 01:49:24.356 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.s.IndexSchema Schema name=clean_ingestion_data
+2026-02-07 01:49:24.408 WARN  (main) [] o.g.j.m.i.MessagingBinders A class jakarta.activation.DataSource for a default provider MessageBodyWriter<jakarta.activation.DataSource> was not found. The provider is not available.
+2026-02-07 01:49:24.469 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.s.IndexSchema Loaded schema clean_ingestion_data/1.7 with uniqueid field id
+2026-02-07 01:49:24.469 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.s.IndexSchema Loaded schema raw_ingestion_data/1.7 with uniqueid field id
+2026-02-07 01:49:24.525 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.c.CoreContainer Creating SolrCore 'clean_ingestion_data' using configuration from instancedir /var/solr/data/clean_ingestion_data, trusted=true
+2026-02-07 01:49:24.529 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.c.CoreContainer Creating SolrCore 'raw_ingestion_data' using configuration from instancedir /var/solr/data/raw_ingestion_data, trusted=true
+2026-02-07 01:49:24.589 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.c.SolrCore Opening new SolrCore at [/var/solr/data/raw_ingestion_data], dataDir=[/var/solr/data/raw_ingestion_data/data/]
+2026-02-07 01:49:24.589 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.c.SolrCore Opening new SolrCore at [/var/solr/data/clean_ingestion_data], dataDir=[/var/solr/data/clean_ingestion_data/data/]
+2026-02-07 01:49:24.884 INFO  (main) [] o.a.s.j.SolrRequestAuthorizer Creating a new SolrRequestAuthorizer
+2026-02-07 01:49:25.097 INFO  (main) [] o.e.j.s.h.ContextHandler Started o.e.j.w.WebAppContext@62e70ea3{solr-jetty-context.xml,/solr,file:///opt/solr-9.10.1/server/solr-webapp/webapp/,AVAILABLE}{/opt/solr-9.10.1/server/solr-webapp/webapp}
+2026-02-07 01:49:25.118 INFO  (main) [] o.e.j.s.RequestLogWriter Opened /var/solr/logs/2026_02_07.request.log
+2026-02-07 01:49:25.130 INFO  (main) [] o.e.j.s.AbstractConnector Started ServerConnector@3243b914{HTTP/1.1, (http/1.1, h2c)}{0.0.0.0:8983}
+2026-02-07 01:49:25.131 INFO  (main) [] o.e.j.s.Server Started Server@5ddea849{STARTING}[10.0.26,sto=0] @5736ms
+2026-02-07 01:49:25.511 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.j.SolrRequestAuthorizer Creating a new SolrRequestAuthorizer
+2026-02-07 01:49:25.512 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.j.SolrRequestAuthorizer Creating a new SolrRequestAuthorizer
+2026-02-07 01:49:25.548 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.u.UpdateHandler Using UpdateLog implementation: org.apache.solr.update.UpdateLog
+2026-02-07 01:49:25.548 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.u.UpdateHandler Using UpdateLog implementation: org.apache.solr.update.UpdateLog
+2026-02-07 01:49:25.553 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.u.UpdateLog Initializing UpdateLog: dataDir= defaultSyncLevel=FLUSH numRecordsToKeep=100 maxNumLogsToKeep=10
+2026-02-07 01:49:25.553 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.u.UpdateLog Initializing UpdateLog: dataDir= defaultSyncLevel=FLUSH numRecordsToKeep=100 maxNumLogsToKeep=10
+2026-02-07 01:49:25.554 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.u.CommitTracker Hard AutoCommit: if uncommitted for 15000ms; 
+2026-02-07 01:49:25.554 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.u.CommitTracker Hard AutoCommit: if uncommitted for 15000ms; 
+2026-02-07 01:49:25.554 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.u.CommitTracker Soft AutoCommit: if uncommitted for 3000ms; 
+2026-02-07 01:49:25.554 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.u.CommitTracker Soft AutoCommit: if uncommitted for 3000ms; 
+2026-02-07 01:49:25.803 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.r.ManagedResourceStorage File-based storage initialized to use dir: /var/solr/data/clean_ingestion_data/conf
+2026-02-07 01:49:25.805 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.r.ManagedResourceStorage File-based storage initialized to use dir: /var/solr/data/raw_ingestion_data/conf
+2026-02-07 01:49:25.822 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.s.DirectSolrSpellChecker init: {name=default, field=_text_, classname=solr.DirectSolrSpellChecker, distanceMeasure=internal, maxEdits=2, minPrefix=1, maxInspections=5, minQueryLength=4, accuracy=0.5, maxQueryFrequency=0.01}
+2026-02-07 01:49:25.825 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.s.DirectSolrSpellChecker init: {name=default, field=_text_, classname=solr.DirectSolrSpellChecker, distanceMeasure=internal, maxEdits=2, minPrefix=1, maxInspections=5, minQueryLength=4, accuracy=0.5, maxQueryFrequency=0.01}
+2026-02-07 01:49:25.837 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.c.SolrCore CLOSING SolrCore org.apache.solr.core.SolrCore@400c5976 clean_ingestion_data
+2026-02-07 01:49:25.837 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.c.SolrCore CLOSING SolrCore org.apache.solr.core.SolrCore@157a8cad raw_ingestion_data
+2026-02-07 01:49:25.838 INFO  (searcherExecutor-16-thread-1-processing-raw_ingestion_data) [ x:raw_ingestion_data] o.a.s.c.QuerySenderListener QuerySenderListener done.
+2026-02-07 01:49:25.838 INFO  (searcherExecutor-16-thread-1-processing-raw_ingestion_data) [ x:raw_ingestion_data] o.a.s.h.c.SpellCheckComponent Loading spell index for spellchecker: default
+2026-02-07 01:49:25.838 INFO  (searcherExecutor-17-thread-1-processing-clean_ingestion_data) [ x:clean_ingestion_data] o.a.s.c.QuerySenderListener QuerySenderListener done.
+2026-02-07 01:49:25.838 INFO  (searcherExecutor-17-thread-1-processing-clean_ingestion_data) [ x:clean_ingestion_data] o.a.s.h.c.SpellCheckComponent Loading spell index for spellchecker: default
+2026-02-07 01:49:25.838 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.m.SolrMetricManager Closing metric reporters for registry=solr.core.clean_ingestion_data tag=SolrCore@400c5976
+2026-02-07 01:49:25.848 INFO  (searcherExecutor-17-thread-1-processing-clean_ingestion_data) [ x:clean_ingestion_data] o.a.s.c.SolrCore Registered new searcher autowarm time: 0 ms
+2026-02-07 01:49:25.855 INFO  (searcherExecutor-16-thread-1-processing-raw_ingestion_data) [ x:raw_ingestion_data] o.a.s.c.SolrCore Registered new searcher autowarm time: 0 ms
+2026-02-07 01:49:25.875 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.m.SolrMetricManager Closing metric reporters for registry=solr.core.raw_ingestion_data tag=SolrCore@157a8cad
+2026-02-07 01:49:25.898 INFO  (coreLoadExecutor-13-thread-1) [ x:clean_ingestion_data] o.a.s.u.DirectUpdateHandler2 Committing on IndexWriter.close()  ... SKIPPED (unnecessary).
+2026-02-07 01:49:25.915 INFO  (coreLoadExecutor-13-thread-2) [ x:raw_ingestion_data] o.a.s.u.DirectUpdateHandler2 Committing on IndexWriter.close()  ... SKIPPED (unnecessary).
+2026-02-07 01:49:25.934 ERROR (coreLoadExecutor-13-thread-1) [] o.a.s.c.CoreContainer SolrCore failed to load on startup =>org.apache.solr.common.SolrException: Unable to create core [clean_ingestion_data]
+	at org.apache.solr.core.CoreContainer.createFromDescriptor(CoreContainer.java:1803)
+
+2026-02-07 01:49:25.940 ERROR (coreLoadExecutor-13-thread-2) [] o.a.s.c.CoreContainer SolrCore failed to load on startup =>org.apache.solr.common.SolrException: Unable to create core [raw_ingestion_data]
+	at org.apache.solr.core.CoreContainer.createFromDescriptor(CoreContainer.java:1803)
+
+2026-02-07 01:49:36.465 INFO  (qtp1893960929-28-null-2) [ t:null-2] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/cores params={indexInfo=false&wt=json&_=1770428976415} status=0 QTime=4
+2026-02-07 01:49:36.476 ERROR (qtp1893960929-29-null-4) [ t:null-4] o.a.s.s.HttpSolrCall 500 Exception =>org.apache.solr.core.SolrCoreInitializationException: SolrCore 'clean_ingestion_data' is not available due to init failure: fieldType 'text_general' not found in the schema
+	at org.apache.solr.core.CoreContainer.getCore(CoreContainer.java:2338)
+
+2026-02-07 01:49:36.476 ERROR (qtp1893960929-30-null-5) [ t:null-5] o.a.s.s.HttpSolrCall 500 Exception =>org.apache.solr.core.SolrCoreInitializationException: SolrCore 'clean_ingestion_data' is not available due to init failure: fieldType 'text_general' not found in the schema
+	at org.apache.solr.core.CoreContainer.getCore(CoreContainer.java:2338)
+
+2026-02-07 01:49:36.478 ERROR (qtp1893960929-31-null-6) [ t:null-6] o.a.s.s.HttpSolrCall 500 Exception =>org.apache.solr.core.SolrCoreInitializationException: SolrCore 'clean_ingestion_data' is not available due to init failure: fieldType 'text_general' not found in the schema
+	at org.apache.solr.core.CoreContainer.getCore(CoreContainer.java:2338)
+
+2026-02-07 01:49:36.478 ERROR (qtp1893960929-32-null-7) [ t:null-7] o.a.s.s.HttpSolrCall 500 Exception =>org.apache.solr.core.SolrCoreInitializationException: SolrCore 'clean_ingestion_data' is not available due to init failure: fieldType 'text_general' not found in the schema
+	at org.apache.solr.core.CoreContainer.getCore(CoreContainer.java:2338)
+
+2026-02-07 01:49:36.487 INFO  (qtp1893960929-27-null-3) [ t:null-3] o.a.s.s.HttpSolrCall [admin] webapp=null path=/admin/info/system params={wt=json&_=1770428976415} status=0 QTime=23
+2026-02-07 01:52:50.860 INFO  (JettyShutdownThread) [] o.e.j.s.Server Stopped Server@5ddea849{STOPPING}[10.0.26,sto=0]
+2026-02-07 01:52:50.879 INFO  (JettyShutdownThread) [] o.e.j.s.AbstractConnector Stopped ServerConnector@3243b914{HTTP/1.1, (http/1.1, h2c)}{0.0.0.0:8983}
+2026-02-07 01:52:50.901 INFO  (JettyShutdownThread) [] o.a.s.c.CoreContainer Shutting down CoreContainer instance=1828559444
+2026-02-07 01:52:50.907 INFO  (JettyShutdownThread) [] o.a.s.m.SolrMetricManager Closing metric reporters for registry=solr.node tag=null
+2026-02-07 01:52:50.922 INFO  (JettyShutdownThread) [] o.a.s.m.SolrMetricManager Closing metric reporters for registry=solr.jvm tag=null
+2026-02-07 01:52:50.936 INFO  (JettyShutdownThread) [] o.a.s.m.SolrMetricManager Closing metric reporters for registry=solr.jetty tag=null
+2026-02-07 01:52:50.963 INFO  (JettyShutdownThread) [] o.e.j.s.h.ContextHandler Stopped o.e.j.w.WebAppContext@62e70ea3{solr-jetty-context.xml,/solr,null,STOPPED}{/opt/solr-9.10.1/server/solr-webapp/webapp}
