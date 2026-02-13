@@ -1,0 +1,6 @@
+# Ignore the logs folder
+logs/
+
+# Ignore specific XML files
+default_core.xml
+log4j2.xml
