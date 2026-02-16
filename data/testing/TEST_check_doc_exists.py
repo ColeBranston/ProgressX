@@ -5,7 +5,9 @@ now = str(datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
 
 id_var = "This is the id"
 
-results = solr_clean_core.search(f'id:"{id_var}"', rows=1)
+results = solr_clean_core.search(f'id:"{id_var}"', fl="id", rows=1)
+
+solr_clean_core.delete(q='*:*') # Deletes everything in the core
 
 if results.hits >= 1:
     print("Documents found updating UPDATED_AT")

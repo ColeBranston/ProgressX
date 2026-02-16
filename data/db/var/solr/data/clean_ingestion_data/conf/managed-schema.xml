@@ -18,7 +18,7 @@
          required="true"
          multiValued="false"/>
 
-  <field name="doc_id"
+  <field name="published"
          type="string"
          indexed="true"
          stored="true"
@@ -39,6 +39,20 @@
          indexed="true"
          stored="true"
          multiValued="false"/>
+
+<field name="type"
+       type="string"
+       indexed="true"
+       stored="true"
+       required="true"
+       multiValued="false"/>
+
+<field name="additional"
+       type="string"
+       indexed="true"
+       stored="true"
+       required="false"
+       multiValued="false"/>
 
   <!-- Required internal version field -->
   <field name="_version_"

@@ -1,8 +1,12 @@
 import requests
 import xml.etree.ElementTree as ET
-import json
 import time
 import os
+
+from solr_instance import *
+from datetime import datetime, timezone
+
+now = str(datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")) # replace required for solr's datetime format
 
 EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
 
@@ -93,28 +97,55 @@ while retstart < total_count:
             pmc_link = f"https://www.ncbi.nlm.nih.gov/pmc/articles/{pmcid}/" if pmcid else None
             doi_link = f"https://doi.org/{doi}" if doi else None
 
-            articles.append({
-                "pmid": pmid,
-                "title": title,
-                "journal": journal,
-                "year": year,
-                "abstract": abstract,
-                "pmc_link": pmc_link,
-                "doi_link": doi_link
-            })
+            # checking if document already exists in the raw solr core
+
+            pmcCheck = solr_raw_core.search(f'id:"{pmc_link}"', fl="id", rows=1).hits
+            doiCheck = solr_raw_core.search(f'id:"{doi_link}"', fl="id", rows=1).hits
+
+            if pmcCheck >=1 or doiCheck >=1:
+                articles.append({
+                    "id": pmc_link or doi_link,
+                    "content": {"set": abstract},
+                    "updated_at": {"set": now}
+                })
+            else:
+                # articles.append({
+                #     "pmid": pmid,
+                #     "title": title,
+                #     "journal": journal,
+                #     "year": year,
+                #     "abstract": abstract,
+                #     "pmc_link": pmc_link,
+                #     "doi_link": doi_link
+                # })
+                articles.append({
+                    "id": pmc_link or doi_link,
+                    "content": abstract,
+                    "created_at": now,
+                    "updated_at": now,
+                    "published": year,
+                    "type": "pubMed",
+                    "additional": f"title:{title}|journal:{journal}|pmid:{pmid}"
+                })
 
         print(f"Fetched batch {i // BATCH_SIZE + 1} / {max(1, len(pmids) // BATCH_SIZE)}")
         time.sleep(DELAY)
 
     # ---------------- WRITE CHUNK TO JSON ----------------
-    filename = os.path.join(OUTPUT_DIR, f"pubmed_health_fitness_chunk_{chunk_index}.json")
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump({
-            "article_count": len(articles),
-            "articles": articles
-        }, f, indent=2, ensure_ascii=False)
+    # filename = os.path.join(OUTPUT_DIR, f"pubmed_health_fitness_chunk_{chunk_index}.json")
+    # with open(filename, "w", encoding="utf-8") as f:
+    #     json.dump({
+    #         "article_count": len(articles),
+    #         "articles": articles
+    #     }, f, indent=2, ensure_ascii=False)
 
-    print(f"Chunk {chunk_index} saved to {filename} with {len(articles)} articles")
+    # print(f"Chunk {chunk_index} saved to {filename} with {len(articles)} articles")
+
+    # ---------------- Loading Documents to raw solr core --------------
+
+    print("\n Loading chunk in solr core")
+    solr_raw_core.add(articles)
+    print(" Completed loading chunk :)")
 
     # ---------------- INCREMENT ----------------
     retstart += len(pmids)
