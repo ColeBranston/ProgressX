@@ -22,21 +22,26 @@
          type="string"
          indexed="true"
          stored="true"
+         required="true"
          multiValued="false"/>
 
   <field name="created_at"
          type="pdate"
+         required="true"
          indexed="true"
-         stored="true"/>
+         stored="true"
+         default="NOW"/>
 
   <field name="updated_at"
          type="pdate"
          indexed="true"
+         required="true"
          stored="true"/>
 
   <field name="content"
          type="text_en"
          indexed="true"
+         required="true"
          stored="true"
          multiValued="false"/>
 
