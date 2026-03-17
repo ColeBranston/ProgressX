@@ -4,6 +4,8 @@ from fastapi import FastAPI
 
 from solr_instance import solr_clean_core
 
+app = FastAPI()
+
 def printDoc(doc):
     print(f"{termcolor.colored("=" * 100, "red")}")
     print(f"{termcolor.colored("Clean Solr Document","red")}".rjust(65))
@@ -14,8 +16,6 @@ def printDoc(doc):
     print(f"{termcolor.colored("Published:", "red")} {doc["published"]}")
     print(f"{termcolor.colored('Content:', "red")} {doc["content"]}")
     print(f"{termcolor.colored("Journal:", "red")} {doc["journal"]}")
-
-app = FastAPI()
 
 def solr_search(query: str):
     results = solr_clean_core.search(
