@@ -31,6 +31,10 @@ def solr_search(query: str):
 
     return results
 
+@app.get("/")
+def get_active():
+    return "FASTAPI Search is Active"
+
 @app.get("/status")
 def read_root():
     return "online"
