@@ -1,10 +1,21 @@
 import termcolor
-
 from fastapi import FastAPI
-
+from fastapi.middleware.cors import CORSMiddleware
 from solr_instance import solr_clean_core
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000" # add my prod frontend url later
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def printDoc(doc):
     print(termcolor.colored('=' * 100, 'red'))
@@ -31,6 +42,10 @@ def solr_search(query: str):
 
     return results
 
+@app.get("/")
+def get_active():
+    return "FASTAPI Search is Active"
+
 @app.get("/status")
 def read_root():
     return "online"
@@ -38,4 +53,5 @@ def read_root():
 @app.get("/search/{query}")
 def getResults(query:str):
     results = solr_search(query)
-    return results.docs
+    
+    return results
