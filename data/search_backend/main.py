@@ -53,6 +53,5 @@ def read_root():
 @app.get("/search/{query}")
 def getResults(query:str):
     results = solr_search(query)
-    for doc in results.docs:
-        printDoc(doc)
-    return results.docs
+    
+    return results
