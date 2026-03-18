@@ -1,16 +1,18 @@
 import termcolor
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from solr_instance import solr_clean_core
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000" # add my prod frontend url later
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
