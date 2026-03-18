@@ -1,10 +1,18 @@
 import termcolor
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from solr_instance import solr_clean_core
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def printDoc(doc):
     print(termcolor.colored('=' * 100, 'red'))
