@@ -1,9 +1,19 @@
 {
-  "version": 2,
-  "builds": [
+    "version": 2,
+    "builds": [
+        {
+            "src": "./main.py",
+            "use": "@vercel/python"
+        }
+    ],
+    "headers": [
     {
-      "src": "main.py",
-      "use": "@vercel/python"
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
     }
   ]
 }
