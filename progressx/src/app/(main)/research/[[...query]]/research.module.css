@@ -1,0 +1,19 @@
+.researchContainer {
+    border: white solid 1px;
+    width: 100%;
+    height: 99vh;
+    display: flex;
+    flex-direction: column;
+    padding: 100px 0 0 5px;
+}
+
+.resultsContainer {
+    display: flex;
+    flex-direction: column;
+
+}
+
+.resultsContainer a {
+    color: rgb(var(--primary-color));
+    
+}
