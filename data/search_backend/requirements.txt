@@ -3,3 +3,4 @@ pysolr==3.11.0
 uvicorn==0.32.1
 termcolor==2.4.0
 dotenv==0.9.9
+base64url==1.1.1
