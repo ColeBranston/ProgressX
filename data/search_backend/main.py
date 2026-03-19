@@ -61,5 +61,5 @@ def getResults(query:str):
     results = solr_search(query)
 
     global cachedResults
-    cachedResults = results.docs
+    cachedResults = results
     return results
