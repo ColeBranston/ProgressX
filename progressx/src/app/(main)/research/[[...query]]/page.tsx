@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import styles from "./research.module.css"
-import { useParams } from "next/dist/client/components/navigation";
+import { useParams, useRouter } from "next/dist/client/components/navigation";
 
 type SolrResponse = {
     debug?: Record<any,any>,
@@ -22,20 +22,24 @@ type SolrResponse = {
 const ResearchPage = () => {
 
     const [query, setQuery] = useState<string>("")
-    const [lastQuery, setLastQuery] = useState<string>("")
+    const [lastQuery, setLastQuery] = useState<string|undefined>("")
     const [docs, setDocs] = useState<any>(null)
     const [resultCount, setResultCount] = useState<number>(0)
     const [cached, setCached] = useState<any>(null)
 
+    const router = useRouter()
     const params = useParams()
 
     async function getResults(e: React.FormEvent<HTMLFormElement> | null, tempQuery?: string) {
+        
+        if (query === "" && !tempQuery) return
+        const currentQuery = query? query : tempQuery
+
         if (e) {
             e.preventDefault()
-        }
-        if (query === "" && !tempQuery) return
+            router.push(`/research/${currentQuery}`) // only updates the path params on form submit, that way you don't rerequest
 
-        const currentQuery = tempQuery? tempQuery : query
+        }
 
         console.log("Query triggered, query: ", currentQuery)
 
@@ -53,7 +57,6 @@ const ResearchPage = () => {
             setResultCount(solrResponse.hits)
             setLastQuery(currentQuery)
 
-            if (!params?.query) history.pushState(null, '', `/research/${currentQuery}`)
         }
     } 
 
