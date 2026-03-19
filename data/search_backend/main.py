@@ -42,6 +42,8 @@ def solr_search(query: str):
 
     return results
 
+cachedResults = {} # will eventually change to using redis, but will use this for now, main pain point with this implementation is that it isn't persistant across server restarts
+
 @app.get("/")
 def get_active():
     return "FASTAPI Search is Active"
@@ -50,8 +52,14 @@ def get_active():
 def read_root():
     return "online"
 
+@app.get("/cached")
+def getCached():
+    return cachedResults
+
 @app.get("/search/{query}")
 def getResults(query:str):
     results = solr_search(query)
-    
+
+    global cachedResults
+    cachedResults = results.docs
     return results
