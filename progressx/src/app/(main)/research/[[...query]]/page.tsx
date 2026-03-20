@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import styles from "./research.module.css"
 import { useParams, useRouter } from "next/dist/client/components/navigation";
+import { base64url } from "jose";
 
 type SolrResponse = {
     debug?: Record<any,any>,
