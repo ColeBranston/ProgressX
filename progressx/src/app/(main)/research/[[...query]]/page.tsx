@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import styles from "./research.module.css"
 import { useParams, useRouter } from "next/dist/client/components/navigation";
-import { base64url } from "jose";
+import { StudyCard } from "@/app/internal_components";
 
 type SolrResponse = {
     debug?: Record<any,any>,
@@ -78,6 +78,10 @@ const ResearchPage = () => {
         }
     }
 
+    const routeUser = useCallback((link: string)=>{
+        router.push(link) 
+    },[router])
+
     useEffect(()=> {
         if (params?.query) {
             const tempQuery = params.query[0].replaceAll("%20", " ")
@@ -97,39 +101,31 @@ const ResearchPage = () => {
 
                 { docs?
                     <div className={styles.resultsContainer}>
-                        <p>{lastQuery}</p>
+                        <p className={styles.searchHeader}>{lastQuery}</p>
                         <p>Search Results: {resultCount}</p>
-                        <div>
-                            {docs.map((doc: any, index:number)=>{
-                                return (
-                                    <a href={doc.id} target="_blank" key={index}>
-                                        <div>
-                                            <p>{doc.title}</p>
-                                            <p>{doc.description}</p>
-                                        </div>
-                                    </a>
-                                )
-                            })}
+                        <div className={styles.resultsScroll}>
+                            <div className={styles.resultsGrid}>
+                                {docs.map((doc: any, index:number)=>{
+                                    return <StudyCard key={index} id={doc.id} title={doc.title} journal={doc.journal} callbackFunc={routeUser} />
+                                })}
+                            </div>
                         </div>
                     </div>
                     :
-                    <div>
-                        <p>Recent Searches</p>
-                        {
-                            cached?
-                            cached.map((doc: any, index: number) => {
-                                return (
-                                    <a href={doc.id} target="_blank" key={index}>
-                                        <div>
-                                            <p>{doc.title}</p>
-                                            <p>{doc.description}</p>
-                                        </div>
-                                    </a>
-                                )
-                            })
-                            :
-                            <p>No recent searches</p>
-                        }
+                    <div className={styles.resultsContainer}>
+                        <p className={styles.searchHeader}>Recent Searches</p>
+                        <div className={styles.resultsScroll}>
+                            <div className={styles.resultsGrid}>
+                            {
+                                cached?
+                                cached.map((doc: any, index: number) => {
+                                    return <StudyCard key={index} id={doc.id} title={doc.title} journal={doc.journal} callbackFunc={routeUser} />
+                                })
+                                :
+                                <p>No recent searches</p>
+                            }
+                            </div>
+                        </div>
                     </div>
                 }
             </div>

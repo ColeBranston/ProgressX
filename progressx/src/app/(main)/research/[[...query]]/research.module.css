@@ -1,7 +1,6 @@
 .researchContainer {
-    border: white solid 1px;
     width: 100%;
-    height: 99vh;
+    height: 89vh;
     display: flex;
     flex-direction: column;
     padding: 100px 0 0 5px;
@@ -16,4 +15,49 @@
 .resultsContainer a {
     color: rgb(var(--primary-color));
     
+}
+
+.searchHeader {
+    font-size: 24px;
+    font-family: var(--primary-font-family);
+    color: rgb(var(--primary-color));
+}
+
+.resultsScroll {
+    overflow-x: auto;
+    width: 75%;
+    padding: 2.5% 0 4% 0%;
+
+    /* Firefox */
+    scrollbar-width: normal;
+    scrollbar-color: red transparent;
+}
+
+/* Chrome, Edge, Safari */
+.resultsScroll::-webkit-scrollbar {
+    height: 8px; /* horizontal scrollbar */
+}
+
+.resultsScroll::-webkit-scrollbar-track {
+    background: transparent; /* no background */
+}
+
+.resultsScroll::-webkit-scrollbar-thumb {
+    background: rgb(var(--primary-color));
+    border-radius: 999px; /* fully rounded */
+}
+
+/* Remove arrows/buttons */
+.resultsScroll::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.resultsGrid {
+    display: flex;
+    flex-direction: row;
+    gap: 25px;
+    width: max-content;
+    overflow-x: auto;
 }
