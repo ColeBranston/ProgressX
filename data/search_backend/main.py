@@ -32,7 +32,7 @@ def printDoc(doc):
 def solr_searchID(query: str):
     results = solr_clean_core.search(
         q=f'{query}',
-        fl='id,title,jounral',
+        fl='id,title,journal',
         defType='edismax',
         qf='title^10 content^2',
         pf='title^10 content^2',
