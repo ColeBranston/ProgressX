@@ -28,11 +28,14 @@ const ResearchPage = () => {
     const [resultCount, setResultCount] = useState<number>(0)
     const [cached, setCached] = useState<any>(null)
 
+    const [isLoading, setIsLoading] = useState<Boolean>(true)
+
     const router = useRouter()
     const params = useParams()
 
     async function getResults(e: React.FormEvent<HTMLFormElement> | null, tempQuery?: string) {
-        
+        setIsLoading(true)
+
         if (query === "" && !tempQuery) return
         const currentQuery = query? query : tempQuery
 
@@ -45,7 +48,7 @@ const ResearchPage = () => {
         console.log("Query triggered, query: ", currentQuery)
 
         const endpoint = `https://progressx-search-backend.vercel.app/search/${currentQuery}`
-        var response = await fetch(endpoint, {
+                var response = await fetch(endpoint, {
             method: 'GET',
             credentials: 'include',
         })
@@ -59,9 +62,11 @@ const ResearchPage = () => {
             setLastQuery(currentQuery)
 
         }
+        setIsLoading(false)
     } 
 
     async function getCached() {
+        setIsLoading(true)
         const endpoint = `https://progressx-search-backend.vercel.app/cached`
         var response = await fetch(endpoint,
             {
@@ -76,6 +81,7 @@ const ResearchPage = () => {
 
             console.log("cached docs: ", cachedDocs)
         }
+        setIsLoading(false)
     }
 
     const routeUser = useCallback((link: string)=>{
@@ -95,39 +101,59 @@ const ResearchPage = () => {
     return (
         <div className='mainWrapper'>
             <div className={styles.researchContainer}>
-                <form onSubmit={getResults}>
-                    <input placeholder="Search for optimal workouts..." onChange={(e)=>{setQuery(e.target.value)}}/>
-                </form>
+                <div className={styles.searchFormContainer}>
+                    <form className={styles.searchForm} onSubmit={getResults}>
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            className={styles.searchIcon}
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            width="20" 
+                            height="20"
+                            aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input className={styles.searchbar} placeholder="Search for optimal workouts..." type={"text"} onChange={(e)=>{setQuery(e.target.value)}}/>
+                    </form>
+                </div>
 
-                { docs?
-                    <div className={styles.resultsContainer}>
-                        <p className={styles.searchHeader}>{lastQuery}</p>
-                        <p>Search Results: {resultCount}</p>
-                        <div className={styles.resultsScroll}>
-                            <div className={styles.resultsGrid}>
-                                {docs.map((doc: any, index:number)=>{
-                                    return <StudyCard key={index} id={doc.id} title={doc.title} journal={doc.journal} callbackFunc={routeUser} />
-                                })}
+                { isLoading? null : 
+                    ( docs?
+                        <div className={styles.resultsContainer}>
+                            <div className={styles.resultsHeaderContainer}>
+                                <p className={styles.searchHeader}>{lastQuery?.toUpperCase()}</p>
+                                <p className={styles.resultsCount}>Search Results: {resultCount}</p>
+                            </div>
+                            <div className={styles.resultsScroll}>
+                                <div className={styles.resultsGrid}>
+                                    {docs.map((doc: any, index:number)=>{
+                                        return <StudyCard key={index} id={doc.id} title={doc.title} journal={doc.journal} callbackFunc={routeUser} />
+                                    })}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    :
-                    <div className={styles.resultsContainer}>
-                        <p className={styles.searchHeader}>Recent Searches</p>
-                        <div className={styles.resultsScroll}>
-                            <div className={styles.resultsGrid}>
-                            {
-                                cached?
-                                cached.map((doc: any, index: number) => {
-                                    return <StudyCard key={index} id={doc.id} title={doc.title} journal={doc.journal} callbackFunc={routeUser} />
-                                })
-                                :
-                                <p>No recent searches</p>
-                            }
+                        :
+                        <div className={styles.resultsContainer}>
+                            <div className={styles.resultsHeaderContainer}>
+                                <p className={styles.cacheHeader}>Recent Searches</p>
+                            </div>
+                            <div className={styles.resultsScroll}>
+                                <div className={styles.resultsGrid}>
+                                {
+                                    cached?
+                                    cached.map((doc: any, index: number) => {
+                                        return <StudyCard key={index} id={doc.id} title={doc.title} journal={doc.journal} callbackFunc={routeUser} />
+                                    })
+                                    :
+                                    <p>No recent searches</p>
+                                }
+                                </div>
                             </div>
                         </div>
-                    </div>
-                }
+                    )}
             </div>
         </div>
     )
