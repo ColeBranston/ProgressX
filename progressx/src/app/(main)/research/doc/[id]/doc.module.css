@@ -1,0 +1,47 @@
+.docContainer {
+    width: 100%;
+    height: 99vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+}
+
+.contentContainer {
+    height: 60%;
+    font-family: var(--secondary-font-family);
+    font-weight: 200;
+    font-size: 18px;
+    padding: 0 50px 0 5%;
+    margin: 20px 10% 0 0;
+
+    overflow-y: auto;
+    /* Firefox */
+    scrollbar-width: normal;
+    scrollbar-color: red transparent;
+}
+
+/* Chrome, Edge, Safari */
+.contentContainer::-webkit-scrollbar {
+    height: 8px; /* horizontal scrollbar */
+}
+
+.contentContainer::-webkit-scrollbar-track {
+    background: transparent; /* no background */
+}
+
+.contentContainer::-webkit-scrollbar-thumb {
+    background: rgb(var(--primary-color));
+    border-radius: 999px; /* fully rounded */
+}
+
+/* Remove arrows/buttons */
+.contentContainer::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.contentContainer p {
+    margin: 0;
+}

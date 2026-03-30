@@ -5,9 +5,9 @@ import styles from "./research.module.css"
 import { useParams, useRouter } from "next/dist/client/components/navigation";
 import { StudyCard } from "@/app/internal_components";
 
-type SolrResponse = {
+export type SolrResponse = {
     debug?: Record<any,any>,
-    docs: Record<number,any>[],
+    docs: Record<any,any>[],
     facets?: Record<any,any>,
     grouped?: Record<any,any>,
     highlighting?: Record<any,any>,
