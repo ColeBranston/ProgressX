@@ -3,7 +3,6 @@ import xml.etree.ElementTree as ET
 import time
 from solr_instance import *
 from datetime import datetime, timezone
-
 import json
 
 # ---------------- CONFIG ----------------
@@ -29,7 +28,7 @@ DELAY = 0.34            # NCBI rate limiting
 
 # Years to split by (adjust range to cover your target years)
 START_YEAR = 2000
-END_YEAR = 2025
+END_YEAR = datetime.now().year
 
 # ---------------- FUNCTION: FETCH AND LOAD CHUNK ----------------
 def fetch_and_load(query, year):

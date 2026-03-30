@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import styles from "./research.module.css"
 import { useParams, useRouter } from "next/dist/client/components/navigation";
 import { StudyCard } from "@/app/internal_components";
@@ -88,6 +88,29 @@ const ResearchPage = () => {
         router.push(link) 
     },[router])
 
+    function useHorizontalScroll() {
+        const onWheel = (e: WheelEvent) => {
+            if (e.deltaY === 0) return;
+            
+            // Find the closest scrollable container
+            const container = e.currentTarget as HTMLElement;
+            if (container) {
+                e.preventDefault();
+                container.scrollLeft += e.deltaY;
+            }
+        };
+
+        // This "callback ref" runs every time the element mounts/unmounts
+        const setRef = (el: HTMLDivElement | null) => {
+            if (el) {
+                el.addEventListener("wheel", onWheel, { passive: false });
+            }
+        };
+
+        return setRef;
+    }
+
+
     useEffect(()=> {
         if (params?.query) {
             const tempQuery = params.query[0].replaceAll("%20", " ")
@@ -97,6 +120,8 @@ const ResearchPage = () => {
             getCached()
         }
     },[])
+
+    const scrollRef = useHorizontalScroll()
 
     return (
         <div className='mainWrapper'>
@@ -127,7 +152,7 @@ const ResearchPage = () => {
                                 <p className={styles.searchHeader}>{lastQuery?.toUpperCase()}</p>
                                 <p className={styles.resultsCount}>Search Results: {resultCount}</p>
                             </div>
-                            <div className={styles.resultsScroll}>
+                            <div className={styles.resultsScroll} ref={scrollRef}>
                                 <div className={styles.resultsGrid}>
                                     {docs.map((doc: any, index:number)=>{
                                         return <StudyCard key={index} id={doc.id} title={doc.title} journal={doc.journal} callbackFunc={routeUser} />
@@ -140,7 +165,7 @@ const ResearchPage = () => {
                             <div className={styles.resultsHeaderContainer}>
                                 <p className={styles.cacheHeader}>Recent Searches</p>
                             </div>
-                            <div className={styles.resultsScroll}>
+                            <div className={styles.resultsScroll} ref={scrollRef}>
                                 <div className={styles.resultsGrid}>
                                 {
                                     cached?
