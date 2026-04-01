@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from "next/dist/client/components/navigation"
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SolrResponse } from "../../[[...query]]/page";
 
 import styles from './doc.module.css'
@@ -14,7 +14,7 @@ export default function StudyPage() {
     const [journal, setJournal] = useState<string>()
     const [published, setPublished] = useState<string>()
     const [title, setTitle] = useState<string>()
-    const [content, setContent] = useState<string>()
+    const [content, setContent] = useState<string[]>()
 
     async function getDocument(){
         const id = params.id
@@ -37,7 +37,7 @@ export default function StudyPage() {
         setJournal(doc.journal)
         setPublished(doc.published)
         setTitle(doc.title)
-        setContent(doc.content)
+        setContent(formatContent(doc.content))
     }
     
     useEffect(()=> {
@@ -46,17 +46,52 @@ export default function StudyPage() {
         
         getDocument()
     },[])
+
+    function formatContent(content: string) {
+        const output: string[] = []
+        const max_size = 4
+
+        const sentences = content?.split(". ") || []
+
+        let currentChunk: string[] = []
+
+        for (let i = 0; i < sentences.length; i++) {
+            currentChunk.push(sentences[i])
+
+            if (currentChunk.length === max_size) {
+                output.push(currentChunk.join(". "))
+                currentChunk = []
+            }
+        }
+
+        // push any remaining sentences
+        if (currentChunk.length > 0) {
+            output.push(currentChunk.join(". "))
+        }
+        
+        return output
+    }
+
     return (
             <div className='mainWrapper'>
                 <div className={styles.docContainer}>
-                    <a href={link} target="_blank_"><button>See More</button></a>
-                    <p>{journal}</p>
-                    <div>
-                        <p>Published: {published}</p>
+                    <div className={styles.extraInfoContainer}>
+                        <p>{journal}</p>
+                        <a href={link} target="_blank_">See More</a>
+                    </div>
+                    <div className={styles.headerContainer}>
                         <p>{title}</p>
+                        <p style={{color: "rgb(var(--primary-color))"}}>{published}</p>
                     </div>
                     <div className={styles.contentContainer}>
-                        <p>{content}</p>
+                        {content?.map((para, index)=>{
+                            return (
+                                <>
+                                <br/>
+                                <p className={styles.contentText}>{para}</p>
+                                </> 
+                            )
+                        })}
                     </div>
                 </div>
             </div>

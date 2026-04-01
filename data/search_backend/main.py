@@ -61,6 +61,7 @@ def read_root():
 
 @app.get("/cached")
 def getCached():
+    print("Cached results accessed: ", cachedResults)
     return cachedResults
 
 @app.get("/search/{query}")
