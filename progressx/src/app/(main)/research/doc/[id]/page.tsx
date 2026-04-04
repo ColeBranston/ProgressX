@@ -76,7 +76,14 @@ export default function StudyPage() {
             <div className='mainWrapper'>
                 <div className={styles.docContainer}>
                     <div className={styles.extraInfoContainer}>
-                        <p>{journal}</p>
+                        <div className={styles.extraJournalContainer} onClick={()=>{router.back()}}>
+                            <div className={styles.extraBackButtonContainer}>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
+                                    <path d="M8 4l8 8-8 8z" />
+                                </svg>
+                            </div>
+                            <p>{journal}</p>
+                        </div>
                         <a href={link} target="_blank_">See More</a>
                     </div>
                     <div className={styles.headerContainer}>
@@ -86,10 +93,10 @@ export default function StudyPage() {
                     <div className={styles.contentContainer}>
                         {content?.map((para, index)=>{
                             return (
-                                <>
-                                <br/>
-                                <p className={styles.contentText}>{para}</p>
-                                </> 
+                                <div key={index}>
+                                    <br/>
+                                    <p className={styles.contentText}>{para}</p>
+                                </div>
                             )
                         })}
                     </div>

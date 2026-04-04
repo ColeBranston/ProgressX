@@ -29,7 +29,7 @@ def printDoc(doc):
     print(f"{termcolor.colored('Content:', 'red')} {doc.get('content', 'N/A')}")
     print(f"{termcolor.colored('Journal:', 'red')} {doc.get('journal', 'N/A')}")
 
-def solr_searchID(query: str):
+def solr_searchID(query: str, pageNum: int):
     results = solr_clean_core.search(
         q=f'{query}',
         fl='id,title,journal',
@@ -39,7 +39,8 @@ def solr_searchID(query: str):
         ps=2,
         mm='85%',
         tie=0.1,
-        rows=10
+        rows=10,
+        page=pageNum
     )
     return results
 
@@ -64,9 +65,9 @@ def getCached():
     print("Cached results accessed: ", cachedResults)
     return cachedResults
 
-@app.get("/search/{query}")
-def getResults(query:str):
-    results = solr_searchID(query)
+@app.get("/search/{query}/{pageNum}")
+def getResults(query:str, pageNum:int):
+    results = solr_searchID(query, pageNum)
 
     global cachedResults # for accessing the in-memory cache
     cachedResults = results

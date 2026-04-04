@@ -10,12 +10,54 @@
 .extraInfoContainer {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 0 5% 0 5%;
     font-family: var(--secondary-font-family);
     font-size: large;
     /* font-weight: 500; */
     gap: 10px;
     color: rgb(var(--primary-color));
+}
+
+.extraJournalContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    gap: 20px;
+}
+
+.extraBackButtonContainer {
+    background-color: rgb(var(--primary-color),0.1);
+    border: solid rgb(var(--primary-color)) 2px;
+    min-width: 40px;
+    min-height: 40px;
+    position: relative;
+    border-radius:  100%;    
+
+    transition: background-color 0.1s linear;
+}
+
+.extraBackButtonContainer svg {
+    transform: rotate(180deg);
+    position: absolute;
+    top: 5.5px;
+    left: 3px;
+    stroke: rgb(var(--primary-color));
+    fill: rgb(var(--primary-color),0.1);
+
+    transition: stroke 0.1s linear,
+                fill 0.1s linear;
+}
+
+.extraBackButtonContainer:hover {
+    background-color: rgb(var(--primary-color));
+    cursor: pointer;
+}
+
+.extraBackButtonContainer:hover svg {
+    stroke: var(--secondary-color);
+    fill: var(--secondary-color);
 }
 
 .extraInfoContainer, .headerContainer {
