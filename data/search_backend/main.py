@@ -40,7 +40,7 @@ def solr_searchID(query: str, pageNum: int):
         mm='85%',
         tie=0.1,
         rows=10,
-        page=pageNum
+        start=pageNum*10
     )
     return results
 
