@@ -27,6 +27,7 @@ const ResearchPage = () => {
     const [docs, setDocs] = useState<any>(null)
     const [resultCount, setResultCount] = useState<number>(0)
     const [cached, setCached] = useState<any>(null)
+    const [currPage, setCurrPage] = useState<number>(0)
 
     const [isLoading, setIsLoading] = useState<Boolean>(true)
 
@@ -41,13 +42,13 @@ const ResearchPage = () => {
 
         if (e) {
             e.preventDefault()
-            router.push(`/research/${currentQuery}`) // only updates the path params on form submit, that way you don't rerequest
+            router.push(`/research/${currPage}/${currentQuery}}`) // only updates the path params on form submit, that way you don't rerequest
 
         }
 
         console.log("Query triggered, query: ", currentQuery)
 
-        const endpoint = `https://progressx-search-backend.vercel.app/search/${currentQuery}`
+        const endpoint = `https://progressx-search-backend.vercel.app/search/${currPage}/${currentQuery}`
                 var response = await fetch(endpoint, {
             method: 'GET',
             credentials: 'include',
@@ -110,7 +111,6 @@ const ResearchPage = () => {
         return setRef;
     }
 
-
     useEffect(()=> {
         if (params?.query) {
             const tempQuery = params.query[0].replaceAll("%20", " ")
@@ -158,6 +158,9 @@ const ResearchPage = () => {
                                         return <StudyCard key={index} id={doc.id} title={doc.title} journal={doc.journal} callbackFunc={routeUser} />
                                     })}
                                 </div>
+                            </div>
+                            <div>
+                                <p>{Math.ceil(resultCount/10)}</p>
                             </div>
                         </div>
                         :

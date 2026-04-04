@@ -65,8 +65,8 @@ def getCached():
     print("Cached results accessed: ", cachedResults)
     return cachedResults
 
-@app.get("/search/{query}/{pageNum}")
-def getResults(query:str, pageNum:int):
+@app.get("/search/{pageNum}/{query}")
+def getResults(pageNum:int, query:str):
     results = solr_searchID(query, pageNum)
 
     global cachedResults # for accessing the in-memory cache
