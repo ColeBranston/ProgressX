@@ -61,7 +61,7 @@ export default function Onboarding() {
         setTimeout(() => {
             setAnimationComplete(true)
         }, 5000)
-    }, [])
+    }, [router])
 
     async function sendOnboardingDetails(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -136,8 +136,8 @@ export default function Onboarding() {
                                         <label htmlFor='Activity'>Workout Frequency</label>
                                         <select id='Activity' className={styles.selectField} onChange={(e) => {setActivity(e.target.value)}}>
                                             {
-                                                Object.keys(activityMap).map((Word) => {
-                                                    return <option value={Word}>{Word}</option>
+                                                Object.keys(activityMap).map((Word, index) => {
+                                                    return <option key={index} value={Word}>{Word}</option>
                                                 })
                                             }
                                         </select>

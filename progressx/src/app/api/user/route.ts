@@ -41,10 +41,11 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({message: `Recieved user update`})
-    } catch(e: any) {
-        console.log("Error: ", e.message)
+    } catch(e) {
+        const error = e instanceof Error ? e : new Error(String(e))
+        console.log("Error: ", error.message)
 
-        return NextResponse.json({error: `Error updating profile: ${e.message}`}, {status: 500})
+        return NextResponse.json({error: `Error updating profile: ${error.message}`}, {status: 500})
 
     }
 }

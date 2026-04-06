@@ -1,40 +1,40 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import styles from "./research.module.css"
 import { useParams, useRouter } from "next/dist/client/components/navigation";
 import { StudyCard } from "@/app/internal_components";
 
 export type SolrResponse = {
-    debug?: Record<any,any>,
-    docs: Record<any,any>[],
-    facets?: Record<any,any>,
-    grouped?: Record<any,any>,
-    highlighting?: Record<any,any>,
+    debug?: Record<string, string>,
+    docs: Record<string, string>[],
+    facets?: Record<string, string>,
+    grouped?: Record<string, string>,
+    highlighting?: Record<string, string>,
     hits: number,
-    nextCursorMark?: any,
+    nextCursorMark?: string,
     qtime?: number,
-    raw_response?: any,
-    spellcheck?: Record<any,any>,
-    stats?: Record<any,any>,
-    _next_page_query?: any
+    raw_response?: string,
+    spellcheck?: Record<string, string>,
+    stats?: Record<string, string>,
+    _next_page_query?: string
 }
 
 const ResearchPage = () => {
 
     const [query, setQuery] = useState<string>("")
     const [lastQuery, setLastQuery] = useState<string|undefined>("")
-    const [docs, setDocs] = useState<any>(null)
+    const [docs, setDocs] = useState<unknown[]>([])
     const [resultCount, setResultCount] = useState<number>(0)
-    const [cached, setCached] = useState<any>(null)
+    const [cached, setCached] = useState<unknown[]>([])
     const [currPage, setCurrPage] = useState<number>(0)
 
-    const [isLoading, setIsLoading] = useState<Boolean>(true)
+    const [isLoading, setIsLoading] = useState<boolean>(true)
 
     const router = useRouter()
     const params = useParams()
 
-    async function getResults(e: React.FormEvent<HTMLFormElement> | null, tempQuery?: string) {
+    const getResults = useCallback(async (e: React.FormEvent<HTMLFormElement> | null, tempQuery?: string, pageNum?: number) => {
         setIsLoading(true)
 
         if (query === "" && !tempQuery) return
@@ -42,14 +42,13 @@ const ResearchPage = () => {
 
         if (e) {
             e.preventDefault()
-            router.push(`/research/${currPage}/${currentQuery}}`) // only updates the path params on form submit, that way you don't rerequest
-
+            router.push(`/research/${currPage}/${currentQuery}`) // only updates the path params on form submit, that way you don't rerequest
         }
 
         console.log("Query triggered, query: ", currentQuery)
 
-        const endpoint = `https://progressx-search-backend.vercel.app/search/${currPage}/${currentQuery}`
-                var response = await fetch(endpoint, {
+        const endpoint = `https://progressx-search-backend.vercel.app/search/${pageNum? pageNum : currPage}/${currentQuery}`
+                const response = await fetch(endpoint, {
             method: 'GET',
             credentials: 'include',
         })
@@ -61,15 +60,14 @@ const ResearchPage = () => {
             setDocs(solrResponse.docs)
             setResultCount(solrResponse.hits)
             setLastQuery(currentQuery)
-
         }
         setIsLoading(false)
-    } 
+    },[currPage, query, router])
 
     async function getCached() {
         setIsLoading(true)
         const endpoint = `https://progressx-search-backend.vercel.app/cached`
-        var response = await fetch(endpoint,
+        const response = await fetch(endpoint,
             {
                 method: 'GET',
                 credentials: 'omit',
@@ -113,13 +111,17 @@ const ResearchPage = () => {
 
     useEffect(()=> {
         if (params?.query) {
-            const tempQuery = params.query[0].replaceAll("%20", " ")
+            const tempQuery = params.query[1].replaceAll("%20", " ")
             setQuery(tempQuery)
-            getResults(null, tempQuery)
+            
+            const pageNum = Number(params.query[0])
+            console.log("Current Page Num:", pageNum)
+            setCurrPage(pageNum)
+            getResults(null, tempQuery, pageNum)
         } else {
             getCached()
         }
-    },[])
+    },[currPage, getResults, params])
 
     const scrollRef = useHorizontalScroll()
 
@@ -154,13 +156,24 @@ const ResearchPage = () => {
                             </div>
                             <div className={styles.resultsScroll} ref={scrollRef}>
                                 <div className={styles.resultsGrid}>
-                                    {docs.map((doc: any, index:number)=>{
+                                    {docs.map((doc: unknown, index:number)=>{
                                         return <StudyCard key={index} id={doc.id} title={doc.title} journal={doc.journal} callbackFunc={routeUser} />
                                     })}
                                 </div>
                             </div>
                             <div>
-                                <p>{Math.ceil(resultCount/10)}</p>
+                                {
+                                   resultCount <= 10?
+                                   Array.from({length: resultCount}).map((_, i)=>{
+                                        return <i onClick={()=>{}} key={i}>{i+1}</i>
+                                    })
+                                   :
+                                   (
+                                    Array.from({length: 10}).map((_, i)=>{
+                                        return <i key={i}>{i+1}</i>
+                                    })
+                                   )
+                                }
                             </div>
                         </div>
                         :

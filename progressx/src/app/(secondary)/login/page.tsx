@@ -11,7 +11,7 @@ export default function Login() {
     const [password, setPassword] = useState('')
     const [tempPassword, setTempPassword] = useState('')
     const router = useRouter();
-    const { isLoading, setIsLoading } = useContext(IsLoadingContext)
+    const { setIsLoading } = useContext(IsLoadingContext)
 
 
     useEffect(() => {
@@ -24,7 +24,7 @@ export default function Login() {
         console.log("token found")
         console.log(googleToken)
         try {
-          async function tokenClean(googleToken: String){
+          async function tokenClean(googleToken: string){
             const res = await fetch("http://localhost:3000/api/auth/login/google", {
               method: "POST",
               headers: {
@@ -55,9 +55,9 @@ export default function Login() {
           }
           
       }catch(e) {
-        console.log("Error sending google token")
+        console.log("Error sending google token:", e)
       }}
-    },[])
+    },[router])
 
     async function SignUpForm(event: React.FormEvent<HTMLFormElement>) {
       event.preventDefault();

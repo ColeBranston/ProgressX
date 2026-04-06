@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from "next/dist/client/components/navigation"
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SolrResponse } from "../../[[...query]]/page";
 
 import styles from './doc.module.css'
@@ -16,7 +16,7 @@ export default function StudyPage() {
     const [title, setTitle] = useState<string>()
     const [content, setContent] = useState<string[]>()
 
-    async function getDocument(){
+    const getDocument = useCallback(async (): Promise<void> => {
         const id = params.id
         if (!id) router.push('/research')
 
@@ -38,14 +38,14 @@ export default function StudyPage() {
         setPublished(doc.published)
         setTitle(doc.title)
         setContent(formatContent(doc.content))
-    }
+    }, [params, router])
     
     useEffect(()=> {
         console.log("Params: ", params)
         console.log("ID: ", params.id)
         
         getDocument()
-    },[])
+    },[getDocument, params])
 
     function formatContent(content: string) {
         const output: string[] = []

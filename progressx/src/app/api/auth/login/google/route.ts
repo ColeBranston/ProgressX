@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { jwtVerify } from "jose"
 
 export async function GET() {
-    const{ data, error } = await supabase.auth.signInWithOAuth({
+    const{ data } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
             redirectTo: "http://localhost:3000/login"

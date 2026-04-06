@@ -6,7 +6,7 @@ import { userDataContext } from '../contexts/userData';
 
 export default function Homepage() {
   
-  const { userData, setUserData } = useContext(userDataContext)
+  const { setUserData } = useContext(userDataContext)
 
   useEffect(() => {
     async function getUserData() {
@@ -43,7 +43,7 @@ export default function Homepage() {
       }
     }
     getUserData()
-  }, [])
+  }, [setUserData])
 
   return (
   <div className='mainWrapper'>

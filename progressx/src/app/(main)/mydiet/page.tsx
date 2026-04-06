@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import dayjs from 'dayjs'
 import styles from './dietpage.module.css'
 import { AnalyticsBar, CalorieTarget, goalType } from "../../internal_components/index"
@@ -35,34 +35,30 @@ export default function DietPage() {
 
     const [ totalExpenditure, setTotalExpenditure ] = useState<number>(0)
 
-    const [ totalCal, setTotalCal ] = useState<number>(2100)
-
-    function get_weight_kg() {
-        return userData.weight * config.POUND2KG
-    }
+    const [ totalCal ] = useState<number>(2100)
 
     // Accurate equation for calculating the BMR of a man or woman without using body fat percentage (%)
-    function Mifflin_St_Jeor_BMR() {
+    const Mifflin_St_Jeor_BMR = useCallback(() => {
         switch (userData.gender) {
             case "male":
-                return (10 * get_weight_kg() + (6.25 * userData.height) - (5 * userData.age) + 5)
+                return (10 * (userData.weight * config.POUND2KG) + (6.25 * userData.height) - (5 * userData.age) + 5)
 
             case "female":  
-                return (10 * get_weight_kg() + (6.25 * userData.height) - (5 * userData.age) - 161)
+                return (10 * (userData.weight * config.POUND2KG) + (6.25 * userData.height) - (5 * userData.age) - 161)
 
             default:
                 console.error("User's Gender is apparently alien: ", userData.gender)
                 return 0
         }
-    }
+    }, [userData.gender, userData.height, userData.age, userData.weight, config.POUND2KG])
 
-    function calcTotalExpenditure() {
+    const calcTotalExpenditure = useCallback(() => {
         const BMR = Mifflin_St_Jeor_BMR()
         console.log("Activity Number: ", userData.activity, "BMR: ", BMR)
         return config.ActivityWeighting[userData.activity] * BMR
-    }
+    }, [userData.activity, Mifflin_St_Jeor_BMR, config.ActivityWeighting])
 
-    function getDay(x: Number) {
+    function getDay(x: number) {
         switch(x) {
             case 0:
                 return "Sunday"
@@ -113,7 +109,7 @@ export default function DietPage() {
         const expenditure = calcTotalExpenditure();
         setTotalExpenditure(expenditure);
         localStorage.setItem("TotalExpenditure", String(expenditure));
-    }, []);
+    }, [calcTotalExpenditure]);
 
     return(
         <div className="mainWrapper">

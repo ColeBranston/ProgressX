@@ -1,7 +1,6 @@
 import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 import { encoder } from "./login/google/route";
-import { redirect } from "next/dist/server/api-utils";
 
 export async function GET(req: NextRequest) {
     const token = req.cookies.get("token")?.value
@@ -15,7 +14,8 @@ export async function GET(req: NextRequest) {
         } else {
             throw new Error("Missing Token")
         }
-    } catch(e) {
-        return NextResponse.json({ message: "No or invalid token"}, { status: 401 })
+    } catch(e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        return NextResponse.json({ message: "No or invalid token: " + errorMessage}, { status: 401 })
     }
 }   
