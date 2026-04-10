@@ -57,7 +57,7 @@ export default function Login() {
       }catch(e) {
         console.log("Error sending google token:", e)
       }}
-    },[router])
+    },[router, setIsLoading])
 
     async function SignUpForm(event: React.FormEvent<HTMLFormElement>) {
       event.preventDefault();

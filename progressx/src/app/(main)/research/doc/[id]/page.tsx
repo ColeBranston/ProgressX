@@ -47,7 +47,10 @@ export default function StudyPage() {
         getDocument()
     },[getDocument, params])
 
-    function formatContent(content: string) {
+    function formatContent(content: string | undefined) {
+
+        if (!content) return
+
         const output: string[] = []
         const max_size = 4
 

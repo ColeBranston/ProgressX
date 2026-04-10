@@ -6,7 +6,8 @@ import { userDataContext } from '../contexts/userData';
 
 export default function Homepage() {
   
-  const { setUserData } = useContext(userDataContext)
+  const context = useContext(userDataContext)
+  const setUserData = context?.setUserData
 
   useEffect(() => {
     async function getUserData() {

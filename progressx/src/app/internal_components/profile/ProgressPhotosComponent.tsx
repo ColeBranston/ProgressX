@@ -1,26 +1,32 @@
 "use client";
 
 import { IsLoadingContext } from "@/app/contexts/isLoading";
-import { ChangeEvent, HTMLInputTypeAttribute, useContext, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useContext, useEffect, useRef, useState } from "react";
 import styles from './VideosComponent.module.css'
 
 import dayjs from 'dayjs'
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "../../../../node_modules/next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+
+export type ProgressPhoto = {
+    image_link: string,
+    created_at: string,
+    [key: string]: string
+}
+export type ProgressPhotoMap = Record<string, ProgressPhoto>
 
 export default function ProgressPhotosComponent() {
 
     const videoForm = useRef<HTMLInputElement | null>(null)
     const [ isFormVisible, setIsFormVisible ] = useState(false)
-    const [ selectedImage, setSelectedImage ] = useState(null)
+    const [ selectedImage, setSelectedImage ] = useState<File | null>(null)
     const [ selectedImageURL, setSelectedImageURL ]= useState('')
     const [ isImageSelected, setIsImageSelected] = useState(false)
 
     const [ toggleImageAdded, setToggleImageAdded ] = useState(false)
     const [ isSynced, setIsSynced ] = useState(false)
 
-    const [ userImages, setUserImages ] = useState<string | null>(null)
-    const [ highlightedImage, setHighlightedImage ] = useState(null)
+    const [ userImages, setUserImages ] = useState<ProgressPhotoMap | null>(null)
+    const [ highlightedImage, setHighlightedImage ] = useState<ProgressPhoto | null>(null)
 
     const [ isMore, setIsMore ] = useState(false)
     const [ confirmDelete, setConfirmDelete ] = useState(false) 
@@ -73,6 +79,7 @@ export default function ProgressPhotosComponent() {
                     setIsSynced(!isSynced)
                 } else{
                     const images = localStorage.getItem("user_photos")
+                    if (!images) return
                     setUserImages(JSON.parse(images))
 
                     console.log("Found images from cache")
@@ -150,6 +157,8 @@ export default function ProgressPhotosComponent() {
 
     async function handleDeleteImage() {
 
+        if (!highlightedImage) return
+
         setIsLoading(true)
 
         const data = await fetch('api/user/userImages/deleteUserImages',{
@@ -189,7 +198,7 @@ export default function ProgressPhotosComponent() {
             {userImages?
                 Object.entries(userImages).reverse().map(([key, image]) => {
                     return (
-                        <div className={styles.addVideoButtonContainer}>
+                        <div key={key} className={styles.addVideoButtonContainer}>
                             <div className={styles.addVideoButton} onClick={() => {setHighlightedImage(image)}}>
                                 <div className={styles.progressPhotoContainer}>
                                     <img src={`${image.image_link}`} width={'100%'} height={"auto"}/>

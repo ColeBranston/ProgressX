@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary'
 
 export default class CloudinaryService {
-    private static _instance: any;
+    private static _instance: typeof cloudinary;
 
     private constructor(){}
 

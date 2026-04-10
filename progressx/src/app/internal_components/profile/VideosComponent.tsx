@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import styles from './VideosComponent.module.css'
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "../../../../node_modules/next/navigation";
@@ -27,8 +27,8 @@ export default function VideosComponent() {
         }
     },[])
 
-    async function handleVideoChange(e){
-          const file = e.target.files[0];
+    async function handleVideoChange(e: ChangeEvent<HTMLInputElement>){
+          const file = e.target.files?.[0];
           console.log('Selected video:', file);
           // do something with the video file
         };

@@ -7,7 +7,7 @@ import { StudyCard } from "@/app/internal_components";
 
 export type SolrResponse = {
     debug?: Record<string, string>,
-    docs: Record<string, string>[],
+    docs: SolrDoc[],
     facets?: Record<string, string>,
     grouped?: Record<string, string>,
     highlighting?: Record<string, string>,
@@ -20,13 +20,20 @@ export type SolrResponse = {
     _next_page_query?: string
 }
 
+export type SolrDoc = {
+    id: string,
+    journal: string,
+    title: string,
+    published?: string,
+    content?: string
+}
 const ResearchPage = () => {
 
     const [query, setQuery] = useState<string>("")
     const [lastQuery, setLastQuery] = useState<string|undefined>("")
-    const [docs, setDocs] = useState<unknown[]>([])
+    const [docs, setDocs] = useState<SolrDoc[]>([])
     const [resultCount, setResultCount] = useState<number>(0)
-    const [cached, setCached] = useState<unknown[]>([])
+    const [cached, setCached] = useState<SolrDoc[]>([])
     const [currPage, setCurrPage] = useState<number>(0)
 
     const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -156,7 +163,7 @@ const ResearchPage = () => {
                             </div>
                             <div className={styles.resultsScroll} ref={scrollRef}>
                                 <div className={styles.resultsGrid}>
-                                    {docs.map((doc: unknown, index:number)=>{
+                                    {docs.map((doc: SolrDoc, index:number)=>{
                                         return <StudyCard key={index} id={doc.id} title={doc.title} journal={doc.journal} callbackFunc={routeUser} />
                                     })}
                                 </div>
@@ -185,7 +192,7 @@ const ResearchPage = () => {
                                 <div className={styles.resultsGrid}>
                                 {
                                     cached?
-                                    cached.map((doc: any, index: number) => {
+                                    cached.map((doc: SolrDoc, index: number) => {
                                         return <StudyCard key={index} id={doc.id} title={doc.title} journal={doc.journal} callbackFunc={routeUser} />
                                     })
                                     :

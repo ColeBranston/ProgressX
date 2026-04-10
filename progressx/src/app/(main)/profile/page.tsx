@@ -16,7 +16,7 @@ export default function ProfilePage() {
     
     const [ isEdit, setIsEdit ] = useState(false)
 
-    const pfpImageForm = useRef<HTMLFormElement | null>(null)
+    const pfpImageForm = useRef<HTMLInputElement>(null)
     
     async function handleProfileImageChange(e: ChangeEvent<HTMLInputElement>){
 
@@ -37,7 +37,7 @@ export default function ProfilePage() {
             const newImageLink = (await data.json()).imageReference
             console.log("Fetch responded with new image link: ", newImageLink)
 
-            setUserData((prev: unknown[]) => ({
+            setUserData((prev: Record<string,object>) => ({
                 ...prev,
                 pfp: newImageLink,
                 }));
@@ -55,7 +55,7 @@ export default function ProfilePage() {
     function togglePrivate() {
         if (isEdit) {
             console.log("Account Made Private")
-            setUserData(prev => (
+            setUserData((prev: Record<string,object>) => (
                 {   
                     ...prev, 
                     privacy: "private" 
@@ -67,7 +67,7 @@ export default function ProfilePage() {
     function togglePublic() {
         if (isEdit) {
             console.log("Account Made Public")
-            setUserData(prev => (
+            setUserData((prev: Record<string,object>) => (
                 {   
                     ...prev, 
                     privacy: "public" 
@@ -164,7 +164,7 @@ export default function ProfilePage() {
                             {isEdit? 
                             <form style={{width: '100%', height: '100%'}}>
                                 <textarea className={styles.bioTextArea} placeholder={ userData.bio ? userData.bio :"No Bio Yet" } onChange={ 
-                                    (e) => setUserData(prev => ({
+                                    (e) => setUserData((prev: Record<string, object>) => ({
                                                         ...prev,
                                                         bio: e.target.value,
                                                     }))}>
