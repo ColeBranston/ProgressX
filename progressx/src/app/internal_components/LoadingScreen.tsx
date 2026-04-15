@@ -6,7 +6,7 @@ import { IsLoadingContext } from '../contexts/isLoading'
 
 export default function LoadingScreen(){
 
-    const { isLoading, setIsLoading} = useContext(IsLoadingContext)
+    const { isLoading } = useContext(IsLoadingContext)
 
     return(
         isLoading? (

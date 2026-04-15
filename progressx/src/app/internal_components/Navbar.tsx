@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { usePathname } from "next/navigation";
 import styles from './navbar.module.css';
+import Link from "next/link";
 
 export default function Navbar(){
     const router = useRouter()
@@ -96,9 +97,9 @@ export default function Navbar(){
             </li>
           </ul>
           <ul className={styles.secondaryList}>
-            <a href="/"><li>Company</li></a>
-            <a href="/"><li>Program</li></a>
-            <a href="/"><li>Terms & Policies</li></a>
+            <Link href="/"><li>Company</li></Link>
+            <Link href="/"><li>Program</li></Link>
+            <Link href="/"><li>Terms & Policies</li></Link>
             <li className={styles.watermark}>@2026 progressX</li>
           </ul>
         </div>

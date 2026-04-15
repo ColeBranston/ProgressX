@@ -3,14 +3,19 @@
 import { createContext, ReactNode, useEffect, useMemo, useState, Dispatch, SetStateAction } from "react";
 import debounce from "lodash/debounce";
 
-type UserData = Record<string, string | number | null>;
+export type UserData = Record<string, string | number | null>;
 
 type UserDataContextType = {
   userData: UserData;
   setUserData: Dispatch<SetStateAction<UserData>>;
 };
 
-export const userDataContext = createContext<UserDataContextType | undefined>(undefined);
+export const userDataContext = createContext<UserDataContextType>(
+   {
+    userData: {username: null},
+    setUserData: () => {}
+   }
+); // just to satisfy type script eslinting
 
 export function UserDataProvider({ children }: { children: ReactNode }) {
   const [userData, setUserData] = useState<UserData>({
@@ -38,7 +43,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     } else {
       localStorage.setItem("userData", JSON.stringify(userData));
     }
-  }, []);
+  }, [userData]);
 
   // ✅ Create a debounced backend update function
   const debouncedUpdateServer = useMemo(

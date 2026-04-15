@@ -69,7 +69,7 @@ export default function CalorieTarget({
     useEffect(()=> {
         const tempOffset = getCurrOffset(curr, lower, upper)
         setIntakeOffset(tempOffset)
-    }, [lower, upper])
+    }, [lower, upper, curr])
 
     useEffect(()=> {
         setGoalState(goal)
@@ -86,7 +86,7 @@ export default function CalorieTarget({
         tempBoundaries.Surplus = [totalExpenditure+1, totalExpenditure+500] // stop is at 500 kCal surplus because any calories over that is just fat tissue
 
         setGoalBoundaries(tempBoundaries)
-    }, [goal])
+    }, [goal, goalBoundaries, totalExpenditure])
 
     return (
         <div className={styles.calorieBarContainer}>
@@ -103,8 +103,8 @@ export default function CalorieTarget({
                     </div>
                 ))
                 :
-                Array.from({ length: config.NUM_SEGMENTS-1 }).map((i) => {
-                    return  <div className={styles.segment}>
+                Array.from({ length: config.NUM_SEGMENTS-1 }).map((val: unknown, i: number) => { // val wont be anything since its just an array of empty values, so we just need the index
+                    return  <div key={i} className={styles.segment}>
                                 <p>0</p>
                             </div>
                 })}
