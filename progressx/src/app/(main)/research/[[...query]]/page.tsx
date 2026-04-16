@@ -41,7 +41,7 @@ const ResearchPage = () => {
     const router = useRouter()
     const params = useParams()
 
-    const getResults = useCallback(async (e: React.FormEvent<HTMLFormElement> | null, tempQuery?: string, pageNum?: number) => {
+    async function getResults(e: React.FormEvent<HTMLFormElement> | null, tempQuery?: string, pageNum?: number){
         setIsLoading(true)
 
         if (query === "" && !tempQuery) return
@@ -69,7 +69,7 @@ const ResearchPage = () => {
             setLastQuery(currentQuery)
         }
         setIsLoading(false)
-    },[currPage, query, router])
+    }
 
     async function getCached() {
         setIsLoading(true)
@@ -86,6 +86,7 @@ const ResearchPage = () => {
             setCached(cachedDocs.docs)
 
             console.log("cached docs: ", cachedDocs)
+            console.log("current docs: ", docs)
         }
         setIsLoading(false)
     }
@@ -118,7 +119,7 @@ const ResearchPage = () => {
 
     useEffect(()=> {
         if (params?.query) {
-            const tempQuery = params.query[1].replaceAll("%20", " ")
+            const tempQuery = params?.query[1]?.replaceAll("%20", " ")
             setQuery(tempQuery)
             
             const pageNum = Number(params.query[0])
@@ -126,9 +127,10 @@ const ResearchPage = () => {
             setCurrPage(pageNum)
             getResults(null, tempQuery, pageNum)
         } else {
+            console.log(`No Parmas detected, getting cached documents`)
             getCached()
         }
-    },[currPage, getResults, params])
+    },[params])
 
     const scrollRef = useHorizontalScroll()
 
@@ -155,7 +157,7 @@ const ResearchPage = () => {
                 </div>
 
                 { isLoading? null : 
-                    ( docs?
+                    ( docs.length > 0?
                         <div className={styles.resultsContainer}>
                             <div className={styles.resultsHeaderContainer}>
                                 <p className={styles.searchHeader}>{lastQuery?.toUpperCase()}</p>

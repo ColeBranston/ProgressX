@@ -25,7 +25,7 @@ export default function VideosComponent() {
 
             router.replace(tempPath)
         }
-    },[submit, params, router])
+    },[])
 
     async function handleVideoChange(e: ChangeEvent<HTMLInputElement>){
           const file = e.target.files?.[0];

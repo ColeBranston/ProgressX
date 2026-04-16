@@ -38,12 +38,13 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   // ✅ Load from localStorage once on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("userData");
+    console.log("UserData UseEffect Triggered")
     if (storedUser) {
       setUserData(JSON.parse(storedUser));
     } else {
       localStorage.setItem("userData", JSON.stringify(userData));
     }
-  }, [userData]);
+  }, []);
 
   // ✅ Create a debounced backend update function
   const debouncedUpdateServer = useMemo(

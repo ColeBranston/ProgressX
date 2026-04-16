@@ -61,7 +61,7 @@ export default function Onboarding() {
         setTimeout(() => {
             setAnimationComplete(true)
         }, 5000)
-    }, [router])
+    }, [])
 
     async function sendOnboardingDetails(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();

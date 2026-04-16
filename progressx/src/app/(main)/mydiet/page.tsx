@@ -57,7 +57,7 @@ export default function DietPage() {
                 console.error("User's Gender is apparently alien: ", userData.gender)
                 return 0
         }
-    }, [userData.gender, userData.height, userData.age, userData.weight, config.POUND2KG])
+    },[])
 
     const calcTotalExpenditure = useCallback(() => {
         const BMR = Mifflin_St_Jeor_BMR()

@@ -92,7 +92,7 @@ export default function ProgressPhotosComponent() {
         
         getData()
         
-    },[toggleImageAdded, isSynced])
+    },[toggleImageAdded])
 
     const params = useSearchParams()
     const submit = params.get("photoSubmit")
@@ -112,7 +112,7 @@ export default function ProgressPhotosComponent() {
 
             router.replace(tempPath)
         }
-    }, [params, router, submit])
+    }, [])
 
     async function handleVideoChange(e: ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
@@ -199,10 +199,10 @@ export default function ProgressPhotosComponent() {
             {userImages?
                 Object.entries(userImages).reverse().map(([key, image]) => {
                     return (
-                        <div key={key} className={styles.addVideoButtonContainer}>
+                        <div key={key} className={styles.progressPhotoBackground}>
                             <div className={styles.addVideoButton} onClick={() => {setHighlightedImage(image)}}>
                                 <div className={styles.progressPhotoContainer}>
-                                    <Image src={`${image.image_link}`} style={{ objectFit: "contain" }} alt="Progress Photo" />
+                                    <Image className={styles.progressPhoto} src={`${image.image_link}`} style={{ objectFit: "contain" }} width={200} height={200} alt="Progress Photo" />
                                 </div>
                             </div>
                             <p>{dayjs(image.created_at).format("MMMM D, YYYY")}</p>
@@ -228,7 +228,7 @@ export default function ProgressPhotosComponent() {
             isImageSelected?
             <div className={styles.customFormContainer}>
                 <div className={styles.customForm} onClick={() => videoForm?.current?.click()}>
-                    <Image src={selectedImageURL} style={{ objectFit: "contain" }} alt="Selected Image" />
+                    <Image className={styles.selectedImage} src={selectedImageURL} style={{ objectFit: "contain" }} width={600} height={600} alt="Selected Image" />
                 </div>
                 <button className={styles.submitImageButton} onClick={handleImageSubmit}>
                     <svg width="30" height="30" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
@@ -252,7 +252,7 @@ export default function ProgressPhotosComponent() {
                     </div>
                 </div>
                 :
-                <Image src={highlightedImage.image_link} style={{ objectFit: "contain"}} height={400} alt="highlighted image"/>
+                <Image src={highlightedImage.image_link} className={styles.highlightedImage} style={{ objectFit: "cover"}} width={800} height={800} alt="highlighted image"/>
                 }
                 <p className={styles.highlightedImageCreatedText}>{dayjs(highlightedImage.created_at).format("MMMM D, YYYY")}</p>
                 <svg className={isMore? styles.highlightedImageMoreSVG:''} width="60" height="60" viewBox="0 0 24 24"  xmlns="http://www.w3.org/2000/svg" onClick={()=> {setIsMore(!isMore)}}>

@@ -35,7 +35,7 @@ export default function Login() {
               }),
             });
       
-            if (!res.ok) {
+            if (!res.ok || res.status != 200) {
               const errorText = await res.text();
               console.error(`Signup failed (${res.status}): ${errorText}`);
               alert("Signup failed. Check console for details.");
@@ -47,8 +47,6 @@ export default function Login() {
             setIsLoading(false)
 
             router.push("/")
-          
-          
           }
           if (googleToken) {
             tokenClean(googleToken)
@@ -57,7 +55,7 @@ export default function Login() {
       }catch(e) {
         console.log("Error sending google token:", e)
       }}
-    },[router, setIsLoading])
+    },[])
 
     async function SignUpForm(event: React.FormEvent<HTMLFormElement>) {
       event.preventDefault();

@@ -46,7 +46,7 @@ export default function Homepage() {
       }
     }
     getUserData()
-  }, [setUserData])
+  }, [])
 
   return (
   <div className='mainWrapper'>

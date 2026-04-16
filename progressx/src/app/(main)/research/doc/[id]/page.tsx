@@ -45,7 +45,7 @@ export default function StudyPage() {
         console.log("ID: ", params.id)
         
         getDocument()
-    },[getDocument, params])
+    },[])
 
     function formatContent(content: string | undefined) {
 
