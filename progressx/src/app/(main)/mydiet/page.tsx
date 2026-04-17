@@ -117,7 +117,7 @@ export default function DietPage() {
         const expenditure = calcTotalExpenditure();
         setTotalExpenditure(Number(expenditure));
         localStorage.setItem("TotalExpenditure", String(expenditure));
-    }, [calcTotalExpenditure]);
+    }, []);
 
     return(
         <div className="mainWrapper">

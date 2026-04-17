@@ -49,7 +49,7 @@ const ResearchPage = () => {
 
         if (e) {
             e.preventDefault()
-            router.push(`/research/${currPage}/${currentQuery}`) // only updates the path params on form submit, that way you don't rerequest
+            router.push(`/research/0/${currentQuery}`) // only updates the path params on form submit, that way you don't rerequest
         }
 
         console.log("Query triggered, query: ", currentQuery)
@@ -119,10 +119,10 @@ const ResearchPage = () => {
 
     useEffect(()=> {
         if (params?.query) {
-            const tempQuery = params?.query[1]?.replaceAll("%20", " ")
+            const tempQuery = params?.query[1]?.replaceAll("%20", " ") // query is placed here at index 1
             setQuery(tempQuery)
             
-            const pageNum = Number(params.query[0])
+            const pageNum = Number(params.query[0]) // the page num is placed here at index 0
             console.log("Current Page Num:", pageNum)
             setCurrPage(pageNum)
             getResults(null, tempQuery, pageNum)
@@ -157,7 +157,7 @@ const ResearchPage = () => {
                 </div>
 
                 { isLoading? null : 
-                    ( docs.length > 0?
+                    ( docs?.length > 0?
                         <div className={styles.resultsContainer}>
                             <div className={styles.resultsHeaderContainer}>
                                 <p className={styles.searchHeader}>{lastQuery?.toUpperCase()}</p>
@@ -170,16 +170,23 @@ const ResearchPage = () => {
                                     })}
                                 </div>
                             </div>
-                            <div>
+                            <div className={styles.paginationContainer}>
                                 {
                                    resultCount <= 10?
                                    Array.from({length: resultCount}).map((_, i)=>{
-                                        return <i onClick={()=>{}} key={i}>{i+1}</i>
+                                        return <i onClick={()=>{router.push(`/research/${i}/${query}`)}} key={i} style={{color: (currPage == i? "red" : undefined)}}>{i}</i>
                                     })
+                                   :
+                                   currPage >= 5?
+                                    (
+                                    Array.from({length: 10}).map((_, i)=>{
+                                        return <i onClick={()=>{router.push(`/research/${i+(currPage-5)}/${query}`)}} key={i} style={{color: (currPage == (i+(currPage-5))? "red" : undefined)}}>{(i+(currPage-5))}</i> // offsets by 5 each time
+                                    })
+                                    )
                                    :
                                    (
                                     Array.from({length: 10}).map((_, i)=>{
-                                        return <i key={i}>{i+1}</i>
+                                        return <i onClick={()=>{router.push(`/research/${i}/${query}`)}} key={i} style={{color: (currPage == i? "red" : undefined)}}>{(i)}</i>
                                     })
                                    )
                                 }

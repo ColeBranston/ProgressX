@@ -140,3 +140,20 @@
     width: max-content;
     overflow-x: auto;
 }
+
+.paginationContainer {
+    display: flex;
+    justify-content: flex-start;
+    gap: 13px;
+    margin-top: 50px;
+}
+
+.paginationContainer i{
+    font-size: 20px;
+    font-family: var(--primary-font-family);
+}
+
+.paginationContainer i:hover {
+    cursor: pointer;
+    text-decoration: underline;
+}
