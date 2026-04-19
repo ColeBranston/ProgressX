@@ -1,4 +1,4 @@
-name: 'SOLR ETL Pipelines'
+name: SOLR ETL Pipelines
 
 on:
   schedule:
