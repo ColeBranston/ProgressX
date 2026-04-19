@@ -28,7 +28,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: 'Run Raw Ingestion Task'
-        run: python DAG_raw_pubMed.py
+        run: python ProgressX/data/DAGs/DAG_raw_pubMed.py
 
       - name: 'Run Clean Transfer/Load Task'
-        run: python DAG_clean_migration.py
+        run: python ProgressX/data/DAGs/DAG_clean_migration.py
