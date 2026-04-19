@@ -134,13 +134,13 @@ def fetch_and_load(query, year):
         solr_raw_core.add(articles)
         print("Completed loading chunk :)")
 
-        with open("pubMed_temp.json", "w", encoding="utf-8") as f:
-            json.dump({
-                "year": year,
-                "chunk_index": chunk_index,
-                "article_count": len(articles),
-                "articles": articles
-            }, f, indent=2, ensure_ascii=False)
+        # with open("pubMed_temp.json", "w", encoding="utf-8") as f:
+        #     json.dump({
+        #         "year": year,
+        #         "chunk_index": chunk_index,
+        #         "article_count": len(articles),
+        #         "articles": articles
+        #     }, f, indent=2, ensure_ascii=False)
 
         retstart += CHUNK_SIZE
         chunk_index += 1
