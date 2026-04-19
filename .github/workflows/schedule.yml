@@ -10,7 +10,7 @@ env:
   solr_prod_url: ${{ secrets.SOLR_PROD_URL }} # Standard practice: use UPPERCASE for secrets
 
 jobs:
-  run-cron:
+  solr-etl:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout Code Directory'
@@ -25,7 +25,7 @@ jobs:
       - name: 'Install dependencies'
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r ProgressX/data/DAGs/requirements.txt
 
       - name: 'Run Raw Ingestion Task'
         run: python ProgressX/data/DAGs/DAG_raw_pubMed.py
