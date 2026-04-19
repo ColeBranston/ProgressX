@@ -1,0 +1,155 @@
+.docContainer {
+    width: 100%;
+    height: 99vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+}
+
+.extraInfoContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5% 0 5%;
+    font-family: var(--secondary-font-family);
+    font-size: large;
+    /* font-weight: 500; */
+    gap: 10px;
+    color: rgb(var(--primary-color));
+}
+
+.extraJournalContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    gap: 20px;
+}
+
+.extraBackButtonContainer {
+    background-color: rgb(var(--primary-color),0.1);
+    border: solid rgb(var(--primary-color)) 2px;
+    min-width: 40px;
+    min-height: 40px;
+    position: relative;
+    border-radius:  100%;    
+
+    transition: background-color 0.1s linear;
+}
+
+.extraBackButtonContainer svg {
+    transform: rotate(180deg);
+    position: absolute;
+    top: 5.5px;
+    left: 3px;
+    stroke: rgb(var(--primary-color));
+    fill: rgb(var(--primary-color),0.1);
+
+    transition: stroke 0.1s linear,
+                fill 0.1s linear;
+}
+
+.extraBackButtonContainer:hover {
+    background-color: rgb(var(--primary-color));
+    cursor: pointer;
+}
+
+.extraBackButtonContainer:hover svg {
+    stroke: var(--secondary-color);
+    fill: var(--secondary-color);
+}
+
+.extraInfoContainer, .headerContainer {
+    width: 75%;
+}
+
+.extraInfoContainer a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100px;
+    height: 45px;
+    border: solid red 2px;
+    text-decoration: none;
+    color: rgb(var(--primary-color));
+    font-family: var(--primary-font-family);
+    border-radius: 10px;
+    background-color: var(--secondary-color);
+    font-size: 20px;
+
+    transition: background-color 0.1s linear,
+                color 0.1s linear,
+                border 0.1s linear;
+}
+
+.extraInfoContainer p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.extraInfoContainer a:hover {
+    background-color: rgb(var(--primary-color));
+    color: var(--secondary-color);
+    border: solid white 2px;
+
+}
+
+.headerContainer {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 5% 0 5%;
+    margin: 30px 0 0 0;
+    font-family: var(--secondary-font-family);
+    font-size: large;
+    /* font-weight: 500; */
+    gap: 10px;
+}
+
+.headerContainer p,.extraInfoContainer p{
+    margin: 0;
+}
+
+.contentContainer {
+    height: 60%;
+    font-family: var(--secondary-font-family);
+    font-weight: 200;
+    font-size: 18px;
+    padding: 0 10% 0 10%;
+    margin: 20px 10% 0 0;
+
+    overflow-y: auto;
+    /* Firefox */
+    scrollbar-width: normal;
+    scrollbar-color: red transparent;
+}
+
+/* Chrome, Edge, Safari */
+.contentContainer::-webkit-scrollbar {
+    height: 8px; /* horizontal scrollbar */
+}
+
+.contentContainer::-webkit-scrollbar-track {
+    background: transparent; /* no background */
+}
+
+.contentContainer::-webkit-scrollbar-thumb {
+    background: rgb(var(--primary-color));
+    border-radius: 999px; /* fully rounded */
+}
+
+/* Remove arrows/buttons */
+.contentContainer::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.contentContainer p {
+    margin: 0;
+}
+
+.contentText {
+    color: rgba(255, 255, 255, 0.7);
+}

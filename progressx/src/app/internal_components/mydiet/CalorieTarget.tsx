@@ -69,7 +69,7 @@ export default function CalorieTarget({
     useEffect(()=> {
         const tempOffset = getCurrOffset(curr, lower, upper)
         setIntakeOffset(tempOffset)
-    }, [lower, upper])
+    }, [lower, upper, curr])
 
     useEffect(()=> {
         setGoalState(goal)
@@ -103,8 +103,8 @@ export default function CalorieTarget({
                     </div>
                 ))
                 :
-                Array.from({ length: config.NUM_SEGMENTS-1 }).map((i) => {
-                    return  <div className={styles.segment}>
+                Array.from({ length: config.NUM_SEGMENTS-1 }).map((val: unknown, i: number) => { // val wont be anything since its just an array of empty values, so we just need the index
+                    return  <div key={i} className={styles.segment}>
                                 <p>0</p>
                             </div>
                 })}
@@ -112,7 +112,7 @@ export default function CalorieTarget({
                 <p>{Math.round(lower)}</p>
             </div>
 
-            <div className={styles.goalHightlight} style={{"--offset": goalState==="Deficit"? "9%" : goalState==="Maintain"? (window.matchMedia('screen and (max-width: 1550px) and (min-width: 1200px)').matches? "54%" : "52%"): goalState==="Surplus"? "54%" : "0",
+            <div className={styles.goalHightlight} style={{"--offset": goalState==="Deficit"? "9%" : goalState==="Maintain"? (typeof window !== "undefined" && window.matchMedia('screen and (max-width: 1550px) and (min-width: 1200px)').matches ? "54%" : "52%"): goalState==="Surplus"? "54%" : "0",
                                                             "--height": goalState==="Deficit"? "43%" : goalState==="Maintain"? "20px": goalState==="Surplus"? "22%" : "0",
                                                             "--background": (curr > goalBoundaries[goalState][0] && curr < goalBoundaries[goalState][1])? "rgba(0, 255, 0, 0.4)" : "rgba(var(--primary-color), 0.2)"} as CSSProperties}></div>
             

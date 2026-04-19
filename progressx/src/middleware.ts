@@ -7,6 +7,8 @@ import { encoder } from "./app/api/auth/login/google/route"
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value
 
+  console.log("User is trying to navigate to: ", req.nextUrl)
+
   if (!token) {
     console.log("No token found, redirecting to login")
     return NextResponse.redirect(new URL("/login", req.url))

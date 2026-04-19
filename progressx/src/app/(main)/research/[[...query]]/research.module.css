@@ -1,10 +1,39 @@
 .researchContainer {
-    border: white solid 1px;
     width: 100%;
-    height: 99vh;
+    height: 89vh;
     display: flex;
     flex-direction: column;
     padding: 100px 0 0 5px;
+}
+
+.searchFormContainer {
+  width: 20%;
+}
+
+.searchForm {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 42.5%;
+  left: 15px;
+  stroke: white;
+}
+
+.searchbar {
+  background-color: rgb(11, 11, 11);
+  border-radius: 100px;
+  outline: none;
+  border: none;
+  width: 100%;
+  height: 40px;
+  color: grey;
+  font-family: var(--primary-font-family);
+  padding-left: 45px;
+  margin-top: 10px;
+  border: 2px grey solid;
+  transition: width 0.5s ease;
 }
 
 .resultsContainer {
@@ -16,4 +45,115 @@
 .resultsContainer a {
     color: rgb(var(--primary-color));
     
+}
+
+.resultsHeaderContainer {
+    display: flex;
+    flex-direction: column;
+    padding: 2.5vh 0 0 0;
+    gap: 1.5vh;
+    justify-content: center;
+}
+
+.cacheHeader {
+    font-family: var(--primary-font-family);
+    margin: 0;
+    font-size: 24px;
+    color: rgb(var(--primary-color));
+}
+
+.searchHeader, .resultsCount {
+    font-family: var(--primary-font-family);
+    margin: 0;
+}
+
+.searchHeader {
+    font-size: 24px;
+    color: rgb(var(--primary-color));
+    width: max-content;
+    position: relative;
+}
+
+.searchHeader::after {
+    position: absolute;
+    content: '';
+
+    bottom: 0;
+    left: 0;
+    background-color: red;
+    width: 0;
+    height: 2px;
+
+    transform-origin: left;
+    animation: movingUnderline 0.5s linear forwards;
+}
+
+@keyframes movingUnderline {
+    0% {
+        width: 0;
+    }
+    100% {
+        width: 100%;
+    }
+}
+
+.resultsCount {
+    font-size: 18px;
+    color: rgb(var(--secondary-color));
+}
+
+.resultsScroll {
+    overflow-x: auto;
+    width: 75%;
+    padding: 2.5% 0 2% 0%;
+
+    /* Firefox */
+    scrollbar-width: normal;
+    scrollbar-color: red transparent;
+}
+
+/* Chrome, Edge, Safari */
+.resultsScroll::-webkit-scrollbar {
+    height: 8px; /* horizontal scrollbar */
+}
+
+.resultsScroll::-webkit-scrollbar-track {
+    background: transparent; /* no background */
+}
+
+.resultsScroll::-webkit-scrollbar-thumb {
+    background: rgb(var(--primary-color));
+    border-radius: 999px; /* fully rounded */
+}
+
+/* Remove arrows/buttons */
+.resultsScroll::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.resultsGrid {
+    display: flex;
+    flex-direction: row;
+    gap: 25px;
+    width: max-content;
+    overflow-x: auto;
+}
+
+.paginationContainer {
+    display: flex;
+    justify-content: flex-start;
+    gap: 13px;
+    margin-top: 50px;
+}
+
+.paginationContainer i{
+    font-size: 20px;
+    font-family: var(--primary-font-family);
+}
+
+.paginationContainer i:hover {
+    cursor: pointer;
+    text-decoration: underline;
 }

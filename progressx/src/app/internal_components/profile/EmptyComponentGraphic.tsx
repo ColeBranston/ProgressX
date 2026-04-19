@@ -1,13 +1,14 @@
 
 'use client';
 
+import Image from 'next/image';
 import styles from './EmptyComponentGraphic.module.css'
 
 export default function EmptyComponentGraphic() {
     return (
         <div className={styles.emptyComponentContainer}>
             Add videos you see and they will show up here
-            <img src='/Cobwebs.svg' width={"200px"} height={"200px"}/>
+            <Image src='/Cobwebs.svg' alt="Cobwebs Graphic" width={200} height={200}/>
         </div>
     )
 }

@@ -1,12 +1,24 @@
 "use client";
 
-import { createContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactNode, useEffect, useMemo, useState, Dispatch, SetStateAction } from "react";
 import debounce from "lodash/debounce";
 
-export const userDataContext = createContext<any>(false);
+export type UserData = Record<string, string | number | null>;
 
-export function UserDataProvider({ children }: { children: any }) {
-  const [userData, setUserData] = useState({
+type UserDataContextType = {
+  userData: UserData;
+  setUserData: Dispatch<SetStateAction<UserData>>;
+};
+
+export const userDataContext = createContext<UserDataContextType>(
+   {
+    userData: {username: null},
+    setUserData: () => {}
+   }
+); // just to satisfy type script eslinting
+
+export function UserDataProvider({ children }: { children: ReactNode }) {
+  const [userData, setUserData] = useState<UserData>({
     username: null,
     name: null,
     email: null,
@@ -26,6 +38,7 @@ export function UserDataProvider({ children }: { children: any }) {
   // ✅ Load from localStorage once on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("userData");
+    console.log("UserData UseEffect Triggered")
     if (storedUser) {
       setUserData(JSON.parse(storedUser));
     } else {
@@ -36,7 +49,7 @@ export function UserDataProvider({ children }: { children: any }) {
   // ✅ Create a debounced backend update function
   const debouncedUpdateServer = useMemo(
     () =>
-      debounce(async (updatedUserData) => {
+      debounce(async (updatedUserData: UserData) => {
         try {
           console.log("Debounced server sync:", updatedUserData);
 

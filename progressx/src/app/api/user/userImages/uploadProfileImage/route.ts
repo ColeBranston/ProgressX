@@ -2,6 +2,7 @@ import { encoder } from "@/app/api/auth/login/google/route";
 import { getPublicIdFromCloudinaryUrl } from "@/app/api/libs/helpers";
 import CloudinaryService from "@/app/cloundinaryClient/CloudinaryService";
 import { supabase } from "@/app/supabaseClient/client";
+import { PostgrestError } from "@supabase/supabase-js";
 import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -12,10 +13,12 @@ export async function POST(req: NextRequest){
     try {
 
         const token = req.cookies.get("token")?.value
-
+        if (!token) throw new Error(`Failed to access user token`) 
         const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET!))).payload.sub
 
         const { error: checkData, data: userData} = await supabase.from("profiles").select("*").eq("id", id).single()
+
+        if (checkData) throw new PostgrestError(checkData)
 
         if (userData.profile_image) {
             const imageID = getPublicIdFromCloudinaryUrl(userData.profile_image)
@@ -43,8 +46,9 @@ export async function POST(req: NextRequest){
         return NextResponse.json({imageReference: uploadResponse.secure_url})
 
 
-    } catch(e) {
-        console.log(`Could not update profile with error: ${e}`)
+    } catch(e: unknown) {
+        const errorMessage = e instanceof PostgrestError? e.message: String(e)
+        console.log(`Could not update profile with error: ${errorMessage}`)
         return NextResponse.json({message: `Could not update profile with error: ${e}`}, {status: 500})
     }
 }

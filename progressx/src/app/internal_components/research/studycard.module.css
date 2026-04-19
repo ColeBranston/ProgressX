@@ -1,0 +1,50 @@
+.cardContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    background-color: var(--primary-input-background-color);
+    border-radius: 10px;
+    width: 350px;
+    height: 350px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: border 0.1s linear;
+    user-select: none;
+    overflow: hidden;
+    font-family: var(--secondary-font-family);
+    font-weight: 200;
+}
+
+.cardContainer:hover {
+    cursor: pointer;
+    border: 2px solid white;
+}
+
+.cardContainer p {
+    margin: 0;
+}
+
+.journalContainer {
+    box-sizing: border-box; /* This was required to allow for the x axis padding to apply for some reason*/
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    background-color: rgb(30, 30, 30);
+    padding: 10px 10px 10px 10px;
+    color: rgba(255, 255, 255, 0.5);
+    height: min-content;
+}
+.titleContainer {
+    box-sizing: border-box; /* This was required to allow for the x axis padding to apply for some reason*/
+    width: 100%;
+    height: min-content;
+    display: flex;
+    padding: 10px 10px 10px 10px;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+.loremContainer {
+    overflow: hidden;
+    height: auto;
+    padding: 10px 10px 10px 10px;
+    filter: blur(3px);
+}

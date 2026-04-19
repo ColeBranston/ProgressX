@@ -1,0 +1,109 @@
+'use client';
+
+import { useParams, useRouter } from "next/dist/client/components/navigation"
+import { useCallback, useEffect, useState } from "react";
+import { SolrResponse } from "../../[[...query]]/page";
+
+import styles from './doc.module.css'
+
+export default function StudyPage() {
+    const params = useParams()
+    const router = useRouter()
+
+    const [link, setLink] = useState<string>()
+    const [journal, setJournal] = useState<string>()
+    const [published, setPublished] = useState<string>()
+    const [title, setTitle] = useState<string>()
+    const [content, setContent] = useState<string[]>()
+
+    const getDocument = useCallback(async (): Promise<void> => {
+        const id = params.id
+        if (!id) router.push('/research')
+
+        const result = await fetch(`https://progressx-search-backend.vercel.app/doc/${id}`, {
+            method: 'GET',
+            credentials: 'omit'
+        })
+
+        const solrDocument: SolrResponse = await result.json()
+
+        const doc = solrDocument.docs[0]
+
+        if (!doc) router.push('/research')
+
+        console.log(doc)
+
+        setLink(doc.id)
+        setJournal(doc.journal)
+        setPublished(doc.published)
+        setTitle(doc.title)
+        setContent(formatContent(doc.content))
+    }, [params, router])
+    
+    useEffect(()=> {
+        console.log("Params: ", params)
+        console.log("ID: ", params.id)
+        
+        getDocument()
+    },[])
+
+    function formatContent(content: string | undefined) {
+
+        if (!content) return
+
+        const output: string[] = []
+        const max_size = 4
+
+        const sentences = content?.split(". ") || []
+
+        let currentChunk: string[] = []
+
+        for (let i = 0; i < sentences.length; i++) {
+            currentChunk.push(sentences[i])
+
+            if (currentChunk.length === max_size) {
+                output.push(currentChunk.join(". "))
+                currentChunk = []
+            }
+        }
+
+        // push any remaining sentences
+        if (currentChunk.length > 0) {
+            output.push(currentChunk.join(". "))
+        }
+        
+        return output
+    }
+
+    return (
+            <div className='mainWrapper'>
+                <div className={styles.docContainer}>
+                    <div className={styles.extraInfoContainer}>
+                        <div className={styles.extraJournalContainer} onClick={()=>{router.back()}}>
+                            <div className={styles.extraBackButtonContainer}>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
+                                    <path d="M8 4l8 8-8 8z" />
+                                </svg>
+                            </div>
+                            <p>{journal}</p>
+                        </div>
+                        <a href={link} target="_blank_">See More</a>
+                    </div>
+                    <div className={styles.headerContainer}>
+                        <p>{title}</p>
+                        <p style={{color: "rgb(var(--primary-color))"}}>{published}</p>
+                    </div>
+                    <div className={styles.contentContainer}>
+                        {content?.map((para, index)=>{
+                            return (
+                                <div key={index}>
+                                    <br/>
+                                    <p className={styles.contentText}>{para}</p>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            </div>
+    )
+}

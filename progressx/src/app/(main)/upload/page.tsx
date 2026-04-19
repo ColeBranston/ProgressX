@@ -1,12 +1,11 @@
 'use client';
 
-import { useRef } from 'react';
 import { useRouter } from '../../../../node_modules/next/navigation';
 import styles from './upload.module.css';
 
 export default function UploadPage() {
-  const videoInputRef = useRef(null);
-  const photoInputRef = useRef(null);
+  // const videoInputRef = useRef(null);
+  // const photoInputRef = useRef(null);
 
   const router = useRouter()
 

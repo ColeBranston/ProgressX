@@ -1,6 +1,6 @@
 export default function myStats() {
     return (
-        <div>
+        <div className="mainWrapper">
             This is the mystats page
         </div>
     )

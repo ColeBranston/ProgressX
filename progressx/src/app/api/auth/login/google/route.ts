@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { jwtVerify } from "jose"
 
 export async function GET() {
-    const{ data, error } = await supabase.auth.signInWithOAuth({
+    const{ data } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
             redirectTo: "http://localhost:3000/login"
@@ -40,14 +40,16 @@ export async function POST(req: Request) {
         const email = decoded.payload.email
         const userID = decoded.payload.sub
 
-        const { error: profileError } = await supabase.from("profiles").insert({
-            id: userID,
-            email
-        })
+        const isUser = await supabase.from("profiles").select(userID)
 
-        if (profileError) {
-            console.log("Error adding google user to profile's table")
+        if (!isUser) {
+            const { error: profileError } = await supabase.from("profiles").insert({
+                id: userID,
+                email
+            })
+            if (profileError) console.log("Error adding google user to profile's table: ", profileError)
         }
+        
         
     } catch(e) {
         console.log("Error validating token: ", e)

@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
     try {
         
         const token = req.cookies.get("token")?.value
+        if (!token) throw Error("Error accessing user token")
 
         const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET!))).payload.sub
 

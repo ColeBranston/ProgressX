@@ -23,21 +23,14 @@
     flex-direction: column;
     width: 150px;
     height: auto;
-    gap: 5px;
 }
 
 .addVideoButtonContainer p {
-    margin-block-start: 0;
-    margin-block-start: 0;
+    margin: 0;
     font-family: var(--secondary-font-family);
     font-size: 12px;
-    padding-left: 5px;
+    padding: 5px 0 0 5px;
     color: rgba(var(--primary-color));
-}
-
-.addVideoButtonContainer img{
-    border: 2px solid rgba(var(--primary-color), 0.2);
-
 }
 
 .addVideoButton {
@@ -179,8 +172,28 @@
     background-color: var(--secondary-color);
 }
 
+.progressPhotoBackground p {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    padding: 5px 0 0 5px;
+    color: rgba(var(--primary-color));
+}
+
 .progressPhotoContainer {
-    width: 80%;
+    min-width: 80%;
+    min-height: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progressPhoto {
+    width: auto;
+    min-height: 170px;
+    max-height: 170px;
 }
 
 .highlightedImageContainer {
@@ -200,8 +213,11 @@
     animation: appear 0.1s forwards;
 }
 
-.highlightedImageContainer img {
-    border: 5px solid rgba(var(--primary-color));
+.selectedImage {
+    border: 2px solid rgba(var(--primary-color));
+    width: auto;
+    height: 80%;
+    border-radius: 10px;
 }
 
 .highlightedImageContainer svg{
@@ -215,6 +231,14 @@
 .highlightedImageContainer svg:hover {
     stroke: rgba(var(--primary-color));
     cursor: pointer;
+}
+
+.highlightedImage {
+    width: auto;
+    min-height: 500px;
+    max-height: 500px;
+    border-radius: 10px;
+    border: 2px solid rgba(var(--primary-color));
 }
 
 .highlightedImageCreatedText {

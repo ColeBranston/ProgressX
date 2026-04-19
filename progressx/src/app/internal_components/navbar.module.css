@@ -61,7 +61,7 @@
     width: min-content;
 }
 
-.navbarList li{
+.navbarList li, .navLink{
     color: white;
     list-style-type: none;
     background-color: none;
@@ -74,7 +74,7 @@
     margin: 0;
 }
 
-.navbarList li:hover{
+.navbarList li:hover, .navLink:hover{
     cursor: pointer;
     color: rgba(var(--primary-color));
 }
@@ -92,7 +92,7 @@
   fill: red !important;
 }
 
-.navbarList li:hover svg{
+.navbarList li:hover svg, .navLink:hover{
   fill: red !important;
 }
 
