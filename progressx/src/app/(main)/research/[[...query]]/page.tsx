@@ -62,10 +62,10 @@ const ResearchPage = () => {
 
         if (response.ok) {
             const solrResponse: SolrResponse = await response.json()
+            console.log("Current solr repsonse: ", solrResponse)
 
-            if (solrResponse.hits === 0) return 
             setDocs(solrResponse.docs)
-            setResultCount(solrResponse.hits)
+            setResultCount(solrResponse.hits || 0)
             setLastQuery(currentQuery)
         }
         setIsLoading(false)
@@ -121,13 +121,13 @@ const ResearchPage = () => {
         if (params?.query) {
             const tempQuery = params?.query[1]?.replaceAll("%20", " ") // query is placed here at index 1
             setQuery(tempQuery)
-            
             const pageNum = Number(params.query[0]) // the page num is placed here at index 0
             console.log("Current Page Num:", pageNum)
             setCurrPage(pageNum)
             getResults(null, tempQuery, pageNum)
+
         } else {
-            console.log(`No Parmas detected, getting cached documents`)
+            console.log(`No Params detected, getting cached documents`)
             getCached()
         }
     },[params])
@@ -193,6 +193,18 @@ const ResearchPage = () => {
                             </div>
                         </div>
                         :
+                        lastQuery?
+                        (
+                            <div className={styles.resultsContainer}>
+                                <div className={styles.resultsHeaderContainer}>
+                                    <p className={styles.searchHeader}>{lastQuery?.toUpperCase()}</p>
+                                    <p className={styles.resultsCount}>Search Results: {resultCount}</p>
+                                    <p>No results found, try changing your search</p>
+                                </div>
+                            </div>
+                        )
+                        :
+                        (
                         <div className={styles.resultsContainer}>
                             <div className={styles.resultsHeaderContainer}>
                                 <p className={styles.cacheHeader}>Recent Searches</p>
@@ -210,6 +222,7 @@ const ResearchPage = () => {
                                 </div>
                             </div>
                         </div>
+                        )
                     )}
             </div>
         </div>

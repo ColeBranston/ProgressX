@@ -147,6 +147,12 @@ def fetch_and_load(query, year):
 
 # ---------------- MAIN LOOP OVER YEARS ----------------
 for year in range(START_YEAR, END_YEAR + 1):
-    fetch_and_load(BASE_QUERY, year)
+    while True:
+        try:
+            fetch_and_load(BASE_QUERY, year)
+            break
+        except Exception as e:
+            print(f'ERROR: {e}')
+        
 
 print("\nAll done! All years processed successfully.")

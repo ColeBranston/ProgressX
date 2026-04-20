@@ -2,8 +2,8 @@ name: SOLR ETL Pipelines
 
 on:
   schedule:
-    - cron: '30 9 * * 5' # Fridays at 09:30 UTC
-  workflow_dispatch: 
+    - cron: "30 9 * * 5" # Fridays at 09:30 UTC
+  workflow_dispatch:
 
 env:
   python_backend_env: prod
@@ -13,22 +13,22 @@ jobs:
   solr-etl:
     runs-on: ubuntu-latest
     steps:
-      - name: 'Checkout Code Directory'
+      - name: "Checkout Code Directory"
         uses: actions/checkout@v4
 
-      - name: 'Set up Python'
+      - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12.6'
-          cache: 'pip' # Caches dependencies for faster runs
+          python-version: "3.12.6"
+          cache: "pip" # Caches dependencies for faster runs
 
-      - name: 'Install dependencies'
+      - name: "Install dependencies"
         run: |
           python -m pip install --upgrade pip
           pip install -r data/DAGs/requirements.txt
 
-      - name: 'Run Raw Ingestion Task'
+      - name: "Run Raw Ingestion Task"
         run: python data/DAGs/DAG_raw_pubMed.py
 
-      - name: 'Run Clean Transfer/Load Task'
+      - name: "Run Clean Ingestion Task"
         run: python data/DAGs/DAG_clean_migration.py
