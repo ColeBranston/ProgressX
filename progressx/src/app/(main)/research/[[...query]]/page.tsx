@@ -173,19 +173,19 @@ const ResearchPage = () => {
                             <div className={styles.paginationContainer}>
                                 {
                                    resultCount <= 10?
-                                   Array.from({length: resultCount}).map((_, i)=>{
+                                   Array.from({length: 1}).map((_, i)=>{
                                         return <i onClick={()=>{router.push(`/research/${i}/${query}`)}} key={i} style={{color: (currPage == i? "red" : undefined)}}>{i}</i>
                                     })
                                    :
                                    currPage >= 5?
                                     (
-                                    Array.from({length: 10}).map((_, i)=>{
+                                    Array.from({length: currPage < Math.floor(resultCount/10)-4? 10 : Math.floor(resultCount/10) - currPage + 6}).map((_, i)=>{ // this is the craziest guess and check formula ever, the -4 checks effectively checks if the current page is within range of the last page for the ternary, and the +6 is to include extra space for the min left 5 and current page; that when on the last page it will show the previous 5 page numbers
                                         return <i onClick={()=>{router.push(`/research/${i+(currPage-5)}/${query}`)}} key={i} style={{color: (currPage == (i+(currPage-5))? "red" : undefined)}}>{(i+(currPage-5))}</i> // offsets by 5 each time
                                     })
                                     )
                                    :
                                    (
-                                    Array.from({length: 10}).map((_, i)=>{
+                                    Array.from({length: currPage < Math.floor(resultCount/10)-4? 10 : resultCount - currPage*10}).map((_, i)=>{ // there has got to be a bug here -> look out for it, definently incorrect logic but can't recreate issue
                                         return <i onClick={()=>{router.push(`/research/${i}/${query}`)}} key={i} style={{color: (currPage == i? "red" : undefined)}}>{(i)}</i>
                                     })
                                    )
