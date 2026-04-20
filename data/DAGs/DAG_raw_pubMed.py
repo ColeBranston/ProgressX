@@ -147,12 +147,18 @@ def fetch_and_load(query, year):
 
 # ---------------- MAIN LOOP OVER YEARS ----------------
 for year in range(START_YEAR, END_YEAR + 1):
-    while True:
+    retryCount = 0
+    while retryCount < 3:
         try:
             fetch_and_load(BASE_QUERY, year)
             break
         except Exception as e:
+            retry += 1
             print(f'ERROR: {e}')
+            print(f'Retry: {retryCount}/3')
+
+    if retryCount >= 3:
+        raise Exception(f'Retry Count Hit Maximum: {retryCount}/3')
         
 
 print("\nAll done! All years processed successfully.")
