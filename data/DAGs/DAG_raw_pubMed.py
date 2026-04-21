@@ -153,7 +153,7 @@ for year in range(START_YEAR, END_YEAR + 1):
             fetch_and_load(BASE_QUERY, year)
             break
         except Exception as e:
-            retry += 1
+            retryCount += 1
             print(f'ERROR: {e}')
             print(f'Retry: {retryCount}/3')
 
