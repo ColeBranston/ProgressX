@@ -27,8 +27,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r data/DAGs/requirements.txt
 
-      - name: "Run Raw Ingestion Task"
-        run: python data/DAGs/DAG_raw_pubMed.py
+      # - name: "Run Raw Ingestion Task"
+      #   run: python data/DAGs/DAG_raw_pubMed.py
 
       - name: "Run Clean Ingestion Task"
         run: python data/DAGs/DAG_clean_migration.py

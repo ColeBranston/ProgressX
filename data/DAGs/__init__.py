@@ -1,1 +1,1 @@
-__all__ = ["config", "solr_instance", "DAG_clean_migration"]
+__all__ = ["config", "solr_instance", "DAG_clean_migration", "doc_classes"]
