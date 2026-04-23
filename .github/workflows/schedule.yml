@@ -31,6 +31,7 @@ jobs:
           pip install -r ./requirements.txt
 
       - name: "Run Raw Ingestion Task"
+        continue-on-error: true
         run: python ./DAG_raw_pubMed.py
 
       - name: "Run Clean Ingestion Task"
