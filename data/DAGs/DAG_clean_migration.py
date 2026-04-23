@@ -1,4 +1,4 @@
-from solr_instance import solr_raw_core, solr_clean_core
+from solr_instance import solr_raw_core, solr_clean_core, reignite_core
 from datetime import datetime, timezone
 import math
 import sys, os
@@ -8,6 +8,7 @@ from doc_classes.pubMed_doc import pubMed_doc
 
 
 def clean_migration_dag():
+    global solr_clean_core 
     now = str(datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
 
     document_count = solr_raw_core.search('*:*', fl="").hits
@@ -30,6 +31,10 @@ def clean_migration_dag():
                     case "pubMed":
                         clean_article = pubMed_doc(article).getDoc()
 
+                    case _:
+                        print("No Match Found")
+                        continue
+
                 clean_article['updated_at'] = now
                 articles.append(clean_article)
             except Exception as e:
@@ -40,6 +45,7 @@ def clean_migration_dag():
         try:
             solr_clean_core.add(articles)
         except Exception as e:
+            solr_clean_core = reignite_core("clean")
             retry = 0
             print("Error thrown during SOLR chunk ingestion: ", e)
             while retry < 3:
