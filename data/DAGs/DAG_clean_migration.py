@@ -45,6 +45,10 @@ def clean_migration_dag():
             while retry < 3:
                 print(f'Current Retry Count: {retry}/3')
                 solr_clean_core.add(articles)
+                retry += 1
+
+            if retry >= 3:
+                raise Exception(f'Retry Count Hit Maximum: {retry}/3')
 
         start += chunk_size
         counter += 1
