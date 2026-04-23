@@ -2,6 +2,9 @@ from solr_instance import solr_raw_core, solr_clean_core
 from datetime import datetime, timezone
 import math
 from doc_classes.pubMed_doc import pubMed_doc
+import sys, os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))) # required for module tunneling to get access to the config.py
 
 def clean_migration_dag():
     now = str(datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
