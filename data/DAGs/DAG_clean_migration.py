@@ -34,10 +34,17 @@ def clean_migration_dag():
                 articles.append(clean_article)
             except Exception as e:
                 print(e)
-                
 
         print(f"Docs loading to clean core: {len(articles)}")
-        solr_clean_core.add(articles)
+        
+        try:
+            solr_clean_core.add(articles)
+        except Exception as e:
+            retry = 0
+            print("Error thrown during SOLR chunk ingestion: ", e)
+            while retry < 3:
+                print(f'Current Retry Count: {retry}/3')
+                solr_clean_core.add(articles)
 
         start += chunk_size
         counter += 1
