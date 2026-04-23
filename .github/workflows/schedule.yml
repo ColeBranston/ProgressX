@@ -34,4 +34,5 @@ jobs:
       #   run: python ./DAG_raw_pubMed.py
 
       - name: "Run Clean Ingestion Task"
+        continue-on-error: true
         run: python DAG_clean_migration.py
