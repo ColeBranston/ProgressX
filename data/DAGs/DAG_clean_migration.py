@@ -2,7 +2,7 @@ from solr_instance import solr_raw_core, solr_clean_core
 from datetime import datetime, timezone
 import math
 import sys, os
-sys.path.append(os.path.abspath(os.path.dirname(__file__)+"\\doc_classes")) # required for module tunneling to get access to the config.py
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "doc_classes")))
 
 from doc_classes.pubMed_doc import pubMed_doc
 

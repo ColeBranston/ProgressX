@@ -3,7 +3,6 @@ import xml.etree.ElementTree as ET
 import time
 from solr_instance import *
 from datetime import datetime, timezone
-import json
 
 # ---------------- CONFIG ----------------
 now = str(datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
