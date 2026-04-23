@@ -13,7 +13,7 @@ def clean_migration_dag():
 
     document_count = solr_raw_core.search('*:*', fl="").hits
 
-    chunk_size = 2000
+    chunk_size = 20000
     start = 0
 
     counter = 1
