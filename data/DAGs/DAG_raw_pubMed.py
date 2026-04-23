@@ -4,22 +4,11 @@ import time
 from solr_instance import *
 from datetime import datetime, timezone
 
+from PUBMED_QUERIES import QUERIES
+
 # ---------------- CONFIG ----------------
 now = str(datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
 EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
-
-# Main search query
-'''
-    pubmed docs indicate search queries should be seperated and made with tags such as [MeSH] for semantic intent, and [tiab] for keyword matching
-'''
-BASE_QUERY = (
-    '"Health"[MeSH] OR "Wellness"[tiab] OR "Fitness"[tiab] OR '
-    '"Exercise"[MeSH] OR "Physical Activity"[MeSH] OR '
-    '"Mental Health"[MeSH] OR "Psychology"[tiab] OR '
-    '"Exercise Therapy"[MeSH] OR "Resistance Training"[tiab] OR '
-    '"Strength Training"[tiab] OR'
-    '"Optimal"[tiab] OR "Optimal Exercise"[MeSH] OR "Optimal Training"[MeSH]'
-)
 
 BATCH_SIZE = 100        # efetch batch size
 CHUNK_SIZE = 20000      # max records per efetch call
@@ -149,7 +138,8 @@ for year in range(START_YEAR, END_YEAR + 1):
     retryCount = 0
     while retryCount < 3:
         try:
-            fetch_and_load(BASE_QUERY, year)
+            for query in QUERIES:
+                fetch_and_load(query, year)
             break
         except Exception as e:
             retryCount += 1
