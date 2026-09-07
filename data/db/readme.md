@@ -6,6 +6,10 @@ docker run --rm -v "$PWD/var/solr:/var/solr" -p 8983:8983 --name local_solr solr
 
 docker run --rm -v "$PWD/var/solr:/var/solr" -p 8983:8983 --name local_solr solr solr-precreate {core_name}
 
+# Home Server Deployment
+
+docker run -d -v "$PWD/var/solr:/var/solr" -p 8983:8983 --restart unless-stopped --name deployed_solr production_solr -f --user-managed
+
 # GCP VM Deployment
 
 sudo chown -R 8983:8983 var/solr
