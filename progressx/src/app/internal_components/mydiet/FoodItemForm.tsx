@@ -83,7 +83,7 @@ export default function FoodItemForm({ mode, initialValues, onSubmit, onCancel, 
                         <NumberField id='servingQty' required min={0} step={0.5} value={values.servingQty} onChange={(v) => setField('servingQty', v)} />
                         <input aria-label='Serving unit' type='text' placeholder='e.g. cup, g, slice' value={values.servingUnit} onChange={(e) => setField('servingUnit', e.target.value)} />
                     </div>
-                    <p className={styles.helperText}>How much you're logging (e.g. &quot;1 cup&quot; or &quot;150 g&quot;). The macros and micros below should be the totals for that amount, not per 100g.</p>
+                    <p className={styles.helperText}>How much you&apos;re logging (e.g. &quot;1 cup&quot; or &quot;150 g&quot;). The macros and micros below should be the totals for that amount, not per 100g.</p>
                 </div>
 
                 <p className={styles.sectionHeader}>Macros</p>
