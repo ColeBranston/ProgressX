@@ -1,13 +1,45 @@
 "use client";
 
-import { useCallback, useContext, useEffect, useState } from 'react';
-import dayjs from 'dayjs'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import dayjs, { Dayjs } from 'dayjs'
 import styles from './dietpage.module.css'
-import { AnalyticsBar, CalorieTarget, goalType } from "../../internal_components/index"
+import {
+    AnalyticsBar,
+    CalorieTarget,
+    getMicronutrientTargets,
+    goalType,
+    ALL_MICRONUTRIENT_NAMES,
+    FoodItemForm,
+    FoodLogList,
+    MicronutrientSettings,
+    MonthCalendar,
+    QuickAddScaler,
+    FoodItemFormValues,
+    FoodLogEntry,
+    FoodItem
+} from "../../internal_components/index"
 import { userDataContext } from '@/app/contexts/userData';
 
+// Indexed by dayjs' date.day() (0 = Sunday .. 6 = Saturday), matching weekStart
+// below since dayjs' default start of week is Sunday.
+const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'Th', 'F', 'S']
+
+function entryToFormValues(entry: FoodLogEntry): FoodItemFormValues {
+    return {
+        name: entry.name,
+        servingQty: entry.serving_qty,
+        servingUnit: entry.serving_unit,
+        calories: entry.calories,
+        proteinG: entry.protein_g,
+        carbsG: entry.carbs_g,
+        fatsG: entry.fats_g,
+        fiberG: entry.fiber_g,
+        micronutrients: entry.micronutrients ?? {}
+    }
+}
+
 export default function DietPage() {
-     
+
     type dietConfigType = {
         POUND2KG: number,
         ActivityWeighting: Record<string, number>
@@ -20,7 +52,7 @@ export default function DietPage() {
             "2": 1.375,
             "3": 1.55,
             "4": 1.725,
-            "5": 1.9, 
+            "5": 1.9,
         }
     }
 
@@ -30,28 +62,80 @@ export default function DietPage() {
     }
     const { userData } = context;
 
-    const [ daySelector, setDaySelector ] = useState(dayjs().day())
-    const [ toggleAddItem, setToggleAddItem] = useState(false)
+    // Which day of the food log is currently shown. Navigating weeks (see
+    // goToPrevWeek/goToNextWeek below) lets the user reach any past day, not
+    // just the current week.
+    const [ selectedDate, setSelectedDate ] = useState<Dayjs>(() => dayjs())
 
+    const [ toggleAddItem, setToggleAddItem] = useState(false)
     const [ addItemType, setAddItemType ] = useState<string | null>(null)
+
+    const [ editingEntry, setEditingEntry ] = useState<FoodLogEntry | null>(null)
+    const [ quickAddSource, setQuickAddSource ] = useState<FoodItem | null>(null)
+
+    const [ entries, setEntries ] = useState<FoodLogEntry[]>([])
+    const [ catalogItems, setCatalogItems ] = useState<FoodItem[]>([])
+    const [ loadingCatalog, setLoadingCatalog ] = useState(false)
+
+    const [ displayedMicronutrients, setDisplayedMicronutrients ] = useState<string[]>(ALL_MICRONUTRIENT_NAMES)
+    const [ showSettings, setShowSettings ] = useState(false)
+
+    const [ showMonthCalendar, setShowMonthCalendar ] = useState(false)
+    const [ calendarMonth, setCalendarMonth ] = useState<Dayjs>(() => dayjs())
+    const [ loggedDates, setLoggedDates ] = useState<Set<string>>(new Set())
 
     const [ goalState, setGoalState ] = useState<goalType>("Maintain")
 
+    // Tracks whether the two calls the initial view depends on - today's food
+    // log entries and the saved diet preferences (micronutrients + goal
+    // state) - have resolved at least once. The page waits for both before
+    // rendering, so it never flashes default values (e.g. "Maintain") that
+    // then pop to the user's actual saved state a moment later.
+    const [ entriesReady, setEntriesReady ] = useState(false)
+    const [ preferencesReady, setPreferencesReady ] = useState(false)
+    const initialLoading = !entriesReady || !preferencesReady
+
     const [ totalExpenditure, setTotalExpenditure ] = useState<number>(0)
 
-    const [ totalCal ] = useState<number>(2100)
+    const [ weightKg ] = useState(Number(userData.weight) * config.POUND2KG)
+
+    const today = useMemo(() => dayjs(), [])
+    const weekStart = useMemo(() => selectedDate.startOf('week'), [selectedDate])
+    const weekDates = useMemo(() => Array.from({ length: 7 }, (_, i) => weekStart.add(i, 'day')), [weekStart])
+    const isCurrentWeek = weekStart.isSame(today.startOf('week'), 'day')
+    const dateKey = selectedDate.format('YYYY-MM-DD')
+
+    const microTargets = useMemo(
+        () => getMicronutrientTargets(userData.gender, userData.age, displayedMicronutrients),
+        [userData.gender, userData.age, displayedMicronutrients]
+    )
+
+    // Totals actually consumed for the selected day, derived from the logged
+    // entries - feeds the macro bars, the micro bars, and the calorie ring.
+    const consumed = useMemo(() => {
+        const totals = { calories: 0, protein: 0, carbs: 0, fats: 0, micronutrients: {} as Record<string, number> }
+        for (const entry of entries) {
+            totals.calories += Number(entry.calories) || 0
+            totals.protein += Number(entry.protein_g) || 0
+            totals.carbs += Number(entry.carbs_g) || 0
+            totals.fats += Number(entry.fats_g) || 0
+            for (const [name, amount] of Object.entries(entry.micronutrients ?? {})) {
+                totals.micronutrients[name] = (totals.micronutrients[name] ?? 0) + (Number(amount) || 0)
+            }
+        }
+        return totals
+    }, [entries])
 
     // Accurate equation for calculating the BMR of a man or woman without using body fat percentage (%)
     const Mifflin_St_Jeor_BMR = useCallback(() => {
-        const weight = Number(userData?.weight)
         const height = Number(userData?.height)
         const age = Number(userData?.age)
         switch (userData.gender) {
             case "male":
-                return (10 * (weight * config.POUND2KG) + (6.25 * height) - (5 * age) + 5)
+                return (10 * (weightKg) + (6.25 * height) - (5 * age) + 5)
 
-            case "female":  
-                return (10 * (weight * config.POUND2KG) + (6.25 * height) - (5 * age) - 161)
+            case "female":
+                return (10 * (weightKg) + (6.25 * height) - (5 * age) - 161)
 
             default:
                 console.error("User's Gender is apparently alien: ", userData.gender)
@@ -66,44 +150,81 @@ export default function DietPage() {
         return config.ActivityWeighting[userData.activity] * BMR
     }, [userData.activity, Mifflin_St_Jeor_BMR, config.ActivityWeighting])
 
-    function getDay(x: number) {
-        switch(x) {
-            case 0:
-                return "Sunday"
-            case 1:
-                return "Monday"
-            case 2:
-                return "Tuesday"
-            case 3:
-                return "Wednesday"
-            case 4:
-                return "Thursday"
-            case 5:
-                return "Friday"
-            case 6:
-                return "Saturday"
-            default:
-                console.error("No Day Found: ", x)
+    // Persists the goal state to the user's diet_config row so it's the
+    // base state next time they load the diet page, on any device.
+    async function saveGoalState(next: goalType) {
+        try {
+            await fetch("/api/diet/preferences", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ goalState: next })
+            })
+        } catch (err) {
+            console.error("Failed to save goal state: ", err)
         }
     }
 
     function cycleGoalState() {
+        let next: goalType
+
         switch(goalState) {
             case "Deficit":
-                setGoalState("Maintain")
+                next = "Maintain"
                 break;
 
             case "Maintain":
-                setGoalState("Surplus")
+                next = "Surplus"
                 break;
 
             case "Surplus":
-                setGoalState("Deficit")
+                next = "Deficit"
                 break;
 
             default:
                 console.error("Improper Goal State Found: ", goalState)
+                return
         }
+
+        setGoalState(next)
+        saveGoalState(next)
+    }
+
+    function goToPrevWeek() {
+        setSelectedDate(weekStart.subtract(7, 'day'))
+    }
+
+    function goToNextWeek() {
+        if (isCurrentWeek) return
+        const next = weekStart.add(7, 'day')
+        setSelectedDate(next.isAfter(today, 'day') ? today : next)
+    }
+
+    function closeAddPanel() {
+        setToggleAddItem(false)
+        setAddItemType(null)
+        setQuickAddSource(null)
+        setEditingEntry(null)
+    }
+
+    function openEntryForEdit(entry: FoodLogEntry) {
+        setEditingEntry(entry)
+        setAddItemType('edit')
+        setToggleAddItem(true)
+    }
+
+    function openMonthCalendar() {
+        setCalendarMonth(selectedDate)
+        setShowMonthCalendar(true)
+    }
+
+    function selectDateFromCalendar(date: Dayjs) {
+        setSelectedDate(date)
+        setShowMonthCalendar(false)
+    }
+
+    function jumpToTodayFromCalendar() {
+        setSelectedDate(dayjs())
+        setShowMonthCalendar(false)
     }
 
     useEffect(() => {
@@ -119,81 +240,312 @@ export default function DietPage() {
         localStorage.setItem("TotalExpenditure", String(expenditure));
     }, []);
 
+    // Load the selected day's food log whenever the day changes. entriesReady
+    // only ever flips true once (on the first completion, success or not) -
+    // it gates the initial render, not every subsequent day change.
+    useEffect(() => {
+        let cancelled = false
+
+        async function loadEntries() {
+            try {
+                const res = await fetch(`/api/diet/log?date=${dateKey}`)
+                if (res.ok) {
+                    const json = await res.json()
+                    if (!cancelled) setEntries(json.entries ?? [])
+                }
+            } catch (err) {
+                console.error("Failed to load food log entries: ", err)
+            } finally {
+                if (!cancelled) setEntriesReady(true)
+            }
+        }
+
+        loadEntries()
+
+        return () => { cancelled = true }
+    }, [dateKey])
+
+    // Load the user's saved micronutrient display preference and calorie
+    // goal state (Deficit/Maintain/Surplus) once - the goal state becomes
+    // the dial's base state on load instead of always starting at "Maintain".
+    useEffect(() => {
+        let cancelled = false
+
+        async function loadPreferences() {
+            try {
+                const res = await fetch("/api/diet/preferences")
+                if (res.ok) {
+                    const json = await res.json()
+                    if (cancelled) return
+                    if (json.displayedMicronutrients) {
+                        setDisplayedMicronutrients(json.displayedMicronutrients)
+                    }
+                    if (json.goalState) {
+                        setGoalState(json.goalState)
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load diet preferences: ", err)
+            } finally {
+                if (!cancelled) setPreferencesReady(true)
+            }
+        }
+
+        loadPreferences()
+
+        return () => { cancelled = true }
+    }, [])
+
+    // Load the user's personal food catalog lazily, only once Quick Add is opened.
+    useEffect(() => {
+        if (addItemType !== 'quick') return
+
+        let cancelled = false
+
+        async function loadCatalog() {
+            setLoadingCatalog(true)
+            try {
+                const res = await fetch("/api/diet/food-items")
+                if (res.ok) {
+                    const json = await res.json()
+                    if (!cancelled) setCatalogItems(json.items ?? [])
+                }
+            } catch (err) {
+                console.error("Failed to load food catalog: ", err)
+            } finally {
+                if (!cancelled) setLoadingCatalog(false)
+            }
+        }
+
+        loadCatalog()
+
+        return () => { cancelled = true }
+    }, [addItemType])
+
+    // Load which days have a food log entry for the visible calendar month,
+    // only while the month calendar is open - re-fetches whenever the user
+    // flips to a different month.
+    useEffect(() => {
+        if (!showMonthCalendar) return
+
+        let cancelled = false
+
+        async function loadSummary() {
+            try {
+                const res = await fetch(`/api/diet/log/summary?month=${calendarMonth.format('YYYY-MM')}`)
+                if (res.ok) {
+                    const json = await res.json()
+                    if (!cancelled) setLoggedDates(new Set<string>(json.loggedDates ?? []))
+                }
+            } catch (err) {
+                console.error("Failed to load food log summary: ", err)
+            }
+        }
+
+        loadSummary()
+
+        return () => { cancelled = true }
+    }, [showMonthCalendar, calendarMonth])
+
+    async function savePreferences(next: string[]) {
+        setDisplayedMicronutrients(next)
+        setShowSettings(false)
+        try {
+            await fetch("/api/diet/preferences", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ displayedMicronutrients: next })
+            })
+        } catch (err) {
+            console.error("Failed to save diet preferences: ", err)
+        }
+    }
+
+    async function handleCreateSubmit(values: FoodItemFormValues, opts: { saveToCatalog: boolean }) {
+        try {
+            const res = await fetch("/api/diet/log", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: values.name,
+                    servingQty: values.servingQty,
+                    servingUnit: values.servingUnit,
+                    calories: values.calories,
+                    proteinG: values.proteinG,
+                    carbsG: values.carbsG,
+                    fatsG: values.fatsG,
+                    fiberG: values.fiberG,
+                    micronutrients: values.micronutrients,
+                    logDate: dateKey,
+                    foodItemId: quickAddSource?.id ?? null,
+                    saveToCatalog: opts.saveToCatalog
+                })
+            })
+
+            if (res.ok) {
+                const json = await res.json()
+                setEntries((prev) => [...prev, json.entry])
+                closeAddPanel()
+            } else {
+                console.error("Failed to add food log entry")
+            }
+        } catch (err) {
+            console.error("Failed to add food log entry: ", err)
+        }
+    }
+
+    async function handleEditSubmit(values: FoodItemFormValues) {
+        if (!editingEntry) return
+
+        try {
+            const res = await fetch(`/api/diet/log/${editingEntry.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: values.name,
+                    servingQty: values.servingQty,
+                    servingUnit: values.servingUnit,
+                    calories: values.calories,
+                    proteinG: values.proteinG,
+                    carbsG: values.carbsG,
+                    fatsG: values.fatsG,
+                    fiberG: values.fiberG,
+                    micronutrients: values.micronutrients
+                })
+            })
+
+            if (res.ok) {
+                const json = await res.json()
+                setEntries((prev) => prev.map((entry) => (entry.id === json.entry.id ? json.entry : entry)))
+                closeAddPanel()
+            } else {
+                console.error("Failed to update food log entry")
+            }
+        } catch (err) {
+            console.error("Failed to update food log entry: ", err)
+        }
+    }
+
+    async function handleDeleteEntry() {
+        if (!editingEntry) return
+
+        try {
+            const res = await fetch(`/api/diet/log/${editingEntry.id}`, { method: "DELETE" })
+
+            if (res.ok) {
+                const deletedId = editingEntry.id
+                setEntries((prev) => prev.filter((entry) => entry.id !== deletedId))
+                closeAddPanel()
+            } else {
+                console.error("Failed to delete food log entry")
+            }
+        } catch (err) {
+            console.error("Failed to delete food log entry: ", err)
+        }
+    }
+
+    if (initialLoading) {
+        return (
+            <div className="mainWrapper">
+                <div className={styles.pageLoadingContainer}>
+                    <span className={styles.spinner} />
+                </div>
+            </div>
+        )
+    }
+
     return(
         <div className="mainWrapper">
             <div className={styles.mainContainer}>
                 <div className={styles.daysDots}>
-                    <div className={styles.calenderButtonContainer}>
-                    <svg width="45" height="45" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <g clipPath="url(#clip0_245_153)">
-                        <path d="M7.5 10.5H6.5C6.23478 10.5 5.98043 10.6054 5.79289 10.7929C5.60536 10.9804 5.5 11.2348 5.5 11.5C5.5 11.7652 5.60536 12.0196 5.79289 12.2071C5.98043 12.3946 6.23478 12.5 6.5 12.5H7.5C7.76522 12.5 8.01957 12.3946 8.20711 12.2071C8.39464 12.0196 8.5 11.7652 8.5 11.5C8.5 11.2348 8.39464 10.9804 8.20711 10.7929C8.01957 10.6054 7.76522 10.5 7.5 10.5Z"/>
-                        <path d="M12.5 10.5H11.5C11.2348 10.5 10.9804 10.6054 10.7929 10.7929C10.6054 10.9804 10.5 11.2348 10.5 11.5C10.5 11.7652 10.6054 12.0196 10.7929 12.2071C10.9804 12.3946 11.2348 12.5 11.5 12.5H12.5C12.7652 12.5 13.0196 12.3946 13.2071 12.2071C13.3946 12.0196 13.5 11.7652 13.5 11.5C13.5 11.2348 13.3946 10.9804 13.2071 10.7929C13.0196 10.6054 12.7652 10.5 12.5 10.5Z"/>
-                        <path d="M17.5 10.5H16.5C16.2348 10.5 15.9804 10.6054 15.7929 10.7929C15.6054 10.9804 15.5 11.2348 15.5 11.5C15.5 11.7652 15.6054 12.0196 15.7929 12.2071C15.9804 12.3946 16.2348 12.5 16.5 12.5H17.5C17.7652 12.5 18.0196 12.3946 18.2071 12.2071C18.3946 12.0196 18.5 11.7652 18.5 11.5C18.5 11.2348 18.3946 10.9804 18.2071 10.7929C18.0196 10.6054 17.7652 10.5 17.5 10.5Z"/>
-                        <path d="M7.5 14.5H6.5C6.23478 14.5 5.98043 14.6054 5.79289 14.7929C5.60536 14.9804 5.5 15.2348 5.5 15.5C5.5 15.7652 5.60536 16.0196 5.79289 16.2071C5.98043 16.3946 6.23478 16.5 6.5 16.5H7.5C7.76522 16.5 8.01957 16.3946 8.20711 16.2071C8.39464 16.0196 8.5 15.7652 8.5 15.5C8.5 15.2348 8.39464 14.9804 8.20711 14.7929C8.01957 14.6054 7.76522 14.5 7.5 14.5Z"/>
-                        <path d="M12.5 14.5H11.5C11.2348 14.5 10.9804 14.6054 10.7929 14.7929C10.6054 14.9804 10.5 15.2348 10.5 15.5C10.5 15.7652 10.6054 16.0196 10.7929 16.2071C10.9804 16.3946 11.2348 16.5 11.5 16.5H12.5C12.7652 16.5 13.0196 16.3946 13.2071 16.2071C13.3946 16.0196 13.5 15.7652 13.5 15.5C13.5 15.2348 13.3946 14.9804 13.2071 14.7929C13.0196 14.6054 12.7652 14.5 12.5 14.5Z"/>
-                        <path d="M17.5 14.5H16.5C16.2348 14.5 15.9804 14.6054 15.7929 14.7929C15.6054 14.9804 15.5 15.2348 15.5 15.5C15.5 15.7652 15.6054 16.0196 15.7929 16.2071C15.9804 16.3946 16.2348 16.5 16.5 16.5H17.5C17.7652 16.5 18.0196 16.3946 18.2071 16.2071C18.3946 16.0196 18.5 15.7652 18.5 15.5C18.5 15.2348 18.3946 14.9804 18.2071 14.7929C18.0196 14.6054 17.7652 14.5 17.5 14.5Z"/>
-                        <path d="M7.5 18.5H6.5C6.23478 18.5 5.98043 18.6054 5.79289 18.7929C5.60536 18.9804 5.5 19.2348 5.5 19.5C5.5 19.7652 5.60536 20.0196 5.79289 20.2071C5.98043 20.3946 6.23478 20.5 6.5 20.5H7.5C7.76522 20.5 8.01957 20.3946 8.20711 20.2071C8.39464 20.0196 8.5 19.7652 8.5 19.5C8.5 19.2348 8.39464 18.9804 8.20711 18.7929C8.01957 18.6054 7.76522 18.5 7.5 18.5Z"/>
-                        <path d="M12.5 18.5H11.5C11.2348 18.5 10.9804 18.6054 10.7929 18.7929C10.6054 18.9804 10.5 19.2348 10.5 19.5C10.5 15.7652 10.6054 16.0196 10.7929 16.2071C10.9804 16.3946 11.2348 16.5 11.5 16.5H12.5C12.7652 16.5 13.0196 16.3946 13.2071 16.2071C13.3946 16.0196 13.5 15.7652 13.5 15.5C13.5 15.2348 13.3946 14.9804 13.2071 14.7929C13.0196 14.6054 12.7652 14.5 12.5 14.5Z"/>
-                        <path d="M17.5 18.5H16.5C16.2348 18.5 15.9804 18.6054 15.7929 18.7929C15.6054 18.9804 15.5 19.2348 15.5 19.5C15.5 19.7652 15.6054 20.0196 15.7929 20.2071C15.9804 20.3946 16.2348 20.5 16.5 20.5H17.5C17.7652 20.5 18.0196 20.3946 18.2071 20.2071C18.3946 20.0196 18.5 19.7652 18.5 19.5C18.5 19.2348 18.3946 18.9804 18.2071 18.7929C18.0196 18.6054 17.7652 18.5 17.5 18.5Z"/>
-                        <path d="M21.5 3H18.75C18.6837 3 18.6201 2.97366 18.5732 2.92678C18.5263 2.87989 18.5 2.8163 18.5 2.75V1C18.5 0.734784 18.3946 0.48043 18.2071 0.292893C18.0196 0.105357 17.7652 0 17.5 0C17.2348 0 16.9804 0.105357 16.7929 0.292893C16.6054 0.48043 16.5 0.734784 16.5 1V5.75C16.5 5.94891 16.421 6.13968 16.2803 6.28033C16.1397 6.42098 15.9489 6.5 15.75 6.5C15.5511 6.5 15.3603 6.42098 15.2197 6.28033C15.079 6.13968 15 5.94891 15 5.75V3.5C15 3.36739 14.9473 3.24021 14.8536 3.14645C14.7598 3.05268 14.6326 3 14.5 3H8.25C8.1837 3 8.12011 2.97366 8.07322 2.92678C8.02634 2.87989 8 2.8163 8 2.75V1C8 0.734784 7.89464 0.48043 7.70711 0.292893C7.51957 0.105357 7.26522 0 7 0C6.73478 0 6.48043 0.105357 6.29289 0.292893C6.10536 0.48043 6 0.734784 6 1V5.75C6 5.94891 5.92098 6.13968 5.78033 6.28033C5.63968 6.42098 5.44891 6.5 5.25 6.5C5.05109 6.5 4.86032 6.42098 4.71967 6.28033C4.57902 6.13968 4.5 5.94891 4.5 5.75V3.5C4.5 3.36739 4.44732 3.24021 4.35355 3.14645C4.25979 3.05268 4.13261 3 4 3H2.5C1.96957 3 1.46086 3.21071 1.08579 3.58579C0.710714 3.96086 0.5 4.46957 0.5 5V22C0.5 22.5304 0.710714 23.0391 1.08579 23.4142C1.46086 23.7893 1.96957 24 2.5 24H21.5C22.0304 24 22.5391 23.7893 22.9142 23.4142C23.2893 23.0391 23.5 22.5304 23.5 22V5C23.5 4.46957 23.2893 3.96086 22.9142 3.58579C22.5391 3.21071 22.0304 3 21.5 3ZM21.5 21.5C21.5 21.6326 21.4473 21.7598 21.3536 21.8536C21.2598 21.9473 21.1326 22 21 22H3C2.86739 22 2.74021 21.9473 2.64645 21.8536C2.55268 21.7598 2.5 21.6326 2.5 21.5V9.5C2.5 9.36739 2.55268 9.24021 2.64645 9.14645C2.74021 9.05268 2.86739 9 3 9H21C21.1326 9 21.2598 9.05268 21.3536 9.14645C21.4473 9.24021 21.5 9.36739 21.5 9.5V21.5Z"/>
-                        </g>
-                        <defs>
-                        <clipPath id="clip0_245_153">
-                        <rect width="24" height="24" fill="white"/>
-                        </clipPath>
-                    </defs>
-                    </svg>
+                    <button type="button" className={styles.todayButton} onClick={openMonthCalendar} aria-label="Open month calendar">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="3" y="5" width="18" height="16" rx="4" stroke="currentColor" strokeWidth="1.6"/>
+                            <path d="M3 9.75H21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                            <path d="M7.5 2.5V6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                            <path d="M16.5 2.5V6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                            <circle cx="8" cy="13.75" r="1.15" fill="currentColor"/>
+                            <circle cx="12" cy="13.75" r="1.15" fill="currentColor"/>
+                            <circle cx="16" cy="13.75" r="1.15" fill="currentColor"/>
+                            <circle cx="8" cy="17.25" r="1.15" fill="currentColor"/>
+                        </svg>
+                    </button>
+                    <button type="button" className={styles.weekNavButton} onClick={goToPrevWeek} aria-label="Previous week">‹</button>
+                    <div className={styles.dayDial}>
+                        {weekDates.map((date) => {
+                            const isSelected = date.isSame(selectedDate, 'day')
+                            const isToday = date.isSame(today, 'day')
+                            return (
+                                <button
+                                    key={date.format('YYYY-MM-DD')}
+                                    type="button"
+                                    className={`${styles.dayPill} ${isSelected ? styles.selectedDay : ''} ${isToday ? styles.todayPill : ''}`}
+                                    disabled={date.isAfter(today, 'day')}
+                                    onClick={() => setSelectedDate(date)}
+                                >
+                                    <span className={styles.dayPillWeekday}>{WEEKDAY_LABELS[date.day()]}</span>
+                                    <span className={styles.dayPillDate}>{date.format('D')}</span>
+                                </button>
+                            )
+                        })}
                     </div>
-                    <table>
-                        <tbody>
-                            <tr>
-                                <td><p>S</p></td>
-                                <td><p>M</p></td>
-                                <td><p>T</p></td>
-                                <td><p>W</p></td>
-                                <td><p>Th</p></td>
-                                <td><p>F</p></td>
-                                <td><p>S</p></td>
-                            </tr>
-                            <tr>
-                                <td><button className={daySelector == 0? styles.selectedDay: undefined} disabled={dayjs().day() < 0} onClick={()=>setDaySelector(0)}/></td>
-                                <td><button className={daySelector == 1? styles.selectedDay: undefined} disabled={dayjs().day() < 1} onClick={()=>setDaySelector(1)}/></td>
-                                <td><button className={daySelector == 2? styles.selectedDay: undefined} disabled={dayjs().day() < 2} onClick={()=>setDaySelector(2)}/></td>
-                                <td><button className={daySelector == 3? styles.selectedDay: undefined} disabled={dayjs().day() < 3} onClick={()=>setDaySelector(3)}/></td>
-                                <td><button className={daySelector == 4? styles.selectedDay: undefined} disabled={dayjs().day() < 4} onClick={()=>setDaySelector(4)}/></td>
-                                <td><button className={daySelector == 5? styles.selectedDay: undefined} disabled={dayjs().day() < 5} onClick={()=>setDaySelector(5)}/></td>
-                                <td><button className={daySelector == 6? styles.selectedDay: undefined} disabled={dayjs().day() < 6} onClick={()=>setDaySelector(6)}/></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <button type="button" className={styles.weekNavButton} onClick={goToNextWeek} disabled={isCurrentWeek} aria-label="Next week">›</button>
                 </div>
                 <div className={styles.foodIntakeDisplayContainer}>
                     <div className={styles.dailyFoodIntakeContainer}>
-                        <p className={styles.dailyIntakeHeader}>{getDay(daySelector)}</p>
-                        <button onClick={()=>setToggleAddItem(!toggleAddItem)}>
+                        <p className={styles.dailyIntakeHeader}>{selectedDate.format('dddd')}</p>
+                        <button onClick={()=>{ if (toggleAddItem) { closeAddPanel() } else { setToggleAddItem(true) } }}>
                             <svg width="30" height="38" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M8 3.3125V12.6875M12.6875 8H3.3125" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                         </button>
+                        <FoodLogList entries={entries} onSelect={openEntryForEdit} />
                     </div>
                     {toggleAddItem?
 
                     <div className={styles.addFoodItemContainer}>
-                        {addItemType?
-                        
-                        (addItemType === "manual" ?
+                        {addItemType === 'edit' && editingEntry ?
+
+                            <FoodItemForm
+                                mode="edit"
+                                initialValues={entryToFormValues(editingEntry)}
+                                onSubmit={handleEditSubmit}
+                                onCancel={closeAddPanel}
+                                onDelete={handleDeleteEntry}
+                            />
+
+                        : addItemType === "manual" ?
                             <>
-                            <button onClick={()=>setAddItemType(null)}>Back</button>
+                            <button type="button" className={styles.backButton} onClick={()=>setAddItemType(null)}>Back</button>
+                            <FoodItemForm mode="create" onSubmit={handleCreateSubmit} onCancel={closeAddPanel} />
                             </>
-                            :
 
-                            addItemType === "quick" ?
-                                <button onClick={()=>setAddItemType(null)}>Back</button>
-
+                        : addItemType === "quick" ?
+                            <>
+                            <button type="button" className={styles.backButton} onClick={()=>{ setAddItemType(null); setQuickAddSource(null) }}>Back</button>
+                            {quickAddSource ?
+                                <QuickAddScaler
+                                    item={quickAddSource}
+                                    onSubmit={handleCreateSubmit}
+                                    onCancel={() => setQuickAddSource(null)}
+                                />
                             :
-                            
-                            null
-                        )
+                                <div className={styles.catalogList}>
+                                    {loadingCatalog ?
+                                        <div className={styles.spinnerContainer}><span className={styles.spinner} /></div>
+                                    : catalogItems.length === 0 ?
+                                        <p>No saved items yet - add one manually and save it to your catalog.</p>
+                                    :
+                                        catalogItems.map((item) => (
+                                            <button type="button" key={item.id} className={styles.catalogItemButton} onClick={() => setQuickAddSource(item)}>
+                                                {item.name}
+                                            </button>
+                                        ))
+                                    }
+                                </div>
+                            }
+                            </>
+
                         :
                         <>
                             <div className={styles.addFoodItemButtons} onClick={()=>setAddItemType("manual")}>
@@ -205,7 +557,7 @@ export default function DietPage() {
                         </>
                         }
                     </div>
-                    
+
                     :
 
                     null
@@ -213,39 +565,24 @@ export default function DietPage() {
                      <div className={styles.dietAnalytics}>
                         <div className={styles.analyticsContainer}>
                             <p className={styles.dietAnalyticsHeaders}>Macros</p>
-                            <AnalyticsBar name={'Protein'} val={5} total={Math.round(2.4*((Number(userData.weight)) * config.POUND2KG))} colour={"red"} measure={"g"} size={'normal'}/>
-                            <AnalyticsBar name={'Carbohydrates'} val={5} total={Math.round((totalCal - (2.4*(Number(userData.weight) * config.POUND2KG)*4 + Math.max(0.6*(Number(userData.weight) * config.POUND2KG), 0.2*totalCal/9)*9))/4)} colour={"red"} measure={"g"} size={'normal'}/>
-                            <AnalyticsBar name={'Fats'} val={5} total={Math.round(Math.max(0.6*(Number(userData.weight) * config.POUND2KG), 0.2*totalCal/9))} colour={"red"} measure={"g"} size={'normal'}/>
+                            <AnalyticsBar name={'Protein'} val={Math.round(consumed.protein)} total={Math.round(2.4*weightKg)} colour={"red"} measure={"g"} size={'normal'}/>
+                            <AnalyticsBar name={'Carbohydrates'} val={Math.round(consumed.carbs)} total={Math.round((2100 - (2.4*(weightKg)*4 + Math.max(0.6*(weightKg), 0.2*2100/9)*9))/4)} colour={"red"} measure={"g"} size={'normal'}/>
+                            <AnalyticsBar name={'Fats'} val={Math.round(consumed.fats)} total={Math.round(Math.max(0.6*(weightKg), 0.2*2100/9))} colour={"red"} measure={"g"} size={'normal'}/>
 
-                            <p className={styles.dietAnalyticsHeaders}>Micros</p>
-                            <AnalyticsBar name={'Vitamin A'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Vitamin D'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Vitamin E'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Vitamin K'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Thiamin'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Niacin'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Riboflavin'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Vitamin B12'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Folate (B9)'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Vitamin B6'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Pantothenic Acid'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Vitamin C'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Iron'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Biotin'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Choline'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Fibre'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Calcium'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Magnesium'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Potassium'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Zinc'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
-                            <AnalyticsBar name={'Iodine'} val={5} total={15} colour={"red"} measure={"mg"} size={'small'}/>
+                            <div className={styles.microsHeaderRow}>
+                                <p className={styles.dietAnalyticsHeaders}>Micros</p>
+                                <button type="button" className={styles.settingsButton} onClick={() => setShowSettings(true)} aria-label="Choose displayed micronutrients">⚙</button>
+                            </div>
+                            {microTargets.map((nutrient) => (
+                                <AnalyticsBar key={nutrient.name} name={nutrient.name} val={Math.round(consumed.micronutrients[nutrient.name] ?? 0)} total={nutrient.total} colour={"red"} measure={nutrient.measure} size={'small'}/>
+                            ))}
                         </div>
                         <div className={styles.calorieContainer}>
                             <p className={styles.caloriesHeader}>Caloric Intake</p>
-                            <p key={totalCal} className={styles.caloriesText}>{totalCal} kCal</p>
-                            <CalorieTarget curr={totalCal} totalExpenditure={totalExpenditure} goal={goalState}/>
+                            <p key={Math.round(consumed.calories)} className={styles.caloriesText}>{Math.round(consumed.calories)} kCal</p>
+                            <CalorieTarget curr={consumed.calories} totalExpenditure={totalExpenditure} goal={goalState}/>
                             <div className={styles.customButtonContainer}>
-                                <div onClick={cycleGoalState} className={styles.customButton}>                               
+                                <div onClick={cycleGoalState} className={styles.customButton}>
                                     <ul>
                                         <li style={{height: "15px", width: "15px"}} className={goalState=='Surplus'? styles.highlightedGoalItem : undefined}/>
                                         <li style={{height: "12.5px", width: "12.5px"}} className={goalState=='Maintain'? styles.highlightedGoalItem : undefined}/>
@@ -258,6 +595,33 @@ export default function DietPage() {
                     </div>
                 </div>
             </div>
+            {showSettings?
+                <div className={styles.modalBackdrop} onClick={() => setShowSettings(false)}>
+                    <div onClick={(e) => e.stopPropagation()}>
+                        <MicronutrientSettings
+                            selected={displayedMicronutrients}
+                            onSave={savePreferences}
+                            onClose={() => setShowSettings(false)}
+                        />
+                    </div>
+                </div>
+            : null}
+            {showMonthCalendar?
+                <div className={styles.modalBackdrop} onClick={() => setShowMonthCalendar(false)}>
+                    <div onClick={(e) => e.stopPropagation()}>
+                        <MonthCalendar
+                            visibleMonth={calendarMonth}
+                            selectedDate={selectedDate}
+                            today={today}
+                            loggedDates={loggedDates}
+                            onSelectDate={selectDateFromCalendar}
+                            onChangeMonth={setCalendarMonth}
+                            onJumpToday={jumpToTodayFromCalendar}
+                            onClose={() => setShowMonthCalendar(false)}
+                        />
+                    </div>
+                </div>
+            : null}
         </div>
     )
 }

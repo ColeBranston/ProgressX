@@ -1,0 +1,303 @@
+{
+  "source": {
+    "overview": "https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/dietary-reference-intakes/tables.html",
+    "macronutrients": "https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/dietary-reference-intakes/tables/reference-values-macronutrients.html",
+    "vitamins": "https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/dietary-reference-intakes/tables/reference-values-vitamins.html",
+    "elements": "https://www.canada.ca/en/health-canada/services/food-nutrition/healthy-eating/dietary-reference-intakes/tables/reference-values-elements.html",
+    "calculator": "https://health-infobase.canada.ca/nutrition/dietary-reference-intakes-calculator/",
+    "note": "Reference values for normal, apparently healthy individuals eating a typical mixed North American diet. Individuals with specific physiological, health, or lifestyle characteristics may need tailored values."
+  },
+  "legend": {
+    "EAR": "Estimated Average Requirement — meets the needs of 50% of individuals in a group",
+    "RDA": "Recommended Dietary Allowance — meets the needs of ~97-98% of individuals",
+    "AI": "Adequate Intake — used when there isn't enough evidence to set an RDA",
+    "UL": "Tolerable Upper Intake Level — highest daily intake unlikely to cause adverse effects",
+    "CDRR": "Chronic Disease Risk Reduction intake (sodium) — level above which reduction is expected to lower chronic disease risk",
+    "RAE": "Retinol Activity Equivalents (vitamin A)",
+    "NE": "Niacin Equivalents",
+    "DFE": "Dietary Folate Equivalents",
+    "null": "Not determined / no UL established (ND in source tables) — does not imply high intake is safe"
+  },
+  "macronutrients": {
+    "primary": {
+      "unitsNote": "carbohydrate/protein in g/day or g/kg/day, fibre in g/day, water in L/day",
+      "groups": [
+        { "group": "male", "ageRange": "9-13y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.76, "rdaGPerKgPerDay": 0.95, "rdaGPerDay": 34 }, "linoleicAcidAiGPerDay": 12, "alphaLinolenicAcidAiGPerDay": 1.2, "totalFibreAiGPerDay": 31, "totalWaterAiLPerDay": 2.4 },
+        { "group": "male", "ageRange": "14-18y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.73, "rdaGPerKgPerDay": 0.85, "rdaGPerDay": 52 }, "linoleicAcidAiGPerDay": 16, "alphaLinolenicAcidAiGPerDay": 1.6, "totalFibreAiGPerDay": 38, "totalWaterAiLPerDay": 3.3 },
+        { "group": "male", "ageRange": "19-30y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.66, "rdaGPerKgPerDay": 0.80, "rdaGPerDay": 56 }, "linoleicAcidAiGPerDay": 17, "alphaLinolenicAcidAiGPerDay": 1.6, "totalFibreAiGPerDay": 38, "totalWaterAiLPerDay": 3.7 },
+        { "group": "male", "ageRange": "31-50y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.66, "rdaGPerKgPerDay": 0.80, "rdaGPerDay": 56 }, "linoleicAcidAiGPerDay": 17, "alphaLinolenicAcidAiGPerDay": 1.6, "totalFibreAiGPerDay": 38, "totalWaterAiLPerDay": 3.7 },
+        { "group": "male", "ageRange": "51-70y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.66, "rdaGPerKgPerDay": 0.80, "rdaGPerDay": 56 }, "linoleicAcidAiGPerDay": 14, "alphaLinolenicAcidAiGPerDay": 1.6, "totalFibreAiGPerDay": 30, "totalWaterAiLPerDay": 3.7 },
+        { "group": "male", "ageRange": ">70y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.66, "rdaGPerKgPerDay": 0.80, "rdaGPerDay": 56 }, "linoleicAcidAiGPerDay": 14, "alphaLinolenicAcidAiGPerDay": 1.6, "totalFibreAiGPerDay": 30, "totalWaterAiLPerDay": 3.7 },
+
+        { "group": "female", "ageRange": "9-13y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.76, "rdaGPerKgPerDay": 0.95, "rdaGPerDay": 34 }, "linoleicAcidAiGPerDay": 10, "alphaLinolenicAcidAiGPerDay": 1.0, "totalFibreAiGPerDay": 26, "totalWaterAiLPerDay": 2.1 },
+        { "group": "female", "ageRange": "14-18y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.71, "rdaGPerKgPerDay": 0.85, "rdaGPerDay": 46 }, "linoleicAcidAiGPerDay": 11, "alphaLinolenicAcidAiGPerDay": 1.1, "totalFibreAiGPerDay": 26, "totalWaterAiLPerDay": 2.3 },
+        { "group": "female", "ageRange": "19-30y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.66, "rdaGPerKgPerDay": 0.80, "rdaGPerDay": 46 }, "linoleicAcidAiGPerDay": 12, "alphaLinolenicAcidAiGPerDay": 1.1, "totalFibreAiGPerDay": 25, "totalWaterAiLPerDay": 2.7 },
+        { "group": "female", "ageRange": "31-50y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.66, "rdaGPerKgPerDay": 0.80, "rdaGPerDay": 46 }, "linoleicAcidAiGPerDay": 12, "alphaLinolenicAcidAiGPerDay": 1.1, "totalFibreAiGPerDay": 25, "totalWaterAiLPerDay": 2.7 },
+        { "group": "female", "ageRange": "51-70y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.66, "rdaGPerKgPerDay": 0.80, "rdaGPerDay": 46 }, "linoleicAcidAiGPerDay": 11, "alphaLinolenicAcidAiGPerDay": 1.1, "totalFibreAiGPerDay": 21, "totalWaterAiLPerDay": 2.7 },
+        { "group": "female", "ageRange": ">70y", "carbohydrate": { "earGPerDay": 100, "rdaGPerDay": 130 }, "protein": { "earGPerKgPerDay": 0.66, "rdaGPerKgPerDay": 0.80, "rdaGPerDay": 46 }, "linoleicAcidAiGPerDay": 11, "alphaLinolenicAcidAiGPerDay": 1.1, "totalFibreAiGPerDay": 21, "totalWaterAiLPerDay": 2.7 },
+
+        { "group": "pregnancy", "ageRange": "<=18y", "carbohydrate": { "earGPerDay": 135, "rdaGPerDay": 175 }, "protein": { "earGPerKgPerDay": 0.88, "rdaGPerKgPerDay": 1.1, "rdaGPerDay": 71 }, "linoleicAcidAiGPerDay": 13, "alphaLinolenicAcidAiGPerDay": 1.4, "totalFibreAiGPerDay": 28, "totalWaterAiLPerDay": 3.0 },
+        { "group": "pregnancy", "ageRange": "19-30y", "carbohydrate": { "earGPerDay": 135, "rdaGPerDay": 175 }, "protein": { "earGPerKgPerDay": 0.88, "rdaGPerKgPerDay": 1.1, "rdaGPerDay": 71 }, "linoleicAcidAiGPerDay": 13, "alphaLinolenicAcidAiGPerDay": 1.4, "totalFibreAiGPerDay": 28, "totalWaterAiLPerDay": 3.0 },
+        { "group": "pregnancy", "ageRange": "31-50y", "carbohydrate": { "earGPerDay": 135, "rdaGPerDay": 175 }, "protein": { "earGPerKgPerDay": 0.88, "rdaGPerKgPerDay": 1.1, "rdaGPerDay": 71 }, "linoleicAcidAiGPerDay": 13, "alphaLinolenicAcidAiGPerDay": 1.4, "totalFibreAiGPerDay": 28, "totalWaterAiLPerDay": 3.0 },
+
+        { "group": "lactation", "ageRange": "<=18y", "carbohydrate": { "earGPerDay": 160, "rdaGPerDay": 210 }, "protein": { "earGPerKgPerDay": 1.05, "rdaGPerKgPerDay": 1.3, "rdaGPerDay": 71 }, "linoleicAcidAiGPerDay": 13, "alphaLinolenicAcidAiGPerDay": 1.3, "totalFibreAiGPerDay": 29, "totalWaterAiLPerDay": 3.8 },
+        { "group": "lactation", "ageRange": "19-30y", "carbohydrate": { "earGPerDay": 160, "rdaGPerDay": 210 }, "protein": { "earGPerKgPerDay": 1.05, "rdaGPerKgPerDay": 1.3, "rdaGPerDay": 71 }, "linoleicAcidAiGPerDay": 13, "alphaLinolenicAcidAiGPerDay": 1.3, "totalFibreAiGPerDay": 29, "totalWaterAiLPerDay": 3.8 },
+        { "group": "lactation", "ageRange": "31-50y", "carbohydrate": { "earGPerDay": 160, "rdaGPerDay": 210 }, "protein": { "earGPerKgPerDay": 1.05, "rdaGPerKgPerDay": 1.3, "rdaGPerDay": 71 }, "linoleicAcidAiGPerDay": 13, "alphaLinolenicAcidAiGPerDay": 1.3, "totalFibreAiGPerDay": 29, "totalWaterAiLPerDay": 3.8 }
+      ],
+      "notes": [
+        "No UL has been set for carbohydrate, total protein, total fat, linoleic acid, ALA, fibre, or water — insufficient data, not evidence of safety at high chronic intake.",
+        "Total fibre = dietary fibre + functional fibre.",
+        "Total water includes drinking water, water in beverages, and water in food.",
+        "Protein RDA in g/day = g/kg/day requirement x reference body weight."
+      ]
+    },
+    "amdr": {
+      "description": "Acceptable Macronutrient Distribution Ranges, percent of total energy, males & females (including pregnancy/lactation)",
+      "unit": "percentOfEnergy",
+      "groups": [
+        { "ageRange": "1-3y", "carbohydrate": { "min": 45, "max": 65 }, "protein": { "min": 5, "max": 20 }, "fat": { "min": 30, "max": 40 }, "linoleicAcid": { "min": 5, "max": 10 }, "alphaLinolenicAcid": { "min": 0.6, "max": 1.2 } },
+        { "ageRange": "4-18y", "carbohydrate": { "min": 45, "max": 65 }, "protein": { "min": 10, "max": 30 }, "fat": { "min": 25, "max": 35 }, "linoleicAcid": { "min": 5, "max": 10 }, "alphaLinolenicAcid": { "min": 0.6, "max": 1.2 } },
+        { "ageRange": "19y+", "carbohydrate": { "min": 45, "max": 65 }, "protein": { "min": 10, "max": 35 }, "fat": { "min": 20, "max": 35 }, "linoleicAcid": { "min": 5, "max": 10 }, "alphaLinolenicAcid": { "min": 0.6, "max": 1.2 } }
+      ],
+      "notes": ["Up to 10% of the n-3 AMDR can be consumed as EPA and/or DHA."]
+    }
+  },
+  "vitamins": {
+    "aDEK": {
+      "unitsNote": "Vitamin A in ug RAE/day, Vitamin D in IU/day, Vitamin E in mg/day (alpha-tocopherol), Vitamin K AI in ug/day",
+      "groups": [
+        { "group": "male", "ageRange": "9-13y", "vitaminA": { "earUgRae": 445, "rdaUgRae": 600, "ulUgRae": 1700 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 9, "rdaMg": 11, "ulMg": 600 }, "vitaminK": { "aiUg": 60 } },
+        { "group": "male", "ageRange": "14-18y", "vitaminA": { "earUgRae": 630, "rdaUgRae": 900, "ulUgRae": 2800 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 800 }, "vitaminK": { "aiUg": 75 } },
+        { "group": "male", "ageRange": "19-30y", "vitaminA": { "earUgRae": 625, "rdaUgRae": 900, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 1000 }, "vitaminK": { "aiUg": 120 } },
+        { "group": "male", "ageRange": "31-50y", "vitaminA": { "earUgRae": 625, "rdaUgRae": 900, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 1000 }, "vitaminK": { "aiUg": 120 } },
+        { "group": "male", "ageRange": "51-70y", "vitaminA": { "earUgRae": 625, "rdaUgRae": 900, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 1000 }, "vitaminK": { "aiUg": 120 } },
+        { "group": "male", "ageRange": ">70y", "vitaminA": { "earUgRae": 625, "rdaUgRae": 900, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 800, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 1000 }, "vitaminK": { "aiUg": 120 } },
+
+        { "group": "female", "ageRange": "9-13y", "vitaminA": { "earUgRae": 420, "rdaUgRae": 600, "ulUgRae": 1700 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 9, "rdaMg": 11, "ulMg": 600 }, "vitaminK": { "aiUg": 60 } },
+        { "group": "female", "ageRange": "14-18y", "vitaminA": { "earUgRae": 485, "rdaUgRae": 700, "ulUgRae": 2800 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 800 }, "vitaminK": { "aiUg": 75 } },
+        { "group": "female", "ageRange": "19-30y", "vitaminA": { "earUgRae": 500, "rdaUgRae": 700, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 1000 }, "vitaminK": { "aiUg": 90 } },
+        { "group": "female", "ageRange": "31-50y", "vitaminA": { "earUgRae": 500, "rdaUgRae": 700, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 1000 }, "vitaminK": { "aiUg": 90 } },
+        { "group": "female", "ageRange": "51-70y", "vitaminA": { "earUgRae": 500, "rdaUgRae": 700, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 1000 }, "vitaminK": { "aiUg": 90 } },
+        { "group": "female", "ageRange": ">70y", "vitaminA": { "earUgRae": 500, "rdaUgRae": 700, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 800, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 1000 }, "vitaminK": { "aiUg": 90 } },
+
+        { "group": "pregnancy", "ageRange": "<=18y", "vitaminA": { "earUgRae": 530, "rdaUgRae": 750, "ulUgRae": 2800 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 800 }, "vitaminK": { "aiUg": 75 } },
+        { "group": "pregnancy", "ageRange": "19-30y", "vitaminA": { "earUgRae": 550, "rdaUgRae": 770, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 1000 }, "vitaminK": { "aiUg": 90 } },
+        { "group": "pregnancy", "ageRange": "31-50y", "vitaminA": { "earUgRae": 550, "rdaUgRae": 770, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 12, "rdaMg": 15, "ulMg": 1000 }, "vitaminK": { "aiUg": 90 } },
+
+        { "group": "lactation", "ageRange": "<=18y", "vitaminA": { "earUgRae": 885, "rdaUgRae": 1200, "ulUgRae": 2800 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 16, "rdaMg": 19, "ulMg": 800 }, "vitaminK": { "aiUg": 75 } },
+        { "group": "lactation", "ageRange": "19-30y", "vitaminA": { "earUgRae": 900, "rdaUgRae": 1300, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 16, "rdaMg": 19, "ulMg": 1000 }, "vitaminK": { "aiUg": 90 } },
+        { "group": "lactation", "ageRange": "31-50y", "vitaminA": { "earUgRae": 900, "rdaUgRae": 1300, "ulUgRae": 3000 }, "vitaminD": { "earIu": 400, "rdaIu": 600, "ulIu": 4000 }, "vitaminE": { "earMg": 16, "rdaMg": 19, "ulMg": 1000 }, "vitaminK": { "aiUg": 90 } }
+      ],
+      "notes": [
+        "Vitamin A as Retinol Activity Equivalents (RAE); no DRI exists for beta-carotene itself.",
+        "Vitamin D values assume minimal sun exposure. 2011 values supersede 1997 values.",
+        "Vitamin E UL applies only to synthetic vitamin E from supplements/fortified foods.",
+        "No UL established for vitamin K (insufficient data)."
+      ]
+    },
+    "cThiaminRiboflavinNiacinB6": {
+      "unitsNote": "Vitamin C, Thiamin, Riboflavin, Vitamin B6 in mg/day; Niacin in mg NE/day",
+      "groups": [
+        { "group": "male", "ageRange": "9-13y", "vitaminC": { "earMg": 39, "rdaMg": 45, "ulMg": 1200 }, "thiamin": { "earMg": 0.7, "rdaMg": 0.9 }, "riboflavin": { "earMg": 0.8, "rdaMg": 0.9 }, "niacin": { "earMgNe": 9, "rdaMgNe": 12, "ulMg": 20 }, "vitaminB6": { "earMg": 0.8, "rdaMg": 1.0, "ulMg": 60 } },
+        { "group": "male", "ageRange": "14-18y", "vitaminC": { "earMg": 63, "rdaMg": 75, "ulMg": 1800 }, "thiamin": { "earMg": 1.0, "rdaMg": 1.2 }, "riboflavin": { "earMg": 1.1, "rdaMg": 1.3 }, "niacin": { "earMgNe": 12, "rdaMgNe": 16, "ulMg": 30 }, "vitaminB6": { "earMg": 1.1, "rdaMg": 1.3, "ulMg": 80 } },
+        { "group": "male", "ageRange": "19-30y", "vitaminC": { "earMg": 75, "rdaMg": 90, "ulMg": 2000 }, "thiamin": { "earMg": 1.0, "rdaMg": 1.2 }, "riboflavin": { "earMg": 1.1, "rdaMg": 1.3 }, "niacin": { "earMgNe": 12, "rdaMgNe": 16, "ulMg": 35 }, "vitaminB6": { "earMg": 1.1, "rdaMg": 1.3, "ulMg": 100 } },
+        { "group": "male", "ageRange": "31-50y", "vitaminC": { "earMg": 75, "rdaMg": 90, "ulMg": 2000 }, "thiamin": { "earMg": 1.0, "rdaMg": 1.2 }, "riboflavin": { "earMg": 1.1, "rdaMg": 1.3 }, "niacin": { "earMgNe": 12, "rdaMgNe": 16, "ulMg": 35 }, "vitaminB6": { "earMg": 1.1, "rdaMg": 1.3, "ulMg": 100 } },
+        { "group": "male", "ageRange": "51-70y", "vitaminC": { "earMg": 75, "rdaMg": 90, "ulMg": 2000 }, "thiamin": { "earMg": 1.0, "rdaMg": 1.2 }, "riboflavin": { "earMg": 1.1, "rdaMg": 1.3 }, "niacin": { "earMgNe": 12, "rdaMgNe": 16, "ulMg": 35 }, "vitaminB6": { "earMg": 1.4, "rdaMg": 1.7, "ulMg": 100 } },
+        { "group": "male", "ageRange": ">70y", "vitaminC": { "earMg": 75, "rdaMg": 90, "ulMg": 2000 }, "thiamin": { "earMg": 1.0, "rdaMg": 1.2 }, "riboflavin": { "earMg": 1.1, "rdaMg": 1.3 }, "niacin": { "earMgNe": 12, "rdaMgNe": 16, "ulMg": 35 }, "vitaminB6": { "earMg": 1.4, "rdaMg": 1.7, "ulMg": 100 } },
+
+        { "group": "female", "ageRange": "9-13y", "vitaminC": { "earMg": 39, "rdaMg": 45, "ulMg": 1200 }, "thiamin": { "earMg": 0.7, "rdaMg": 0.9 }, "riboflavin": { "earMg": 0.8, "rdaMg": 0.9 }, "niacin": { "earMgNe": 9, "rdaMgNe": 12, "ulMg": 20 }, "vitaminB6": { "earMg": 0.8, "rdaMg": 1.0, "ulMg": 60 } },
+        { "group": "female", "ageRange": "14-18y", "vitaminC": { "earMg": 56, "rdaMg": 65, "ulMg": 1800 }, "thiamin": { "earMg": 0.9, "rdaMg": 1.0 }, "riboflavin": { "earMg": 0.9, "rdaMg": 1.0 }, "niacin": { "earMgNe": 11, "rdaMgNe": 14, "ulMg": 30 }, "vitaminB6": { "earMg": 1.0, "rdaMg": 1.2, "ulMg": 80 } },
+        { "group": "female", "ageRange": "19-30y", "vitaminC": { "earMg": 60, "rdaMg": 75, "ulMg": 2000 }, "thiamin": { "earMg": 0.9, "rdaMg": 1.1 }, "riboflavin": { "earMg": 0.9, "rdaMg": 1.1 }, "niacin": { "earMgNe": 11, "rdaMgNe": 14, "ulMg": 35 }, "vitaminB6": { "earMg": 1.1, "rdaMg": 1.3, "ulMg": 100 } },
+        { "group": "female", "ageRange": "31-50y", "vitaminC": { "earMg": 60, "rdaMg": 75, "ulMg": 2000 }, "thiamin": { "earMg": 0.9, "rdaMg": 1.1 }, "riboflavin": { "earMg": 0.9, "rdaMg": 1.1 }, "niacin": { "earMgNe": 11, "rdaMgNe": 14, "ulMg": 35 }, "vitaminB6": { "earMg": 1.1, "rdaMg": 1.3, "ulMg": 100 } },
+        { "group": "female", "ageRange": "51-70y", "vitaminC": { "earMg": 60, "rdaMg": 75, "ulMg": 2000 }, "thiamin": { "earMg": 0.9, "rdaMg": 1.1 }, "riboflavin": { "earMg": 0.9, "rdaMg": 1.1 }, "niacin": { "earMgNe": 11, "rdaMgNe": 14, "ulMg": 35 }, "vitaminB6": { "earMg": 1.3, "rdaMg": 1.5, "ulMg": 100 } },
+        { "group": "female", "ageRange": ">70y", "vitaminC": { "earMg": 60, "rdaMg": 75, "ulMg": 2000 }, "thiamin": { "earMg": 0.9, "rdaMg": 1.1 }, "riboflavin": { "earMg": 0.9, "rdaMg": 1.1 }, "niacin": { "earMgNe": 11, "rdaMgNe": 14, "ulMg": 35 }, "vitaminB6": { "earMg": 1.3, "rdaMg": 1.5, "ulMg": 100 } },
+
+        { "group": "pregnancy", "ageRange": "<=18y", "vitaminC": { "earMg": 66, "rdaMg": 80, "ulMg": 1800 }, "thiamin": { "earMg": 1.2, "rdaMg": 1.4 }, "riboflavin": { "earMg": 1.2, "rdaMg": 1.4 }, "niacin": { "earMgNe": 14, "rdaMgNe": 18, "ulMg": 30 }, "vitaminB6": { "earMg": 1.6, "rdaMg": 1.9, "ulMg": 80 } },
+        { "group": "pregnancy", "ageRange": "19-30y", "vitaminC": { "earMg": 70, "rdaMg": 85, "ulMg": 2000 }, "thiamin": { "earMg": 1.2, "rdaMg": 1.4 }, "riboflavin": { "earMg": 1.2, "rdaMg": 1.4 }, "niacin": { "earMgNe": 14, "rdaMgNe": 18, "ulMg": 35 }, "vitaminB6": { "earMg": 1.6, "rdaMg": 1.9, "ulMg": 100 } },
+        { "group": "pregnancy", "ageRange": "31-50y", "vitaminC": { "earMg": 70, "rdaMg": 85, "ulMg": 2000 }, "thiamin": { "earMg": 1.2, "rdaMg": 1.4 }, "riboflavin": { "earMg": 1.2, "rdaMg": 1.4 }, "niacin": { "earMgNe": 14, "rdaMgNe": 18, "ulMg": 35 }, "vitaminB6": { "earMg": 1.6, "rdaMg": 1.9, "ulMg": 100 } },
+
+        { "group": "lactation", "ageRange": "<=18y", "vitaminC": { "earMg": 96, "rdaMg": 115, "ulMg": 1800 }, "thiamin": { "earMg": 1.2, "rdaMg": 1.4 }, "riboflavin": { "earMg": 1.3, "rdaMg": 1.6 }, "niacin": { "earMgNe": 13, "rdaMgNe": 17, "ulMg": 30 }, "vitaminB6": { "earMg": 1.7, "rdaMg": 2.0, "ulMg": 80 } },
+        { "group": "lactation", "ageRange": "19-30y", "vitaminC": { "earMg": 100, "rdaMg": 120, "ulMg": 2000 }, "thiamin": { "earMg": 1.2, "rdaMg": 1.4 }, "riboflavin": { "earMg": 1.3, "rdaMg": 1.6 }, "niacin": { "earMgNe": 13, "rdaMgNe": 17, "ulMg": 35 }, "vitaminB6": { "earMg": 1.7, "rdaMg": 2.0, "ulMg": 100 } },
+        { "group": "lactation", "ageRange": "31-50y", "vitaminC": { "earMg": 100, "rdaMg": 120, "ulMg": 2000 }, "thiamin": { "earMg": 1.2, "rdaMg": 1.4 }, "riboflavin": { "earMg": 1.3, "rdaMg": 1.6 }, "niacin": { "earMgNe": 13, "rdaMgNe": 17, "ulMg": 35 }, "vitaminB6": { "earMg": 1.7, "rdaMg": 2.0, "ulMg": 100 } }
+      ],
+      "notes": [
+        "Vitamin C requirement is increased by 35 mg/day for smokers.",
+        "No UL established for thiamin or riboflavin (insufficient data).",
+        "Niacin UL applies only to synthetic forms (supplements/fortified foods)."
+      ]
+    },
+    "folateB12PantothenicBiotinCholine": {
+      "unitsNote": "Folate in ug DFE/day, B12 in ug/day, Pantothenic Acid in mg/day, Biotin in ug/day, Choline in mg/day",
+      "groups": [
+        { "group": "male", "ageRange": "9-13y", "folate": { "earUgDfe": 250, "rdaUgDfe": 300, "ulUg": 600 }, "vitaminB12": { "earUg": 1.5, "rdaUg": 1.8 }, "pantothenicAcid": { "aiMg": 4 }, "biotin": { "aiUg": 20 }, "choline": { "aiMg": 375, "ulMg": 2000 } },
+        { "group": "male", "ageRange": "14-18y", "folate": { "earUgDfe": 330, "rdaUgDfe": 400, "ulUg": 800 }, "vitaminB12": { "earUg": 2.0, "rdaUg": 2.4 }, "pantothenicAcid": { "aiMg": 5 }, "biotin": { "aiUg": 25 }, "choline": { "aiMg": 550, "ulMg": 3000 } },
+        { "group": "male", "ageRange": "19-30y", "folate": { "earUgDfe": 320, "rdaUgDfe": 400, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.0, "rdaUg": 2.4 }, "pantothenicAcid": { "aiMg": 5 }, "biotin": { "aiUg": 30 }, "choline": { "aiMg": 550, "ulMg": 3500 } },
+        { "group": "male", "ageRange": "31-50y", "folate": { "earUgDfe": 320, "rdaUgDfe": 400, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.0, "rdaUg": 2.4 }, "pantothenicAcid": { "aiMg": 5 }, "biotin": { "aiUg": 30 }, "choline": { "aiMg": 550, "ulMg": 3500 } },
+        { "group": "male", "ageRange": "51-70y", "folate": { "earUgDfe": 320, "rdaUgDfe": 400, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.0, "rdaUg": 2.4 }, "pantothenicAcid": { "aiMg": 5 }, "biotin": { "aiUg": 30 }, "choline": { "aiMg": 550, "ulMg": 3500 } },
+        { "group": "male", "ageRange": ">70y", "folate": { "earUgDfe": 320, "rdaUgDfe": 400, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.0, "rdaUg": 2.4 }, "pantothenicAcid": { "aiMg": 5 }, "biotin": { "aiUg": 30 }, "choline": { "aiMg": 550, "ulMg": 3500 } },
+
+        { "group": "female", "ageRange": "9-13y", "folate": { "earUgDfe": 250, "rdaUgDfe": 300, "ulUg": 600 }, "vitaminB12": { "earUg": 1.5, "rdaUg": 1.8 }, "pantothenicAcid": { "aiMg": 4 }, "biotin": { "aiUg": 20 }, "choline": { "aiMg": 375, "ulMg": 2000 } },
+        { "group": "female", "ageRange": "14-18y", "folate": { "earUgDfe": 330, "rdaUgDfe": 400, "ulUg": 800 }, "vitaminB12": { "earUg": 2.0, "rdaUg": 2.4 }, "pantothenicAcid": { "aiMg": 5 }, "biotin": { "aiUg": 25 }, "choline": { "aiMg": 400, "ulMg": 3000 } },
+        { "group": "female", "ageRange": "19-30y", "folate": { "earUgDfe": 320, "rdaUgDfe": 400, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.0, "rdaUg": 2.4 }, "pantothenicAcid": { "aiMg": 5 }, "biotin": { "aiUg": 30 }, "choline": { "aiMg": 425, "ulMg": 3500 } },
+        { "group": "female", "ageRange": "31-50y", "folate": { "earUgDfe": 320, "rdaUgDfe": 400, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.0, "rdaUg": 2.4 }, "pantothenicAcid": { "aiMg": 5 }, "biotin": { "aiUg": 30 }, "choline": { "aiMg": 425, "ulMg": 3500 } },
+        { "group": "female", "ageRange": "51-70y", "folate": { "earUgDfe": 320, "rdaUgDfe": 400, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.0, "rdaUg": 2.4 }, "pantothenicAcid": { "aiMg": 5 }, "biotin": { "aiUg": 30 }, "choline": { "aiMg": 425, "ulMg": 3500 } },
+        { "group": "female", "ageRange": ">70y", "folate": { "earUgDfe": 320, "rdaUgDfe": 400, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.0, "rdaUg": 2.4 }, "pantothenicAcid": { "aiMg": 5 }, "biotin": { "aiUg": 30 }, "choline": { "aiMg": 425, "ulMg": 3500 } },
+
+        { "group": "pregnancy", "ageRange": "<=18y", "folate": { "earUgDfe": 520, "rdaUgDfe": 600, "ulUg": 800 }, "vitaminB12": { "earUg": 2.2, "rdaUg": 2.6 }, "pantothenicAcid": { "aiMg": 6 }, "biotin": { "aiUg": 30 }, "choline": { "aiMg": 450, "ulMg": 3000 } },
+        { "group": "pregnancy", "ageRange": "19-30y", "folate": { "earUgDfe": 520, "rdaUgDfe": 600, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.2, "rdaUg": 2.6 }, "pantothenicAcid": { "aiMg": 6 }, "biotin": { "aiUg": 30 }, "choline": { "aiMg": 450, "ulMg": 3500 } },
+        { "group": "pregnancy", "ageRange": "31-50y", "folate": { "earUgDfe": 520, "rdaUgDfe": 600, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.2, "rdaUg": 2.6 }, "pantothenicAcid": { "aiMg": 6 }, "biotin": { "aiUg": 30 }, "choline": { "aiMg": 450, "ulMg": 3500 } },
+
+        { "group": "lactation", "ageRange": "<=18y", "folate": { "earUgDfe": 450, "rdaUgDfe": 500, "ulUg": 800 }, "vitaminB12": { "earUg": 2.4, "rdaUg": 2.8 }, "pantothenicAcid": { "aiMg": 7 }, "biotin": { "aiUg": 35 }, "choline": { "aiMg": 550, "ulMg": 3000 } },
+        { "group": "lactation", "ageRange": "19-30y", "folate": { "earUgDfe": 450, "rdaUgDfe": 500, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.4, "rdaUg": 2.8 }, "pantothenicAcid": { "aiMg": 7 }, "biotin": { "aiUg": 35 }, "choline": { "aiMg": 550, "ulMg": 3500 } },
+        { "group": "lactation", "ageRange": "31-50y", "folate": { "earUgDfe": 450, "rdaUgDfe": 500, "ulUg": 1000 }, "vitaminB12": { "earUg": 2.4, "rdaUg": 2.8 }, "pantothenicAcid": { "aiMg": 7 }, "biotin": { "aiUg": 35 }, "choline": { "aiMg": 550, "ulMg": 3500 } }
+      ],
+      "notes": [
+        "Women capable of becoming pregnant are advised to consume 400 ug/day folic acid from supplements/fortified food, in addition to dietary folate, to reduce neural tube defect risk.",
+        "Adults over 50 are advised to meet the B12 RDA mainly via fortified foods or supplements due to reduced absorption of food-bound B12.",
+        "No UL established for B12, pantothenic acid, or biotin (insufficient data)."
+      ]
+    }
+  },
+  "elements": {
+    "calciumChromiumCopperFluorideIodine": {
+      "unitsNote": "Calcium in mg/day, Chromium in ug/day, Copper in ug/day, Fluoride in mg/day, Iodine in ug/day",
+      "groups": [
+        { "group": "male", "ageRange": "9-13y", "calcium": { "rdaAiMg": 1300, "ulMg": 3000 }, "chromium": { "aiUg": 25 }, "copper": { "earUg": 540, "rdaUg": 700, "ulUg": 5000 }, "fluoride": { "aiMg": 2, "ulMg": 10 }, "iodine": { "earUg": 73, "rdaUg": 120, "ulUg": 600 } },
+        { "group": "male", "ageRange": "14-18y", "calcium": { "rdaAiMg": 1300, "ulMg": 3000 }, "chromium": { "aiUg": 35 }, "copper": { "earUg": 685, "rdaUg": 890, "ulUg": 8000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 95, "rdaUg": 150, "ulUg": 900 } },
+        { "group": "male", "ageRange": "19-30y", "calcium": { "rdaAiMg": 1000, "ulMg": 2500 }, "chromium": { "aiUg": 35 }, "copper": { "earUg": 700, "rdaUg": 900, "ulUg": 10000 }, "fluoride": { "aiMg": 4, "ulMg": 10 }, "iodine": { "earUg": 95, "rdaUg": 150, "ulUg": 1100 } },
+        { "group": "male", "ageRange": "31-50y", "calcium": { "rdaAiMg": 1000, "ulMg": 2500 }, "chromium": { "aiUg": 35 }, "copper": { "earUg": 700, "rdaUg": 900, "ulUg": 10000 }, "fluoride": { "aiMg": 4, "ulMg": 10 }, "iodine": { "earUg": 95, "rdaUg": 150, "ulUg": 1100 } },
+        { "group": "male", "ageRange": "51-70y", "calcium": { "rdaAiMg": 1000, "ulMg": 2000 }, "chromium": { "aiUg": 30 }, "copper": { "earUg": 700, "rdaUg": 900, "ulUg": 10000 }, "fluoride": { "aiMg": 4, "ulMg": 10 }, "iodine": { "earUg": 95, "rdaUg": 150, "ulUg": 1100 } },
+        { "group": "male", "ageRange": ">70y", "calcium": { "rdaAiMg": 1200, "ulMg": 2000 }, "chromium": { "aiUg": 30 }, "copper": { "earUg": 700, "rdaUg": 900, "ulUg": 10000 }, "fluoride": { "aiMg": 4, "ulMg": 10 }, "iodine": { "earUg": 95, "rdaUg": 150, "ulUg": 1100 } },
+
+        { "group": "female", "ageRange": "9-13y", "calcium": { "rdaAiMg": 1300, "ulMg": 3000 }, "chromium": { "aiUg": 21 }, "copper": { "earUg": 540, "rdaUg": 700, "ulUg": 5000 }, "fluoride": { "aiMg": 2, "ulMg": 10 }, "iodine": { "earUg": 73, "rdaUg": 120, "ulUg": 600 } },
+        { "group": "female", "ageRange": "14-18y", "calcium": { "rdaAiMg": 1300, "ulMg": 3000 }, "chromium": { "aiUg": 24 }, "copper": { "earUg": 685, "rdaUg": 890, "ulUg": 8000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 95, "rdaUg": 150, "ulUg": 900 } },
+        { "group": "female", "ageRange": "19-30y", "calcium": { "rdaAiMg": 1000, "ulMg": 2500 }, "chromium": { "aiUg": 25 }, "copper": { "earUg": 700, "rdaUg": 900, "ulUg": 10000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 95, "rdaUg": 150, "ulUg": 1100 } },
+        { "group": "female", "ageRange": "31-50y", "calcium": { "rdaAiMg": 1000, "ulMg": 2500 }, "chromium": { "aiUg": 25 }, "copper": { "earUg": 700, "rdaUg": 900, "ulUg": 10000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 95, "rdaUg": 150, "ulUg": 1100 } },
+        { "group": "female", "ageRange": "51-70y", "calcium": { "rdaAiMg": 1200, "ulMg": 2000 }, "chromium": { "aiUg": 20 }, "copper": { "earUg": 700, "rdaUg": 900, "ulUg": 10000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 95, "rdaUg": 150, "ulUg": 1100 } },
+        { "group": "female", "ageRange": ">70y", "calcium": { "rdaAiMg": 1200, "ulMg": 2000 }, "chromium": { "aiUg": 20 }, "copper": { "earUg": 700, "rdaUg": 900, "ulUg": 10000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 95, "rdaUg": 150, "ulUg": 1100 } },
+
+        { "group": "pregnancy", "ageRange": "<=18y", "calcium": { "rdaAiMg": 1300, "ulMg": 3000 }, "chromium": { "aiUg": 29 }, "copper": { "earUg": 785, "rdaUg": 1000, "ulUg": 8000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 160, "rdaUg": 220, "ulUg": 900 } },
+        { "group": "pregnancy", "ageRange": "19-30y", "calcium": { "rdaAiMg": 1000, "ulMg": 2500 }, "chromium": { "aiUg": 30 }, "copper": { "earUg": 800, "rdaUg": 1000, "ulUg": 10000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 160, "rdaUg": 220, "ulUg": 1100 } },
+        { "group": "pregnancy", "ageRange": "31-50y", "calcium": { "rdaAiMg": 1000, "ulMg": 2500 }, "chromium": { "aiUg": 30 }, "copper": { "earUg": 800, "rdaUg": 1000, "ulUg": 10000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 160, "rdaUg": 220, "ulUg": 1100 } },
+
+        { "group": "lactation", "ageRange": "<=18y", "calcium": { "rdaAiMg": 1300, "ulMg": 3000 }, "chromium": { "aiUg": 44 }, "copper": { "earUg": 985, "rdaUg": 1300, "ulUg": 8000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 209, "rdaUg": 290, "ulUg": 900 } },
+        { "group": "lactation", "ageRange": "19-30y", "calcium": { "rdaAiMg": 1000, "ulMg": 2500 }, "chromium": { "aiUg": 45 }, "copper": { "earUg": 1000, "rdaUg": 1300, "ulUg": 10000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 209, "rdaUg": 290, "ulUg": 1100 } },
+        { "group": "lactation", "ageRange": "31-50y", "calcium": { "rdaAiMg": 1000, "ulMg": 2500 }, "chromium": { "aiUg": 45 }, "copper": { "earUg": 1000, "rdaUg": 1300, "ulUg": 10000 }, "fluoride": { "aiMg": 3, "ulMg": 10 }, "iodine": { "earUg": 209, "rdaUg": 290, "ulUg": 1100 } }
+      ],
+      "notes": [
+        "2011 calcium values supersede 1997 values.",
+        "No UL established for chromium (insufficient data)."
+      ]
+    },
+    "ironMagnesiumManganeseMolybdenumPhosphorus": {
+      "unitsNote": "Iron/Magnesium/Phosphorus in mg/day, Manganese AI in mg/day, Molybdenum in ug/day",
+      "groups": [
+        { "group": "male", "ageRange": "9-13y", "iron": { "earMg": 5.9, "rdaMg": 8, "ulMg": 40 }, "magnesium": { "earMg": 200, "rdaMg": 240, "ulSupplementMg": 350 }, "manganese": { "aiMg": 1.9 }, "molybdenum": { "earUg": 26, "rdaUg": 34, "ulUg": 1100 }, "phosphorus": { "earMg": 1055, "rdaMg": 1250, "ulMg": 4000 } },
+        { "group": "male", "ageRange": "14-18y", "iron": { "earMg": 7.7, "rdaMg": 11, "ulMg": 45 }, "magnesium": { "earMg": 340, "rdaMg": 410, "ulSupplementMg": 350 }, "manganese": { "aiMg": 2.2 }, "molybdenum": { "earUg": 33, "rdaUg": 43, "ulUg": 1700 }, "phosphorus": { "earMg": 1055, "rdaMg": 1250, "ulMg": 4000 } },
+        { "group": "male", "ageRange": "19-30y", "iron": { "earMg": 6, "rdaMg": 8, "ulMg": 45 }, "magnesium": { "earMg": 330, "rdaMg": 400, "ulSupplementMg": 350 }, "manganese": { "aiMg": 2.3 }, "molybdenum": { "earUg": 34, "rdaUg": 45, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 4000 } },
+        { "group": "male", "ageRange": "31-50y", "iron": { "earMg": 6, "rdaMg": 8, "ulMg": 45 }, "magnesium": { "earMg": 350, "rdaMg": 420, "ulSupplementMg": 350 }, "manganese": { "aiMg": 2.3 }, "molybdenum": { "earUg": 34, "rdaUg": 45, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 4000 } },
+        { "group": "male", "ageRange": "51-70y", "iron": { "earMg": 6, "rdaMg": 8, "ulMg": 45 }, "magnesium": { "earMg": 350, "rdaMg": 420, "ulSupplementMg": 350 }, "manganese": { "aiMg": 2.3 }, "molybdenum": { "earUg": 34, "rdaUg": 45, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 4000 } },
+        { "group": "male", "ageRange": ">70y", "iron": { "earMg": 6, "rdaMg": 8, "ulMg": 45 }, "magnesium": { "earMg": 350, "rdaMg": 420, "ulSupplementMg": 350 }, "manganese": { "aiMg": 2.3 }, "molybdenum": { "earUg": 34, "rdaUg": 45, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 3000 } },
+
+        { "group": "female", "ageRange": "9-13y", "iron": { "earMg": 5.7, "rdaMg": 8, "ulMg": 40 }, "magnesium": { "earMg": 200, "rdaMg": 240, "ulSupplementMg": 350 }, "manganese": { "aiMg": 1.6 }, "molybdenum": { "earUg": 26, "rdaUg": 34, "ulUg": 1100 }, "phosphorus": { "earMg": 1055, "rdaMg": 1250, "ulMg": 4000 } },
+        { "group": "female", "ageRange": "14-18y", "iron": { "earMg": 7.9, "rdaMg": 15, "ulMg": 45 }, "magnesium": { "earMg": 300, "rdaMg": 360, "ulSupplementMg": 350 }, "manganese": { "aiMg": 1.6 }, "molybdenum": { "earUg": 33, "rdaUg": 43, "ulUg": 1700 }, "phosphorus": { "earMg": 1055, "rdaMg": 1250, "ulMg": 4000 } },
+        { "group": "female", "ageRange": "19-30y", "iron": { "earMg": 8.1, "rdaMg": 18, "ulMg": 45 }, "magnesium": { "earMg": 255, "rdaMg": 310, "ulSupplementMg": 350 }, "manganese": { "aiMg": 1.8 }, "molybdenum": { "earUg": 34, "rdaUg": 45, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 4000 } },
+        { "group": "female", "ageRange": "31-50y", "iron": { "earMg": 8.1, "rdaMg": 18, "ulMg": 45 }, "magnesium": { "earMg": 265, "rdaMg": 320, "ulSupplementMg": 350 }, "manganese": { "aiMg": 1.8 }, "molybdenum": { "earUg": 34, "rdaUg": 45, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 4000 } },
+        { "group": "female", "ageRange": "51-70y", "iron": { "earMg": 5, "rdaMg": 8, "ulMg": 45 }, "magnesium": { "earMg": 265, "rdaMg": 320, "ulSupplementMg": 350 }, "manganese": { "aiMg": 1.8 }, "molybdenum": { "earUg": 34, "rdaUg": 45, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 4000 } },
+        { "group": "female", "ageRange": ">70y", "iron": { "earMg": 5, "rdaMg": 8, "ulMg": 45 }, "magnesium": { "earMg": 265, "rdaMg": 320, "ulSupplementMg": 350 }, "manganese": { "aiMg": 1.8 }, "molybdenum": { "earUg": 34, "rdaUg": 45, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 3000 } },
+
+        { "group": "pregnancy", "ageRange": "<=18y", "iron": { "earMg": 23, "rdaMg": 27, "ulMg": 45 }, "magnesium": { "earMg": 335, "rdaMg": 400, "ulSupplementMg": 350 }, "manganese": { "aiMg": 2.0 }, "molybdenum": { "earUg": 40, "rdaUg": 50, "ulUg": 1700 }, "phosphorus": { "earMg": 1055, "rdaMg": 1250, "ulMg": 3500 } },
+        { "group": "pregnancy", "ageRange": "19-30y", "iron": { "earMg": 22, "rdaMg": 27, "ulMg": 45 }, "magnesium": { "earMg": 290, "rdaMg": 350, "ulSupplementMg": 350 }, "manganese": { "aiMg": 2.0 }, "molybdenum": { "earUg": 40, "rdaUg": 50, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 3500 } },
+        { "group": "pregnancy", "ageRange": "31-50y", "iron": { "earMg": 22, "rdaMg": 27, "ulMg": 45 }, "magnesium": { "earMg": 300, "rdaMg": 360, "ulSupplementMg": 350 }, "manganese": { "aiMg": 2.0 }, "molybdenum": { "earUg": 40, "rdaUg": 50, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 3500 } },
+
+        { "group": "lactation", "ageRange": "<=18y", "iron": { "earMg": 7, "rdaMg": 10, "ulMg": 45 }, "magnesium": { "earMg": 300, "rdaMg": 360, "ulSupplementMg": 350 }, "manganese": { "aiMg": 2.6 }, "molybdenum": { "earUg": 35, "rdaUg": 50, "ulUg": 1700 }, "phosphorus": { "earMg": 1055, "rdaMg": 1250, "ulMg": 4000 } },
+        { "group": "lactation", "ageRange": "19-30y", "iron": { "earMg": 6.5, "rdaMg": 9, "ulMg": 45 }, "magnesium": { "earMg": 255, "rdaMg": 310, "ulSupplementMg": 350 }, "manganese": { "aiMg": 2.6 }, "molybdenum": { "earUg": 36, "rdaUg": 50, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 4000 } },
+        { "group": "lactation", "ageRange": "31-50y", "iron": { "earMg": 6.5, "rdaMg": 9, "ulMg": 45 }, "magnesium": { "earMg": 265, "rdaMg": 320, "ulSupplementMg": 350 }, "manganese": { "aiMg": 2.6 }, "molybdenum": { "earUg": 36, "rdaUg": 50, "ulUg": 2000 }, "phosphorus": { "earMg": 580, "rdaMg": 700, "ulMg": 4000 } }
+      ],
+      "notes": [
+        "Iron requirement is 1.8x higher for vegetarians due to lower bioavailability from plant sources.",
+        "Magnesium UL applies only to intake from pharmacological/supplement sources, not food and water.",
+        "No UL established for manganese (insufficient data).",
+        "For female iron EAR/RDA: girls <14y assumed not menstruating, >=14y assumed menstruating; women >=51y assumed post-menopausal."
+      ]
+    },
+    "zincPotassiumSodiumChloride": {
+      "unitsNote": "Zinc in mg/day, Potassium/Sodium/Chloride in mg/day",
+      "groups": [
+        { "group": "male", "ageRange": "9-13y", "zinc": { "earMg": 7, "rdaMg": 8, "ulMg": 23 }, "potassium": { "aiMg": 2500 }, "sodium": { "aiMg": 1200, "cdrrMg": 1800, "ulMg": 2300 }, "chloride": { "aiMg": 1800, "ulMg": 3400 } },
+        { "group": "male", "ageRange": "14-18y", "zinc": { "earMg": 8.5, "rdaMg": 11, "ulMg": 34 }, "potassium": { "aiMg": 3000 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "male", "ageRange": "19-30y", "zinc": { "earMg": 9.4, "rdaMg": 11, "ulMg": 40 }, "potassium": { "aiMg": 3400 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "male", "ageRange": "31-50y", "zinc": { "earMg": 9.4, "rdaMg": 11, "ulMg": 40 }, "potassium": { "aiMg": 3400 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "male", "ageRange": "51-70y", "zinc": { "earMg": 9.4, "rdaMg": 11, "ulMg": 40 }, "potassium": { "aiMg": 3400 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2000 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "male", "ageRange": ">70y", "zinc": { "earMg": 9.4, "rdaMg": 11, "ulMg": 40 }, "potassium": { "aiMg": 3400 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 1800 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+
+        { "group": "female", "ageRange": "9-13y", "zinc": { "earMg": 7, "rdaMg": 8, "ulMg": 23 }, "potassium": { "aiMg": 2300 }, "sodium": { "aiMg": 1200, "cdrrMg": 1800, "ulMg": 2300 }, "chloride": { "aiMg": 1800, "ulMg": 3400 } },
+        { "group": "female", "ageRange": "14-18y", "zinc": { "earMg": 7.3, "rdaMg": 9, "ulMg": 34 }, "potassium": { "aiMg": 2300 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "female", "ageRange": "19-30y", "zinc": { "earMg": 6.8, "rdaMg": 8, "ulMg": 40 }, "potassium": { "aiMg": 2600 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "female", "ageRange": "31-50y", "zinc": { "earMg": 6.8, "rdaMg": 8, "ulMg": 40 }, "potassium": { "aiMg": 2600 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "female", "ageRange": "51-70y", "zinc": { "earMg": 6.8, "rdaMg": 8, "ulMg": 40 }, "potassium": { "aiMg": 2600 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2000 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "female", "ageRange": ">70y", "zinc": { "earMg": 6.8, "rdaMg": 8, "ulMg": 40 }, "potassium": { "aiMg": 2600 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 1800 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+
+        { "group": "pregnancy", "ageRange": "<=18y", "zinc": { "earMg": 10.5, "rdaMg": 12, "ulMg": 34 }, "potassium": { "aiMg": 2600 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "pregnancy", "ageRange": "19-30y", "zinc": { "earMg": 9.5, "rdaMg": 11, "ulMg": 40 }, "potassium": { "aiMg": 2900 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "pregnancy", "ageRange": "31-50y", "zinc": { "earMg": 9.5, "rdaMg": 11, "ulMg": 40 }, "potassium": { "aiMg": 2900 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+
+        { "group": "lactation", "ageRange": "<=18y", "zinc": { "earMg": 10.9, "rdaMg": 13, "ulMg": 34 }, "potassium": { "aiMg": 2500 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "lactation", "ageRange": "19-30y", "zinc": { "earMg": 10.4, "rdaMg": 12, "ulMg": 40 }, "potassium": { "aiMg": 2800 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } },
+        { "group": "lactation", "ageRange": "31-50y", "zinc": { "earMg": 10.4, "rdaMg": 12, "ulMg": 40 }, "potassium": { "aiMg": 2800 }, "sodium": { "aiMg": 1500, "cdrrMg": 2300, "ulMg": 2300 }, "chloride": { "aiMg": 2300, "ulMg": 3600 } }
+      ],
+      "notes": [
+        "Zinc requirement may be up to 50% higher for strict vegetarians due to lower bioavailability.",
+        "No UL established for potassium, sodium, or sulfate (insufficient data on a specific toxicological indicator).",
+        "Sodium: grams of sodium x 2.53 = grams of salt. CDRR is the level above which reducing intake is expected to lower chronic disease risk.",
+        "No DRI values established for arsenic, boron, silicon, or sulfate in the source tables. Adult AI/UL for vanadium is 1.8 mg/day (supplement caution advised, UL not applicable to children/adolescents)."
+      ]
+    }
+  },
+  "adultQuickReference": {
+    "description": "Ages 19-50y, most commonly relevant nutrients for general adult diet planning",
+    "nutrients": [
+      { "nutrient": "protein", "unit": "g/kg/day", "male": 0.80, "female": 0.80, "ul": null },
+      { "nutrient": "carbohydrate", "unit": "g/day", "male": 130, "female": 130, "ul": null },
+      { "nutrient": "totalFibre", "unit": "g/day", "male": 38, "female": 25, "ul": null },
+      { "nutrient": "totalWater", "unit": "L/day", "male": 3.7, "female": 2.7, "ul": null },
+      { "nutrient": "linoleicAcid", "unit": "g/day", "male": 17, "female": 12, "ul": null },
+      { "nutrient": "alphaLinolenicAcid", "unit": "g/day", "male": 1.6, "female": 1.1, "ul": null },
+      { "nutrient": "vitaminA", "unit": "ug RAE/day", "male": 900, "female": 700, "ul": 3000 },
+      { "nutrient": "vitaminD", "unit": "IU/day", "male": 600, "female": 600, "ul": 4000 },
+      { "nutrient": "vitaminE", "unit": "mg/day", "male": 15, "female": 15, "ul": 1000 },
+      { "nutrient": "vitaminK", "unit": "ug/day", "male": 120, "female": 90, "ul": null },
+      { "nutrient": "vitaminC", "unit": "mg/day", "male": 90, "female": 75, "ul": 2000 },
+      { "nutrient": "thiamin", "unit": "mg/day", "male": 1.2, "female": 1.1, "ul": null },
+      { "nutrient": "riboflavin", "unit": "mg/day", "male": 1.3, "female": 1.1, "ul": null },
+      { "nutrient": "niacin", "unit": "mg NE/day", "male": 16, "female": 14, "ul": 35 },
+      { "nutrient": "vitaminB6", "unit": "mg/day", "male": 1.3, "female": 1.3, "ul": 100 },
+      { "nutrient": "folate", "unit": "ug DFE/day", "male": 400, "female": 400, "ul": 1000 },
+      { "nutrient": "vitaminB12", "unit": "ug/day", "male": 2.4, "female": 2.4, "ul": null },
+      { "nutrient": "pantothenicAcid", "unit": "mg/day", "male": 5, "female": 5, "ul": null },
+      { "nutrient": "biotin", "unit": "ug/day", "male": 30, "female": 30, "ul": null },
+      { "nutrient": "choline", "unit": "mg/day", "male": 550, "female": 425, "ul": 3500 },
+      { "nutrient": "calcium", "unit": "mg/day", "male": 1000, "female": 1000, "ul": 2500 },
+      { "nutrient": "chromium", "unit": "ug/day", "male": 35, "female": 25, "ul": null },
+      { "nutrient": "copper", "unit": "ug/day", "male": 900, "female": 900, "ul": 10000 },
+      { "nutrient": "fluoride", "unit": "mg/day", "male": 4, "female": 3, "ul": 10 },
+      { "nutrient": "iodine", "unit": "ug/day", "male": 150, "female": 150, "ul": 1100 },
+      { "nutrient": "iron", "unit": "mg/day", "male": 8, "female": 18, "ul": 45 },
+      { "nutrient": "magnesium", "unit": "mg/day", "male": 410, "female": 315, "ul": 350, "ulNote": "UL applies only to supplement/pharmacological sources" },
+      { "nutrient": "manganese", "unit": "mg/day", "male": 2.3, "female": 1.8, "ul": null },
+      { "nutrient": "molybdenum", "unit": "ug/day", "male": 45, "female": 45, "ul": 2000 },
+      { "nutrient": "phosphorus", "unit": "mg/day", "male": 700, "female": 700, "ul": 4000 },
+      { "nutrient": "zinc", "unit": "mg/day", "male": 11, "female": 8, "ul": 40 },
+      { "nutrient": "potassium", "unit": "mg/day", "male": 3400, "female": 2600, "ul": null },
+      { "nutrient": "sodium", "unit": "mg/day", "male": 1500, "female": 1500, "ul": null, "cdrr": 2300 },
+      { "nutrient": "chloride", "unit": "mg/day", "male": 2300, "female": 2300, "ul": 3600 }
+    ],
+    "amdr19PlusPercentOfEnergy": {
+      "carbohydrate": { "min": 45, "max": 65 },
+      "protein": { "min": 10, "max": 35 },
+      "fat": { "min": 20, "max": 35 },
+      "linoleicAcid": { "min": 5, "max": 10 },
+      "alphaLinolenicAcid": { "min": 0.6, "max": 1.2 }
+    }
+  }
+}
