@@ -7,7 +7,7 @@ export async function GET() {
     const{ data } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: "http://localhost:3000/login"
+            redirectTo: `${process.env.APP_URL}/login`
         }
     })
     if (data?.url) {

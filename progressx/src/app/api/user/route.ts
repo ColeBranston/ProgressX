@@ -28,7 +28,11 @@ export async function POST(req: NextRequest) {
 
         const token = req.cookies.get("token")?.value
 
-        const id = (await jwtVerify(token as string, encoder.encode(process.env.SUPABASE_JWT_SECRET)))?.payload?.sub
+        if (!token) {
+            return NextResponse.json({message: "Not logged in"}, {status: 401})
+        }
+
+        const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET)))?.payload?.sub
 
         const { error: onboardingError } = await supabase.from("profiles").update({
                     profile_image: user.pfp,

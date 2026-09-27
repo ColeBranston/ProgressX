@@ -61,6 +61,11 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
             body: JSON.stringify({ user: updatedUserData }),
           });
 
+          if (res.status === 401) {
+            // not logged in yet (e.g. on the login page), nothing to sync
+            return;
+          }
+
           if (!res.ok) {
             console.error("User Data Update Failed");
           } else {

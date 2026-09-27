@@ -25,7 +25,7 @@ export default function Login() {
         console.log(googleToken)
         try {
           async function tokenClean(googleToken: string){
-            const res = await fetch("http://localhost:3000/api/auth/login/google", {
+            const res = await fetch("/api/auth/login/google", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -154,12 +154,14 @@ export default function Login() {
           <span className="X">X</span>
         </div>
           <form onSubmit={SignUpForm} className={styles.loginFormContainer}>
-              <p className={styles.signInHeader}>Sign Up</p>
-              <div className={styles.loginRedirectContainer} onClick={() => {setLoginActive(!loginActive)}}>
+              <div className={styles.formHeader}>
+                <p className={styles.signInHeader}>Sign Up</p>
+                <div className={styles.loginRedirectContainer} onClick={() => {setLoginActive(!loginActive)}}>
                   <p className={styles.loginHeader}>Log In</p>
                   <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                       <polyline points="5,3 15,10 5,17" fill="none" stroke="rgba(var(--primary-color))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
+                </div>
               </div>
               <input required className={styles.inputField} placeholder='Email' type="email" onChange={(e)=>{setEmail(e.target.value)}}/>
               <input required className={styles.inputField} placeholder='Password' type="password" onChange={(e)=>{setPassword(e.target.value)}}/>
@@ -173,7 +175,7 @@ export default function Login() {
                 </div>
               </a>
               <div className={styles.disclaimerContainer}>
-                  <p>By continuing you confirm you have read and accept ProgressX&apos;s <a className={styles.disclaimerLinks} href=''>privacy policy</a> and <a className={styles.disclaimerLinks} href=''>terms & conditions</a></p>
+                  <p>By continuing you confirm you are 18 or older and have read and accept ProgressX&apos;s <a className={styles.disclaimerLinks} href='/privacy'>privacy policy</a> and <a className={styles.disclaimerLinks} href='/terms'>terms of service</a></p>
               </div>
           </form>
       </div>) 
@@ -186,12 +188,14 @@ export default function Login() {
           <span className="X">X</span>
         </div>
           <form onSubmit={LoginForm} className={styles.loginFormContainer}>
-              <p className={styles.signInHeader}>Log In</p>
-              <div className={styles.loginRedirectContainer} onClick={() => {setLoginActive(!loginActive)}}>
+              <div className={styles.formHeader}>
+                <p className={styles.signInHeader}>Log In</p>
+                <div className={styles.loginRedirectContainer} onClick={() => {setLoginActive(!loginActive)}}>
                   <p className={styles.loginHeader}>Sign Up</p>
                   <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                       <polyline points="5,3 15,10 5,17" fill="none" stroke="rgba(var(--primary-color))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
+                </div>
               </div>
               <input required className={styles.inputField} placeholder='Email' type="email" onChange={(e)=>{setEmail(e.target.value)}}/>
               <input required className={styles.inputField} placeholder='Password' type="password" onChange={(e)=>{setPassword(e.target.value)}}/>
@@ -207,7 +211,7 @@ export default function Login() {
                 </div>
               </a>
               <div className={styles.disclaimerContainer}>
-                  <p>By continuing you confirm you have read and accept ProgressX&apos;s <a className={styles.disclaimerLinks} href=''>privacy policy</a> and <a className={styles.disclaimerLinks} href=''>terms & conditions</a></p>
+                  <p>By continuing you confirm you are 18 or older and have read and accept ProgressX&apos;s <a className={styles.disclaimerLinks} href='/privacy'>privacy policy</a> and <a className={styles.disclaimerLinks} href='/terms'>terms of service</a></p>
               </div>
           </form>
       </div>)

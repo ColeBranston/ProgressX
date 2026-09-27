@@ -8,6 +8,30 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    padding-right: 6px;
+
+    /* red bar, no track (matches the research page) */
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--primary-color)) transparent;
+}
+
+.list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.list::-webkit-scrollbar-thumb {
+    background: rgb(var(--primary-color));
+    border-radius: 999px;
+}
+
+.list::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
 }
 
 .item {

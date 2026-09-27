@@ -7,6 +7,8 @@ export { default as MicronutrientSettings } from './MicronutrientSettings'
 export { default as NumberField } from './NumberField'
 export { default as MonthCalendar } from './MonthCalendar'
 export { default as QuickAddScaler } from './QuickAddScaler'
+export { default as WaterTracker, formatVolume } from './WaterTracker'
+export { getWaterTargetMl } from './waterTarget'
 
 // Types
 
@@ -15,3 +17,4 @@ export type { MicroNutrient } from './microNutrients'
 export type { FoodItemFormValues } from './FoodItemForm'
 export type { FoodLogEntry } from './FoodLogList'
 export type { FoodItem } from './QuickAddScaler'
+export type { WaterLogEntry } from './WaterTracker'

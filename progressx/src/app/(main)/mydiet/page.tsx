@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs'
 import styles from './dietpage.module.css'
 import {
@@ -16,7 +16,11 @@ import {
     QuickAddScaler,
     FoodItemFormValues,
     FoodLogEntry,
-    FoodItem
+    FoodItem,
+    WaterTracker,
+    WaterLogEntry,
+    formatVolume,
+    getWaterTargetMl
 } from "../../internal_components/index"
 import { userDataContext } from '@/app/contexts/userData';
 
@@ -38,23 +42,47 @@ function entryToFormValues(entry: FoodLogEntry): FoodItemFormValues {
     }
 }
 
+type dietConfigType = {
+    POUND2KG: number,
+    ActivityWeighting: Record<string, number>
+}
+
+const config: dietConfigType = {
+    POUND2KG: 0.45359237,
+    ActivityWeighting: {
+        "1": 1.2,
+        "2": 1.375,
+        "3": 1.55,
+        "4": 1.725,
+        "5": 1.9,
+    }
+}
+
+type StatCardProps = {
+    label: string,
+    value: string,
+    unit?: string,
+    detail: string,
+    fraction?: number,
+    accent?: "red" | "water"
+}
+
+function StatCard({ label, value, unit, detail, fraction, accent = "red" }: StatCardProps) {
+    return (
+        <div className={`${styles.statCard} ${accent === "water" ? styles.statCardWater : ""}`}>
+            <p className={styles.statLabel}>{label}</p>
+            <p className={styles.statValue}>{value}{unit ? <span className={styles.statUnit}> {unit}</span> : null}</p>
+            <p className={styles.statDetail}>{detail}</p>
+            {fraction !== undefined ?
+                <div className={styles.statBar}>
+                    <div className={styles.statBarFill} style={{ width: `${Math.min(100, Math.max(0, fraction * 100))}%` }} />
+                </div>
+            : null}
+        </div>
+    )
+}
+
 export default function DietPage() {
-
-    type dietConfigType = {
-        POUND2KG: number,
-        ActivityWeighting: Record<string, number>
-    }
-
-    const config: dietConfigType = {
-        POUND2KG: 0.45359237,
-        ActivityWeighting: {
-            "1": 1.2,
-            "2": 1.375,
-            "3": 1.55,
-            "4": 1.725,
-            "5": 1.9,
-        }
-    }
 
     const context = useContext(userDataContext);
     if (!context) {
@@ -91,13 +119,15 @@ export default function DietPage() {
     // state) - have resolved at least once. The page waits for both before
     // rendering, so it never flashes default values (e.g. "Maintain") that
     // then pop to the user's actual saved state a moment later.
+    const [ waterEntries, setWaterEntries ] = useState<WaterLogEntry[]>([])
+    const [ waterReady, setWaterReady ] = useState(false)
     const [ entriesReady, setEntriesReady ] = useState(false)
     const [ preferencesReady, setPreferencesReady ] = useState(false)
-    const initialLoading = !entriesReady || !preferencesReady
+    const initialLoading = !entriesReady || !preferencesReady || !waterReady
 
-    const [ totalExpenditure, setTotalExpenditure ] = useState<number>(0)
-
-    const [ weightKg ] = useState(Number(userData.weight) * config.POUND2KG)
+    // Derived from userData on every render - userData is loaded from localStorage
+    // after the first render, so reading it once at mount gave 0 / NaN targets.
+    const weightKg = (Number(userData.weight) || 0) * config.POUND2KG
 
     const today = useMemo(() => dayjs(), [])
     const weekStart = useMemo(() => selectedDate.startOf('week'), [selectedDate])
@@ -127,28 +157,37 @@ export default function DietPage() {
     }, [entries])
 
     // Accurate equation for calculating the BMR of a man or woman without using body fat percentage (%)
-    const Mifflin_St_Jeor_BMR = useCallback(() => {
+    const totalExpenditure = useMemo(() => {
         const height = Number(userData?.height)
         const age = Number(userData?.age)
+        let BMR: number
         switch (userData.gender) {
             case "male":
-                return (10 * (weightKg) + (6.25 * height) - (5 * age) + 5)
+                BMR = 10 * weightKg + 6.25 * height - 5 * age + 5
+                break
 
             case "female":
-                return (10 * (weightKg) + (6.25 * height) - (5 * age) - 161)
+                BMR = 10 * weightKg + 6.25 * height - 5 * age - 161
+                break
 
             default:
-                console.error("User's Gender is apparently alien: ", userData.gender)
-                return 0
+                // "other" or not loaded yet: average of the two formulas
+                BMR = 10 * weightKg + 6.25 * height - 5 * age - 78
         }
-    },[])
 
-    const calcTotalExpenditure = useCallback(() => {
-        const BMR = Mifflin_St_Jeor_BMR()
-        console.log("Activity Number: ", userData.activity, "BMR: ", BMR)
-        if (!userData?.activity) return
-        return config.ActivityWeighting[userData.activity] * BMR
-    }, [userData.activity, Mifflin_St_Jeor_BMR, config.ActivityWeighting])
+        const weighting = config.ActivityWeighting[String(userData?.activity)]
+        if (!weighting || !Number.isFinite(BMR) || BMR <= 0) return 0
+        return Math.round(weighting * BMR)
+    }, [userData?.height, userData?.age, userData.gender, userData?.activity, weightKg])
+
+    const waterTargetMl = useMemo(
+        () => getWaterTargetMl({ weightLbs: userData.weight, gender: userData.gender, activity: userData.activity }),
+        [userData.weight, userData.gender, userData.activity]
+    )
+    const waterConsumedMl = waterEntries.reduce((sum, entry) => sum + (Number(entry.amount_ml) || 0), 0)
+
+    const proteinTarget = Math.round(2.4 * weightKg)
+    const isToday = selectedDate.isSame(today, 'day')
 
     // Persists the goal state to the user's diet_config row so it's the
     // base state next time they load the diet page, on any device.
@@ -227,18 +266,30 @@ export default function DietPage() {
         setShowMonthCalendar(false)
     }
 
+    // Load the selected day's water log whenever the day changes (same pattern as the food log below)
     useEffect(() => {
-        const stored = localStorage.getItem("TotalExpenditure");
+        let cancelled = false
 
-        if (stored !== null) {
-            setTotalExpenditure(Number(stored));
-            return;
+        async function loadWater() {
+            try {
+                const res = await fetch(`/api/diet/water?date=${dateKey}`)
+                if (res.ok) {
+                    const json = await res.json()
+                    if (!cancelled) setWaterEntries(json.entries ?? [])
+                } else if (!cancelled) {
+                    setWaterEntries([])
+                }
+            } catch (err) {
+                console.error("Failed to load water log entries: ", err)
+            } finally {
+                if (!cancelled) setWaterReady(true)
+            }
         }
 
-        const expenditure = calcTotalExpenditure();
-        setTotalExpenditure(Number(expenditure));
-        localStorage.setItem("TotalExpenditure", String(expenditure));
-    }, []);
+        loadWater()
+
+        return () => { cancelled = true }
+    }, [dateKey])
 
     // Load the selected day's food log whenever the day changes. entriesReady
     // only ever flips true once (on the first completion, success or not) -
@@ -346,6 +397,50 @@ export default function DietPage() {
 
         return () => { cancelled = true }
     }, [showMonthCalendar, calendarMonth])
+
+    // Water is added optimistically so the droplet reacts instantly; the
+    // temporary entry is swapped for the saved one, or removed if saving fails.
+    async function addWater(amountMl: number) {
+        const tempId = `temp-${Date.now()}-${Math.random()}`
+        const optimistic: WaterLogEntry = {
+            id: tempId,
+            user_id: "",
+            log_date: dateKey,
+            amount_ml: amountMl,
+            created_at: new Date().toISOString()
+        }
+        setWaterEntries((prev) => [...prev, optimistic])
+
+        try {
+            const res = await fetch("/api/diet/water", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amountMl, logDate: dateKey })
+            })
+
+            if (!res.ok) throw new Error(`status ${res.status}`)
+
+            const json = await res.json()
+            setWaterEntries((prev) => prev.map((entry) => (entry.id === tempId ? json.entry : entry)))
+        } catch (err) {
+            console.error("Failed to add water: ", err)
+            setWaterEntries((prev) => prev.filter((entry) => entry.id !== tempId))
+        }
+    }
+
+    async function undoWater(entry: WaterLogEntry) {
+        if (entry.id.startsWith("temp-")) return // still saving
+
+        setWaterEntries((prev) => prev.filter((e) => e.id !== entry.id))
+
+        try {
+            const res = await fetch(`/api/diet/water/${entry.id}`, { method: "DELETE" })
+            if (!res.ok) throw new Error(`status ${res.status}`)
+        } catch (err) {
+            console.error("Failed to undo water: ", err)
+            setWaterEntries((prev) => [...prev, entry].sort((a, b) => a.created_at.localeCompare(b.created_at)))
+        }
+    }
 
     async function savePreferences(next: string[]) {
         setDisplayedMicronutrients(next)
@@ -455,144 +550,202 @@ export default function DietPage() {
     }
 
     return(
-        <div className="mainWrapper">
+        <div className={`mainWrapper ${styles.dietWrapper}`}>
             <div className={styles.mainContainer}>
-                <div className={styles.daysDots}>
-                    <button type="button" className={styles.todayButton} onClick={openMonthCalendar} aria-label="Open month calendar">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="3" y="5" width="18" height="16" rx="4" stroke="currentColor" strokeWidth="1.6"/>
-                            <path d="M3 9.75H21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                            <path d="M7.5 2.5V6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                            <path d="M16.5 2.5V6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-                            <circle cx="8" cy="13.75" r="1.15" fill="currentColor"/>
-                            <circle cx="12" cy="13.75" r="1.15" fill="currentColor"/>
-                            <circle cx="16" cy="13.75" r="1.15" fill="currentColor"/>
-                            <circle cx="8" cy="17.25" r="1.15" fill="currentColor"/>
-                        </svg>
-                    </button>
-                    <button type="button" className={styles.weekNavButton} onClick={goToPrevWeek} aria-label="Previous week">‹</button>
-                    <div className={styles.dayDial}>
-                        {weekDates.map((date) => {
-                            const isSelected = date.isSame(selectedDate, 'day')
-                            const isToday = date.isSame(today, 'day')
-                            return (
-                                <button
-                                    key={date.format('YYYY-MM-DD')}
-                                    type="button"
-                                    className={`${styles.dayPill} ${isSelected ? styles.selectedDay : ''} ${isToday ? styles.todayPill : ''}`}
-                                    disabled={date.isAfter(today, 'day')}
-                                    onClick={() => setSelectedDate(date)}
-                                >
-                                    <span className={styles.dayPillWeekday}>{WEEKDAY_LABELS[date.day()]}</span>
-                                    <span className={styles.dayPillDate}>{date.format('D')}</span>
-                                </button>
-                            )
-                        })}
+                <header className={styles.pageHeader}>
+                    <div className={styles.pageTitleGroup}>
+                        <h1 className={styles.pageTitle}>{isToday ? "Today" : selectedDate.format('dddd')}</h1>
+                        <p className={styles.pageDate}>{selectedDate.format('dddd, MMMM D, YYYY')}</p>
                     </div>
-                    <button type="button" className={styles.weekNavButton} onClick={goToNextWeek} disabled={isCurrentWeek} aria-label="Next week">›</button>
-                </div>
-                <div className={styles.foodIntakeDisplayContainer}>
-                    <div className={styles.dailyFoodIntakeContainer}>
-                        <p className={styles.dailyIntakeHeader}>{selectedDate.format('dddd')}</p>
-                        <button onClick={()=>{ if (toggleAddItem) { closeAddPanel() } else { setToggleAddItem(true) } }}>
-                            <svg width="30" height="38" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M8 3.3125V12.6875M12.6875 8H3.3125" strokeLinecap="round" strokeLinejoin="round"/>
+                    <div className={styles.daysDots}>
+                        <button type="button" className={styles.todayButton} onClick={openMonthCalendar} aria-label="Open month calendar">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="3" y="5" width="18" height="16" rx="4" stroke="currentColor" strokeWidth="1.6"/>
+                                <path d="M3 9.75H21" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                                <path d="M7.5 2.5V6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                                <path d="M16.5 2.5V6.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
+                                <circle cx="8" cy="13.75" r="1.15" fill="currentColor"/>
+                                <circle cx="12" cy="13.75" r="1.15" fill="currentColor"/>
+                                <circle cx="16" cy="13.75" r="1.15" fill="currentColor"/>
+                                <circle cx="8" cy="17.25" r="1.15" fill="currentColor"/>
                             </svg>
                         </button>
-                        <FoodLogList entries={entries} onSelect={openEntryForEdit} />
+                        <button type="button" className={styles.weekNavButton} onClick={goToPrevWeek} aria-label="Previous week">‹</button>
+                        <div className={styles.dayDial}>
+                            {weekDates.map((date) => {
+                                const isSelected = date.isSame(selectedDate, 'day')
+                                const isToday = date.isSame(today, 'day')
+                                return (
+                                    <button
+                                        key={date.format('YYYY-MM-DD')}
+                                        type="button"
+                                        className={`${styles.dayPill} ${isSelected ? styles.selectedDay : ''} ${isToday ? styles.todayPill : ''}`}
+                                        disabled={date.isAfter(today, 'day')}
+                                        onClick={() => setSelectedDate(date)}
+                                    >
+                                        <span className={styles.dayPillWeekday}>{WEEKDAY_LABELS[date.day()]}</span>
+                                        <span className={styles.dayPillDate}>{date.format('D')}</span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                        <button type="button" className={styles.weekNavButton} onClick={goToNextWeek} disabled={isCurrentWeek} aria-label="Next week">›</button>
                     </div>
-                    {toggleAddItem?
+                </header>
 
-                    <div className={styles.addFoodItemContainer}>
-                        {addItemType === 'edit' && editingEntry ?
+                <section className={styles.statStrip} aria-label="Daily summary">
+                    <StatCard
+                        label="Calories"
+                        value={Math.round(consumed.calories).toLocaleString()}
+                        unit="kCal"
+                        detail={totalExpenditure ? `of ~${totalExpenditure.toLocaleString()} burned` : "Add your details to estimate burn"}
+                        fraction={totalExpenditure ? consumed.calories / totalExpenditure : 0}
+                    />
+                    <StatCard
+                        label="Protein"
+                        value={String(Math.round(consumed.protein))}
+                        unit="g"
+                        detail={proteinTarget ? `of ${proteinTarget} g target` : "Add your weight for a target"}
+                        fraction={proteinTarget ? consumed.protein / proteinTarget : 0}
+                    />
+                    <StatCard
+                        label="Water"
+                        value={formatVolume(waterConsumedMl)}
+                        detail={`of ${formatVolume(waterTargetMl)} goal`}
+                        fraction={waterConsumedMl / waterTargetMl}
+                        accent="water"
+                    />
+                    <StatCard
+                        label="Logged"
+                        value={String(entries.length)}
+                        unit={entries.length === 1 ? "food" : "foods"}
+                        detail={`${waterEntries.length} ${waterEntries.length === 1 ? "drink" : "drinks"} ${isToday ? "today" : "this day"}`}
+                    />
+                </section>
 
-                            <FoodItemForm
-                                mode="edit"
-                                initialValues={entryToFormValues(editingEntry)}
-                                onSubmit={handleEditSubmit}
-                                onCancel={closeAddPanel}
-                                onDelete={handleDeleteEntry}
-                            />
+                <div className={styles.dashboardGrid}>
+                    <section className={`${styles.card} ${styles.foodCard}`}>
+                        <div className={styles.cardHeader}>
+                            <div>
+                                <p className={styles.cardTitle}>Food Log</p>
+                                <p className={styles.cardSubtitle}>{selectedDate.format('dddd')}</p>
+                            </div>
+                            <button
+                                type="button"
+                                className={`${styles.addFoodButton} ${toggleAddItem ? styles.addFoodButtonOpen : ""}`}
+                                onClick={()=>{ if (toggleAddItem) { closeAddPanel() } else { setToggleAddItem(true) } }}
+                                aria-label={toggleAddItem ? "Close add food" : "Add food"}
+                            >
+                                <svg width="18" height="18" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 3.3125V12.6875M12.6875 8H3.3125" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                                <span>{toggleAddItem ? "Close" : "Add food"}</span>
+                            </button>
+                        </div>
+                        <div className={styles.cardBody}>
+                            {toggleAddItem?
+                                <div className={styles.addPanel}>
+                                    {addItemType === 'edit' && editingEntry ?
 
-                        : addItemType === "manual" ?
-                            <>
-                            <button type="button" className={styles.backButton} onClick={()=>setAddItemType(null)}>Back</button>
-                            <FoodItemForm mode="create" onSubmit={handleCreateSubmit} onCancel={closeAddPanel} />
-                            </>
+                                        <FoodItemForm
+                                            mode="edit"
+                                            initialValues={entryToFormValues(editingEntry)}
+                                            onSubmit={handleEditSubmit}
+                                            onCancel={closeAddPanel}
+                                            onDelete={handleDeleteEntry}
+                                        />
 
-                        : addItemType === "quick" ?
-                            <>
-                            <button type="button" className={styles.backButton} onClick={()=>{ setAddItemType(null); setQuickAddSource(null) }}>Back</button>
-                            {quickAddSource ?
-                                <QuickAddScaler
-                                    item={quickAddSource}
-                                    onSubmit={handleCreateSubmit}
-                                    onCancel={() => setQuickAddSource(null)}
-                                />
-                            :
-                                <div className={styles.catalogList}>
-                                    {loadingCatalog ?
-                                        <div className={styles.spinnerContainer}><span className={styles.spinner} /></div>
-                                    : catalogItems.length === 0 ?
-                                        <p>No saved items yet - add one manually and save it to your catalog.</p>
+                                    : addItemType === "manual" ?
+                                        <>
+                                        <button type="button" className={styles.backButton} onClick={()=>setAddItemType(null)}>Back</button>
+                                        <FoodItemForm mode="create" onSubmit={handleCreateSubmit} onCancel={closeAddPanel} />
+                                        </>
+
+                                    : addItemType === "quick" ?
+                                        <>
+                                        <button type="button" className={styles.backButton} onClick={()=>{ setAddItemType(null); setQuickAddSource(null) }}>Back</button>
+                                        {quickAddSource ?
+                                            <QuickAddScaler
+                                                item={quickAddSource}
+                                                onSubmit={handleCreateSubmit}
+                                                onCancel={() => setQuickAddSource(null)}
+                                            />
+                                        :
+                                            <div className={styles.catalogList}>
+                                                {loadingCatalog ?
+                                                    <div className={styles.spinnerContainer}><span className={styles.spinner} /></div>
+                                                : catalogItems.length === 0 ?
+                                                    <p>No saved items yet - add one manually and save it to your catalog.</p>
+                                                :
+                                                    catalogItems.map((item) => (
+                                                        <button type="button" key={item.id} className={styles.catalogItemButton} onClick={() => setQuickAddSource(item)}>
+                                                            {item.name}
+                                                        </button>
+                                                    ))
+                                                }
+                                            </div>
+                                        }
+                                        </>
+
                                     :
-                                        catalogItems.map((item) => (
-                                            <button type="button" key={item.id} className={styles.catalogItemButton} onClick={() => setQuickAddSource(item)}>
-                                                {item.name}
-                                            </button>
-                                        ))
+                                    <>
+                                        <div className={styles.addFoodItemButtons} onClick={()=>setAddItemType("manual")}>
+                                            <p>Add Manually</p>
+                                        </div>
+                                        <div className={styles.addFoodItemButtons} onClick={()=>setAddItemType("quick")}>
+                                            <p>Quick Add</p>
+                                        </div>
+                                    </>
                                     }
                                 </div>
+                            :
+                                <FoodLogList entries={entries} onSelect={openEntryForEdit} />
                             }
-                            </>
+                        </div>
+                    </section>
 
-                        :
-                        <>
-                            <div className={styles.addFoodItemButtons} onClick={()=>setAddItemType("manual")}>
-                                <p>Add Manually</p>
+                    <section className={`${styles.card} ${styles.calorieCard}`}>
+                        <div className={styles.cardHeader}>
+                            <div>
+                                <p className={styles.cardTitle}>Caloric Intake</p>
+                                <p key={Math.round(consumed.calories)} className={styles.caloriesText}>{Math.round(consumed.calories)} kCal</p>
                             </div>
-                            <div className={styles.addFoodItemButtons} onClick={()=>setAddItemType("quick")}>
-                                <p>Quick Add</p>
-                            </div>
-                        </>
-                        }
-                    </div>
+                        </div>
+                        <div className={styles.calorieBody}>
+                            <CalorieTarget curr={consumed.calories} totalExpenditure={totalExpenditure} goal={goalState}/>
+                            <button type="button" onClick={cycleGoalState} className={styles.customButton} aria-label={`Calorie goal: ${goalState}. Click to change`}>
+                                <ul>
+                                    <li style={{height: "15px", width: "15px"}} className={goalState=='Surplus'? styles.highlightedGoalItem : undefined}/>
+                                    <li style={{height: "12.5px", width: "12.5px"}} className={goalState=='Maintain'? styles.highlightedGoalItem : undefined}/>
+                                    <li style={{height: "10px", width: "10px"}} className={goalState=='Deficit'? styles.highlightedGoalItem : undefined}/>
+                                </ul>
+                                <p>{goalState}</p>
+                            </button>
+                        </div>
+                    </section>
 
-                    :
+                    <section className={`${styles.card} ${styles.waterCard}`}>
+                        <WaterTracker entries={waterEntries} targetMl={waterTargetMl} onAdd={addWater} onUndo={undoWater} />
+                    </section>
 
-                    null
-                    }
-                     <div className={styles.dietAnalytics}>
-                        <div className={styles.analyticsContainer}>
-                            <p className={styles.dietAnalyticsHeaders}>Macros</p>
-                            <AnalyticsBar name={'Protein'} val={Math.round(consumed.protein)} total={Math.round(2.4*weightKg)} colour={"red"} measure={"g"} size={'normal'}/>
+                    <section className={`${styles.card} ${styles.nutritionCard}`}>
+                        <p className={styles.cardTitle}>Macros</p>
+                        <div className={styles.macroRow}>
+                            <AnalyticsBar name={'Protein'} val={Math.round(consumed.protein)} total={proteinTarget} colour={"red"} measure={"g"} size={'normal'}/>
                             <AnalyticsBar name={'Carbohydrates'} val={Math.round(consumed.carbs)} total={Math.round((2100 - (2.4*(weightKg)*4 + Math.max(0.6*(weightKg), 0.2*2100/9)*9))/4)} colour={"red"} measure={"g"} size={'normal'}/>
                             <AnalyticsBar name={'Fats'} val={Math.round(consumed.fats)} total={Math.round(Math.max(0.6*(weightKg), 0.2*2100/9))} colour={"red"} measure={"g"} size={'normal'}/>
+                        </div>
 
-                            <div className={styles.microsHeaderRow}>
-                                <p className={styles.dietAnalyticsHeaders}>Micros</p>
-                                <button type="button" className={styles.settingsButton} onClick={() => setShowSettings(true)} aria-label="Choose displayed micronutrients">⚙</button>
-                            </div>
+                        <div className={styles.microsHeaderRow}>
+                            <p className={styles.cardTitle}>Micros</p>
+                            <button type="button" className={styles.settingsButton} onClick={() => setShowSettings(true)} aria-label="Choose displayed micronutrients">⚙</button>
+                        </div>
+                        <div className={styles.microGrid}>
                             {microTargets.map((nutrient) => (
                                 <AnalyticsBar key={nutrient.name} name={nutrient.name} val={Math.round(consumed.micronutrients[nutrient.name] ?? 0)} total={nutrient.total} colour={"red"} measure={nutrient.measure} size={'small'}/>
                             ))}
                         </div>
-                        <div className={styles.calorieContainer}>
-                            <p className={styles.caloriesHeader}>Caloric Intake</p>
-                            <p key={Math.round(consumed.calories)} className={styles.caloriesText}>{Math.round(consumed.calories)} kCal</p>
-                            <CalorieTarget curr={consumed.calories} totalExpenditure={totalExpenditure} goal={goalState}/>
-                            <div className={styles.customButtonContainer}>
-                                <div onClick={cycleGoalState} className={styles.customButton}>
-                                    <ul>
-                                        <li style={{height: "15px", width: "15px"}} className={goalState=='Surplus'? styles.highlightedGoalItem : undefined}/>
-                                        <li style={{height: "12.5px", width: "12.5px"}} className={goalState=='Maintain'? styles.highlightedGoalItem : undefined}/>
-                                        <li style={{height: "10px", width: "10px"}} className={goalState=='Deficit'? styles.highlightedGoalItem : undefined}/>
-                                    </ul>
-                                    <p>{goalState}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    </section>
                 </div>
             </div>
             {showSettings?

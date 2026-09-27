@@ -1,0 +1,18 @@
+node_modules
+.next
+.git
+.gitignore
+Dockerfile
+dockerfile
+.dockerignore
+npm-debug.log*
+yarn-error.log*
+README.md
+
+# secrets: pass these at runtime, never bake into the image
+env.local
+.env*
+!.env.sample
+cloudflare.crt
+cloudflare.key
+*.pem

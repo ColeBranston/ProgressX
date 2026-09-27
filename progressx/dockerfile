@@ -1,0 +1,52 @@
+# syntax=docker/dockerfile:1
+
+# ---------- Base ----------
+FROM node:20-alpine AS base
+# libc6-compat helps some native deps (e.g. sharp) run on Alpine
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# ---------- Dependencies ----------
+FROM base AS deps
+# Copy whichever lockfile you use
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+RUN \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+  else echo "No lockfile found." && exit 1; \
+  fi
+
+# ---------- Build ----------
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN \
+  if [ -f yarn.lock ]; then yarn build; \
+  elif [ -f package-lock.json ]; then npm run build; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
+  fi
+
+# ---------- Runtime ----------
+FROM base AS runner
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Run as non-root user
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+
+# Standalone output (requires output: "standalone" in next.config)
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 8080
+ENV PORT=8080
+ENV HOSTNAME=0.0.0.0
+
+CMD ["node", "server.js"]

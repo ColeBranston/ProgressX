@@ -1,27 +1,41 @@
-
 .mainContainer {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* "safe" keeps the top reachable when the form is taller than the screen */
+  justify-content: safe center;
   align-items: center;
   gap: 20px;
   position: relative;
+  box-sizing: border-box;
+  padding: 24px 16px;
+  /* body has overflow: hidden, so short screens scroll here instead */
+  overflow-y: auto;
 }
 
 .loginFormContainer {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   background: var(--secondary-background-color);
-  width: 28vw;
-  height: 60vh;
-  border-radius: 5%;
+  width: 100%;
+  max-width: 440px;
+  box-sizing: border-box;
+  padding: 32px 40px;
+  border-radius: 24px;
   box-shadow: inset 0 0 20px 10px rgba(var(--primary-color), 0.5);
-  position: relative;
   gap: 12px;
+  flex-shrink: 0;
+}
+
+.formHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 24px;
 }
 
 .inputField, .submitButton {
@@ -30,6 +44,9 @@
   overflow: hidden;
   font-size: 120%;
   border: none;
+  width: 100%;
+  height: 48px;
+  box-sizing: border-box;
 }
 
 .inputField {
@@ -37,12 +54,6 @@
   color: #ffffff;
   padding-left: 10px;
   padding-right: 10px;
-  width: 60%;
-  height: 7%;
-}
-
-.inputField[type="email"] {
-  margin-top: 10vh;
 }
 
 .inputField::placeholder {
@@ -60,9 +71,6 @@
   background-color: rgba(var(--primary-color));
   transition: background-color 0.1s linear,
               color 0.1s linear;
-
-  width: 63%;
-  height: 7%;
 }
 
 .submitButton:hover {
@@ -74,9 +82,7 @@
   color: white;
   font-size: 250%;
   font-family: var(--primary-font-family);
-  position: absolute;
-  top: 0;
-  left: 15%;
+  margin: 0;
   padding: 0;
   user-select: none;
 }
@@ -84,17 +90,11 @@
 .loginRedirectContainer {
   user-select: none;
   display: flex;
-  flex-wrap: wrap;
-  width: 70px;
-  height: 30px;
   align-items: center; /* vertically centers text and SVG */
   gap: 2px;
   color: white;
   transition: color 0.1s linear;
-  position: absolute;
-  top: 7.5%;
-  right: 15%;
-  
+  flex-shrink: 0;
 }
 
 .loginRedirectContainer:hover {
@@ -105,11 +105,12 @@
 .loginHeader {
   font-size: 100%;
   font-family: var(--primary-font-family);
+  margin: 0;
   padding: 0;
 }
 
 .disclaimerContainer {
-  width: 70%;
+  width: 100%;
   text-align: center;
   color: white;
   font-family: var(--secondary-font-family);
@@ -124,14 +125,13 @@
 
 .forgotPasswordContainer {
   display: flex;
-  width: 66%;
+  width: 100%;
 }
 
 .forgotPasswordContainer a{
   color: white;
   font-family: var(--primary-font-family);
   transition: color 0.1s linear;
-  margin-left: 3%;
 }
 
 .forgotPasswordContainer a:hover{
@@ -151,12 +151,13 @@
   color: black;
   font-family: var(--secondary-font-family);
   text-decoration: none;
+  width: 100%;
 }
 
 .googleAuthButton {
   background-color: white;
-  width: 17.5vw;
-  height: 40px;
+  width: 100%;
+  height: 44px;
   border-radius: 5px;
   display: flex;
   justify-content: center;
@@ -165,10 +166,31 @@
   transition: background-color 0.1s linear;
 }
 
+.googleAuthButton p {
+  margin: 0;
+  white-space: nowrap;
+}
+
 .googleAuthButton svg {
   width: 25px;
+  flex-shrink: 0;
 }
 
 .googleAuthButton:hover{
   background-color: rgb(255, 255, 255, 0.9);
+}
+
+@media (max-width: 480px) {
+  .loginFormContainer {
+    padding: 24px 20px;
+    border-radius: 18px;
+  }
+
+  .signInHeader {
+    font-size: 200%;
+  }
+
+  .formHeader {
+    margin-bottom: 16px;
+  }
 }

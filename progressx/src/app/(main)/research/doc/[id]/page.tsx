@@ -20,7 +20,7 @@ export default function StudyPage() {
         const id = params.id
         if (!id) router.push('/research')
 
-        const result = await fetch(`https://progressx-search-backend.vercel.app/doc/${id}`, {
+        const result = await fetch(`/api/search/doc/${id}`, {
             method: 'GET',
             credentials: 'omit'
         })

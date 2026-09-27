@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import styles from "./research.module.css"
 import { useParams, useRouter } from "next/dist/client/components/navigation";
 import { StudyCard } from "@/app/internal_components";
@@ -40,31 +40,45 @@ const ResearchPage = () => {
 
     const router = useRouter()
     const params = useParams()
+    const latestRequest = useRef(0) // ignores responses from older searches that finish late
 
-    async function getResults(e: React.FormEvent<HTMLFormElement> | null, tempQuery?: string, pageNum?: number){
+    const RESULTS_PER_PAGE = 10 // matches rows=10 in the search backend
+    const MAX_PAGE_BUTTONS = 10
+
+    const totalPages = Math.ceil(resultCount / RESULTS_PER_PAGE)
+    // window of up to 10 page numbers, keeping 5 before the current page where possible
+    const firstPageButton = Math.max(0, Math.min(currPage - 5, totalPages - MAX_PAGE_BUTTONS))
+    const pageButtons = Array.from({length: Math.min(MAX_PAGE_BUTTONS, totalPages - firstPageButton)}, (_, i) => firstPageButton + i)
+
+    function goToPage(pageNum: number, searchQuery: string) {
+        router.push(`/research/${pageNum}/${encodeURIComponent(searchQuery)}`)
+    }
+
+    function submitSearch(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
+        if (query.trim() === "") return
+        goToPage(0, query) // the params effect below does the fetch
+    }
+
+    async function getResults(currentQuery: string, pageNum: number){
         setIsLoading(true)
-
-        if (query === "" && !tempQuery) return
-        const currentQuery = query? query : tempQuery
-
-        if (e) {
-            e.preventDefault()
-            router.push(`/research/0/${currentQuery}`) // only updates the path params on form submit, that way you don't rerequest
-        }
+        const requestId = ++latestRequest.current
 
         console.log("Query triggered, query: ", currentQuery)
 
-        const endpoint = `https://progressx-search-backend.vercel.app/search/${pageNum? pageNum : currPage}/${currentQuery}`
+        const endpoint = `/api/search/search/${pageNum}/${encodeURIComponent(currentQuery)}`
                 const response = await fetch(endpoint, {
             method: 'GET',
             credentials: 'include',
         })
 
+        if (requestId !== latestRequest.current) return
+
         if (response.ok) {
             const solrResponse: SolrResponse = await response.json()
             console.log("Current solr repsonse: ", solrResponse)
 
-            setDocs(solrResponse.docs)
+            setDocs(solrResponse.docs ?? [])
             setResultCount(solrResponse.hits || 0)
             setLastQuery(currentQuery)
         }
@@ -73,7 +87,7 @@ const ResearchPage = () => {
 
     async function getCached() {
         setIsLoading(true)
-        const endpoint = `https://progressx-search-backend.vercel.app/cached`
+        const endpoint = `/api/search/cached`
         const response = await fetch(endpoint,
             {
                 method: 'GET',
@@ -119,12 +133,16 @@ const ResearchPage = () => {
 
     useEffect(()=> {
         if (params?.query) {
-            const tempQuery = params?.query[1]?.replaceAll("%20", " ") // query is placed here at index 1
-            setQuery(tempQuery)
-            const pageNum = Number(params.query[0]) // the page num is placed here at index 0
+            const tempQuery = decodeURIComponent(params.query[1] ?? "") // query is placed here at index 1
+            const pageNum = Math.max(0, Number(params.query[0]) || 0) // the page num is placed here at index 0
             console.log("Current Page Num:", pageNum)
+            setQuery(tempQuery)
             setCurrPage(pageNum)
-            getResults(null, tempQuery, pageNum)
+            if (tempQuery) {
+                getResults(tempQuery, pageNum)
+            } else {
+                setIsLoading(false)
+            }
 
         } else {
             console.log(`No Params detected, getting cached documents`)
@@ -138,7 +156,7 @@ const ResearchPage = () => {
         <div className='mainWrapper'>
             <div className={styles.researchContainer}>
                 <div className={styles.searchFormContainer}>
-                    <form className={styles.searchForm} onSubmit={getResults}>
+                    <form className={styles.searchForm} onSubmit={submitSearch}>
                         <svg xmlns="http://www.w3.org/2000/svg"
                             className={styles.searchIcon}
                             viewBox="0 0 24 24" 
@@ -171,25 +189,9 @@ const ResearchPage = () => {
                                 </div>
                             </div>
                             <div className={styles.paginationContainer}>
-                                {
-                                   resultCount <= 10?
-                                   Array.from({length: 1}).map((_, i)=>{
-                                        return <i onClick={()=>{router.push(`/research/${i}/${query}`)}} key={i} style={{color: (currPage == i? "red" : undefined)}}>{i}</i>
-                                    })
-                                   :
-                                   currPage >= 5?
-                                    (
-                                    Array.from({length: currPage < Math.floor(resultCount/10)-4? 10 : Math.floor(resultCount/10) - currPage + 6}).map((_, i)=>{ // this is the craziest guess and check formula ever, the -4 checks effectively checks if the current page is within range of the last page for the ternary, and the +6 is to include extra space for the min left 5 and current page; that when on the last page it will show the previous 5 page numbers
-                                        return <i onClick={()=>{router.push(`/research/${i+(currPage-5)}/${query}`)}} key={i} style={{color: (currPage == (i+(currPage-5))? "red" : undefined)}}>{(i+(currPage-5))}</i> // offsets by 5 each time
-                                    })
-                                    )
-                                   :
-                                   (
-                                    Array.from({length: currPage < Math.floor(resultCount/10)-4? 10 : resultCount - currPage*10}).map((_, i)=>{ // there has got to be a bug here -> look out for it, definently incorrect logic but can't recreate issue
-                                        return <i onClick={()=>{router.push(`/research/${i}/${query}`)}} key={i} style={{color: (currPage == i? "red" : undefined)}}>{(i)}</i>
-                                    })
-                                   )
-                                }
+                                {pageButtons.map((pageNum) => {
+                                    return <i onClick={()=>{goToPage(pageNum, lastQuery ?? "")}} key={pageNum} style={{color: (currPage == pageNum? "red" : undefined)}}>{pageNum}</i>
+                                })}
                             </div>
                         </div>
                         :
