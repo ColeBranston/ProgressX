@@ -10,12 +10,9 @@ export default function LoadingScreen(){
 
     return(
         isLoading? (
-            <>
-            <div className={styles.backdropBlur}></div>
-            <div className={styles.loadingContainer}>
+            <div className={styles.loadingContainer} role="status" aria-label="Loading">
                 <div className={styles.loader}></div>
             </div>
-            </>
         ) : (null)
     )
 }

@@ -12,10 +12,11 @@ export async function GET(req: NextRequest) {
 
     try {
         const response = await fetch(`${backendUrl.replace(/\/$/, "")}${path}${req.nextUrl.search}`, { cache: "no-store" })
-        return new NextResponse(response.body, {
-            status: response.status,
-            headers: { "Content-Type": response.headers.get("Content-Type") ?? "application/json" },
-        })
+        const headers = new Headers({ "Content-Type": response.headers.get("Content-Type") ?? "application/json" })
+        const cacheStatus = response.headers.get("X-Cache") // HIT / MISS from the backend's Redis cache
+        if (cacheStatus) headers.set("X-Cache", cacheStatus)
+
+        return new NextResponse(response.body, { status: response.status, headers })
     } catch (e) {
         console.log("Search backend request failed: ", e)
         return NextResponse.json({ error: "Search backend unavailable" }, { status: 502 })

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/app/supabaseClient/client" // use anon client for login
+import { createAuthClient, supabase } from "@/app/supabaseClient/client"
 import { redirect } from "next/navigation"
-import { jwtVerify } from "jose"
+import { ACCESS_COOKIE, setSessionCookies, verifyAccessToken } from "@/app/api/libs/session"
 
 export async function GET() {
-    const{ data } = await supabase.auth.signInWithOAuth({
+    const{ data } = await createAuthClient().auth.signInWithOAuth({
         provider: 'google',
         options: {
             redirectTo: `${process.env.APP_URL}/login`
@@ -15,44 +15,53 @@ export async function GET() {
     }
 }
 
-export const encoder = new TextEncoder()
-
+// POST { token, refreshToken }: the tokens Supabase put in the URL hash after Google sign-in
 export async function POST(req: Request) {
-    const { token } = await req.json();
-    
-    const res = NextResponse.json({"status": "200"})
+    const { token, refreshToken } = await req.json().catch(() => ({}))
 
-    const encodedSecret = encoder.encode(process.env.SUPABASE_JWT_SECRET)
-    
+    if (typeof token !== "string" || !token) {
+        return NextResponse.json({ message: "token is required" }, { status: 400 })
+    }
+
+    let payload
     try {
-        const decoded = await jwtVerify(token, encodedSecret)
-        
-        res.cookies.set("token", token ?? "", {
+        payload = await verifyAccessToken(token)
+    } catch (e) {
+        console.log("Error validating token: ", e instanceof Error ? e.message : e)
+        return NextResponse.json({ message: "Invalid or expired sign-in, please try again" }, { status: 401 })
+    }
+
+    const userID = payload.sub
+    const email = payload.email
+
+    // first Google sign-in: create the profile row the rest of the app expects
+    const { data: existing, error: lookupError } = await supabase.from("profiles").select("id").eq("id", userID).maybeSingle()
+    if (lookupError) {
+        console.log("Error looking up google user's profile: ", lookupError)
+        return NextResponse.json({ message: "Error signing in" }, { status: 500 })
+    }
+    if (!existing) {
+        const { error: profileError } = await supabase.from("profiles").insert({ id: userID, email })
+        if (profileError) {
+            console.log("Error adding google user to profile's table: ", profileError)
+            return NextResponse.json({ message: "Error signing in" }, { status: 500 })
+        }
+    }
+
+    const res = NextResponse.json({ status: "200" })
+
+    if (typeof refreshToken === "string" && refreshToken) {
+        setSessionCookies(res, { access_token: token, refresh_token: refreshToken })
+    } else {
+        // no refresh token: the session can only last as long as this access token
+        const secondsLeft = Math.max(0, (payload.exp ?? 0) - Math.floor(Date.now() / 1000))
+        res.cookies.set(ACCESS_COOKIE, token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // only secure in prod
+            secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
             path: "/",
-            maxAge: 60 * 60 // 1 hour
+            maxAge: secondsLeft,
         })
-        
-        console.log("Incoming Token: ", decoded)
-
-        const email = decoded.payload.email
-        const userID = decoded.payload.sub
-
-        const isUser = await supabase.from("profiles").select(userID)
-
-        if (!isUser) {
-            const { error: profileError } = await supabase.from("profiles").insert({
-                id: userID,
-                email
-            })
-            if (profileError) console.log("Error adding google user to profile's table: ", profileError)
-        }
-        
-        
-    } catch(e) {
-        console.log("Error validating token: ", e)
     }
 
     return res

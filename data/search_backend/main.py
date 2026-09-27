@@ -1,8 +1,9 @@
 import termcolor
-from fastapi import FastAPI
+from fastapi import FastAPI, Path, Response
 from fastapi.middleware.cors import CORSMiddleware
 from solr_instance import solr_clean_core
 import base64url
+import search_cache
 
 app = FastAPI()
 
@@ -50,7 +51,7 @@ def solr_searchDoc(id: str):
     )
     return result
 
-cachedResults = {} # will eventually change to using redis, but will use this for now, main pain point with this implementation is that it isn't persistant across server restarts
+cachedResults = {} # fallback for the most recent search when Redis isn't available (lost on restart)
 
 @app.get("/")
 def get_active():
@@ -60,21 +61,47 @@ def get_active():
 def read_root():
     return "online"
 
+@app.get("/health")
+def health():
+    return {"status": "online", "cache": "redis" if search_cache.is_available() else "disabled"}
+
 @app.get("/cached")
 def getCached():
-    print("Cached results accessed: ", cachedResults)
-    return cachedResults
+    # the most recent search, kept in Redis so it survives backend restarts
+    recent = search_cache.get_json(search_cache.RECENT_KEY)
+    return recent if recent is not None else cachedResults
 
-@app.get("/search/{pageNum}/{query}")
-def getResults(pageNum:int, query:str):
-    results = solr_searchID(query, pageNum)
+def toResponse(results):
+    # always return the same shape, even when a page has no docs
+    return {"docs": list(results.docs), "hits": results.hits}
 
-    global cachedResults # for accessing the in-memory cache
+@app.get("/search/{pageNum}/{query:path}") # :path so queries containing "/" still match
+def getResults(query:str, response: Response, pageNum:int = Path(ge=0)):
+    key = search_cache.search_key(query, pageNum)
+    results = search_cache.get_json(key)
+    response.headers["X-Cache"] = "HIT" if results is not None else "MISS"
+
+    if results is None:
+        results = toResponse(solr_searchID(query, pageNum))
+        search_cache.set_json(key, results, search_cache.SEARCH_TTL_SECONDS)
+
+    global cachedResults # in-memory fallback for /cached
     cachedResults = results
+    search_cache.set_json(search_cache.RECENT_KEY, results)
     return results
 
 @app.get("/doc/{id}")
-def getDoc(id: str):
+def getDoc(id: str, response: Response):
     decoded = base64url.dec(id).decode('utf-8')
-    result = solr_searchDoc(decoded)
+
+    key = search_cache.doc_key(decoded)
+    result = search_cache.get_json(key)
+    response.headers["X-Cache"] = "HIT" if result is not None else "MISS"
+
+    if result is None:
+        result = toResponse(solr_searchDoc(decoded))
+        # don't cache a miss, so a document ingested later shows up right away
+        if result["docs"]:
+            search_cache.set_json(key, result, search_cache.DOC_TTL_SECONDS)
+
     return result

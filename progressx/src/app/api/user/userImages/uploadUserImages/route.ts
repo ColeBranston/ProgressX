@@ -1,8 +1,9 @@
+import { verifyAccessToken } from "@/app/api/libs/session";
 import { NextRequest, NextResponse } from "next/server";
 import CloudinaryService from "@/app/cloundinaryClient/CloudinaryService";
 import { supabase } from "@/app/supabaseClient/client";
-import { jwtVerify } from "jose"
-import { encoder } from "@/app/api/auth/login/google/route";
+
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024 // Cloudinary's free-plan image limit
 
 export async function POST(req: NextRequest) {
 
@@ -11,12 +12,20 @@ export async function POST(req: NextRequest) {
     try {
         
         const token = req.cookies.get("token")?.value
-        if (!token) throw Error("Error accessing user token")
+        if (!token) return NextResponse.json({message: "Unauthorized"}, {status: 401})
 
-        const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET!))).payload.sub
+        const id = (await verifyAccessToken(token)).sub
 
         const formData = await req.formData();
-        const file = formData.get("file") as File;
+        const file = formData.get("file");
+
+        if (!(file instanceof File) || !file.type.startsWith("image/")) {
+            return NextResponse.json({message: "An image file is required"}, {status: 400})
+        }
+
+        if (file.size > MAX_UPLOAD_BYTES) {
+            return NextResponse.json({message: "Images must be 10 MB or smaller"}, {status: 413})
+        }
 
         // Convert the file to a base64 string
         const buffer = Buffer.from(await file.arrayBuffer());
@@ -30,15 +39,17 @@ export async function POST(req: NextRequest) {
 
         console.log("User ID for image upload: ", id)
 
-        const {error: insertError } = await supabase.from("photo_collection").insert({
+        const {error: insertError, data: photo } = await supabase.from("photo_collection").insert({
             user_id: id,
             image_link: uploadResponse.secure_url,
             description: ''
         })
+        .select("id, image_link, description, created_at")
+        .single()
 
         if (insertError) return NextResponse.json({message: "Error inserting image data into supabase"}, {status: 500})
 
-        return NextResponse.json({ message: "Image uploaded", url: uploadResponse.secure_url });
+        return NextResponse.json({ message: "Image uploaded", url: uploadResponse.secure_url, photo });
 
     } catch (e) {
         console.log("Error Processing Image: ", e)

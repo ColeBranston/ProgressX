@@ -1,0 +1,90 @@
+# ---------- Real client IP ----------
+# Traffic arrives through the Cloudflare Tunnel (cloudflared on this machine, seen as the
+# Docker Desktop gateway) or straight from Cloudflare's edge. For those sources only, use the
+# visitor's IP from CF-Connecting-IP so rate limits apply per visitor, not to Cloudflare as a whole.
+# Anyone else connecting directly keeps their own address and can't spoof the header.
+# Cloudflare ranges from https://www.cloudflare.com/ips (fetched 2026-09-27)
+set_real_ip_from 192.168.65.0/24;
+set_real_ip_from 127.0.0.1;
+set_real_ip_from 173.245.48.0/20;
+set_real_ip_from 103.21.244.0/22;
+set_real_ip_from 103.22.200.0/22;
+set_real_ip_from 103.31.4.0/22;
+set_real_ip_from 141.101.64.0/18;
+set_real_ip_from 108.162.192.0/18;
+set_real_ip_from 190.93.240.0/20;
+set_real_ip_from 188.114.96.0/20;
+set_real_ip_from 197.234.240.0/22;
+set_real_ip_from 198.41.128.0/17;
+set_real_ip_from 162.158.0.0/15;
+set_real_ip_from 104.16.0.0/13;
+set_real_ip_from 104.24.0.0/14;
+set_real_ip_from 172.64.0.0/13;
+set_real_ip_from 131.0.72.0/22;
+set_real_ip_from 2400:cb00::/32;
+set_real_ip_from 2606:4700::/32;
+set_real_ip_from 2803:f800::/32;
+set_real_ip_from 2405:b500::/32;
+set_real_ip_from 2405:8100::/32;
+set_real_ip_from 2a06:98c0::/29;
+set_real_ip_from 2c0f:f248::/32;
+real_ip_header CF-Connecting-IP;
+
+# ---------- API rate limits (per visitor IP) ----------
+# Each tier allows a short burst, then the steady rate; anything beyond gets a 429.
+limit_req_zone $binary_remote_addr zone=api_auth:10m rate=10r/m;    # 1 per 6s: login / signup (password guessing)
+limit_req_zone $binary_remote_addr zone=api_upload:10m rate=30r/m;  # 1 per 2s: photo uploads (Cloudinary cost)
+limit_req_zone $binary_remote_addr zone=api_search:10m rate=2r/s;   # search (Solr queries)
+limit_req_zone $binary_remote_addr zone=api_general:10m rate=5r/s;  # every other /api route
+limit_req_status 429;
+limit_req_log_level warn;
+
+server {
+    listen 80;
+
+    # Re-resolve the app container through Docker's DNS instead of once at startup,
+    # so rebuilding the app (which can change its IP) doesn't leave nginx pointing at a dead address
+    resolver 127.0.0.11 valid=10s ipv6=off;
+    set $frontend ${FRONTEND_URL};
+
+    # nginx defaults to 1 MB; phone photos are larger (the app caps uploads at 10 MB)
+    client_max_body_size 12m;
+
+    # inherited by every location below
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    error_page 429 = @rate_limited;
+
+    location @rate_limited {
+        default_type application/json;
+        add_header Retry-After 2 always;
+        return 429 '{"message":"Too many requests. Please slow down and try again in a moment."}';
+    }
+
+    location ~ ^/api/auth/(login|signup)(/|$) {
+        limit_req zone=api_auth burst=5 nodelay;
+        proxy_pass $frontend;
+    }
+
+    location ~ ^/api/user/userImages/upload {
+        limit_req zone=api_upload burst=3 nodelay;
+        proxy_pass $frontend;
+    }
+
+    location /api/search/ {
+        limit_req zone=api_search burst=10 nodelay;
+        proxy_pass $frontend;
+    }
+
+    location /api/ {
+        limit_req zone=api_general burst=30 nodelay;
+        proxy_pass $frontend;
+    }
+
+    location / {
+        proxy_pass $frontend;
+    }
+}

@@ -1,23 +1,24 @@
-
+/* Full-screen overlay pinned to the viewport, so the spinner is always dead centre on screen
+   regardless of page layout or scroll, and sits above page content and dialogs */
 .loadingContainer {
-    position: absolute;
-    height: 100vh;
-    width: 100vw;
+    position: fixed;
+    inset: 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(10px);
 }
 
 .loader {
   width: 48px;
   height: 48px;
+  box-sizing: border-box;
   border: 5px solid rgba(255, 0, 0, 0.2);
   border-top-color: red;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 20px auto;
 }
 
 @keyframes spin {

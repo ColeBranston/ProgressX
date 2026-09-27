@@ -14,6 +14,7 @@ export type WaterLogEntry = {
 type WaterTrackerProps = {
     entries: WaterLogEntry[]
     targetMl: number
+    isCustomGoal?: boolean
     onAdd: (amountMl: number) => void
     onUndo: (entry: WaterLogEntry) => void
 }
@@ -50,7 +51,7 @@ function prefersReducedMotion() {
 
 type FallingDrop = { id: number, landY: number }
 
-export default function WaterTracker({ entries, targetMl, onAdd, onUndo }: WaterTrackerProps) {
+export default function WaterTracker({ entries, targetMl, isCustomGoal = false, onAdd, onUndo }: WaterTrackerProps) {
     const consumedMl = entries.reduce((sum, entry) => sum + (Number(entry.amount_ml) || 0), 0)
 
     // The level shown in the droplet. It trails consumedMl while a drop is falling,
@@ -103,7 +104,7 @@ export default function WaterTracker({ entries, targetMl, onAdd, onUndo }: Water
         <div className={styles.tracker}>
             <div className={styles.header}>
                 <p className={styles.title}>Water</p>
-                <p className={styles.subtitle}>Goal {formatVolume(targetMl)} · based on your weight &amp; activity</p>
+                <p className={styles.subtitle}>Goal {formatVolume(targetMl)} · {isCustomGoal ? "your custom goal" : "based on your weight & activity"}</p>
             </div>
 
             <div className={styles.meter}>

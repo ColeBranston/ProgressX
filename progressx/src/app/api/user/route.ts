@@ -1,13 +1,12 @@
+import { verifyAccessToken } from "@/app/api/libs/session";
 import { supabase } from "@/app/supabaseClient/client";
-import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "../../../../node_modules/next/server";
-import { encoder } from "../auth/login/google/route";
 
 export async function GET(req: NextRequest) {
     const token = req.cookies?.get("token")?.value
 
     try {
-        const id = (await jwtVerify(token as string, encoder.encode(process.env.SUPABASE_JWT_SECRET!)))?.payload?.sub
+        const id = (await verifyAccessToken(token as string)).sub
 
         if (id) {
             const {error: userError, data: userData} = await supabase.from('profiles').select('*').eq("id", id).single()
@@ -17,9 +16,9 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({userData: userData})
         }
     } catch(e) {
-        console.log("Error Decoding Token: ", e)
-        return NextResponse.json({Error: e})
+        console.log("Error Decoding Token: ", e instanceof Error ? e.message : e)
     }
+    return NextResponse.json({message: "Not logged in"}, {status: 401})
 }
 
 export async function POST(req: NextRequest) {
@@ -32,7 +31,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({message: "Not logged in"}, {status: 401})
         }
 
-        const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET)))?.payload?.sub
+        const id = (await verifyAccessToken(token)).sub
 
         const { error: onboardingError } = await supabase.from("profiles").update({
                     profile_image: user.pfp,

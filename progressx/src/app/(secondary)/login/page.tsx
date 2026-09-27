@@ -5,6 +5,9 @@ import { useContext, useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { IsLoadingContext } from '../../contexts/isLoading';
 
+// shown when nginx rate-limits login / signup (429)
+const TOO_MANY_ATTEMPTS = "Too many attempts. Please wait a minute and try again."
+
 export default function Login() {
     const [loginActive, setLoginActive] = useState(true)
     const [email, setEmail] = useState('')
@@ -16,13 +19,17 @@ export default function Login() {
 
     useEffect(() => {
       console.log("Searching for token: ")
-      const tokens = window?.location?.hash?.substring(1)
-      const googleToken = new URLSearchParams(tokens)?.get("access_token")
+      const tokens = new URLSearchParams(window?.location?.hash?.substring(1))
+      const googleToken = tokens.get("access_token")
+      const refreshToken = tokens.get("refresh_token")
 
       if (googleToken){
+        // take the tokens out of the address bar right away, so going back or reloading
+        // can't replay an old token (and they don't sit in browser history)
+        window.history.replaceState(null, "", window.location.pathname + window.location.search)
+
         setIsLoading(true)
         console.log("token found")
-        console.log(googleToken)
         try {
           async function tokenClean(googleToken: string){
             const res = await fetch("/api/auth/login/google", {
@@ -31,10 +38,17 @@ export default function Login() {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                token: googleToken
+                token: googleToken,
+                refreshToken
               }),
             });
       
+            if (res.status === 429) {
+              alert(TOO_MANY_ATTEMPTS)
+              setIsLoading(false)
+              return;
+            }
+
             if (!res.ok || res.status != 200) {
               const errorText = await res.text();
               console.error(`Signup failed (${res.status}): ${errorText}`);
@@ -75,6 +89,12 @@ export default function Login() {
             }),
           });
     
+          if (res.status === 429) {
+            alert(TOO_MANY_ATTEMPTS)
+            setIsLoading(false)
+            return;
+          }
+
           if (!res.ok) {
             const errorText = await res.text();
             console.error(`Signup failed (${res.status}): ${errorText}`);
@@ -121,6 +141,12 @@ export default function Login() {
           }),
         });
     
+        if (res.status === 429) {
+          alert(TOO_MANY_ATTEMPTS)
+          setIsLoading(false)
+          return;
+        }
+
         if (!res.ok) {
           const errorText = await res.text();
           console.error(`Login failed (${res.status}): ${errorText}`);

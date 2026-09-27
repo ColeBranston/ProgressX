@@ -1,0 +1,153 @@
+.card {
+    --score: var(--primary-color);
+
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 20px 24px;
+    border-radius: 16px;
+    border: 1px solid rgba(var(--score), 0.35);
+    background:
+        radial-gradient(circle at 20% 50%, rgba(var(--score), 0.16), transparent 60%),
+        var(--secondary-background-color);
+    font-family: var(--primary-font-family);
+    color: var(--secondary-color);
+    transition: border-color 0.4s ease, background 0.4s ease;
+}
+
+/* green once every target is met, like the calorie meter's in-range highlight */
+.complete {
+    --score: 34, 197, 94;
+}
+
+.ring {
+    position: relative;
+    flex-shrink: 0;
+    width: 132px;
+    height: 132px;
+}
+
+.ringSvg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.ringTrack,
+.ringFill {
+    fill: none;
+    stroke-width: 10;
+}
+
+.ringTrack {
+    stroke: rgba(var(--score), 0.15);
+}
+
+.ringFill {
+    stroke: rgb(var(--score));
+    stroke-linecap: round;
+    stroke-dasharray: var(--dash);
+    stroke-dashoffset: var(--offset);
+    filter: drop-shadow(0 0 6px rgba(var(--score), 0.6));
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+                stroke 0.4s ease;
+}
+
+.ringLabel {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.percent {
+    font-size: 38px;
+    line-height: 1;
+    color: white;
+}
+
+.percentSign {
+    font-size: 20px;
+    opacity: 0.7;
+}
+
+.ringCaption {
+    margin-top: 4px;
+    font-family: var(--secondary-font-family);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.55;
+}
+
+.breakdown {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.headline {
+    margin: 0 0 2px;
+    font-size: 18px;
+    color: rgb(var(--score));
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr) 40px;
+    align-items: center;
+    gap: 10px;
+}
+
+.rowLabel {
+    font-size: 14px;
+}
+
+.rowBar {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+}
+
+.rowFill {
+    height: 100%;
+    border-radius: 3px;
+    background: rgba(var(--primary-color));
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.3s ease;
+}
+
+.rowFillDone {
+    background: rgb(34, 197, 94);
+}
+
+.rowValue {
+    text-align: right;
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+@media (max-width: 500px) {
+    .card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ring {
+        align-self: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ringFill,
+    .rowFill {
+        transition: none;
+    }
+}

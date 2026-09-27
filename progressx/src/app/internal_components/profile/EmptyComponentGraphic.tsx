@@ -8,7 +8,7 @@ export default function EmptyComponentGraphic() {
     return (
         <div className={styles.emptyComponentContainer}>
             Add videos you see and they will show up here
-            <Image src='/Cobwebs.svg' alt="Cobwebs Graphic" width={200} height={200}/>
+            <Image src='/cobwebs.svg' alt="Cobwebs Graphic" width={200} height={200}/>
         </div>
     )
 }

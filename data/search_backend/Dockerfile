@@ -6,6 +6,7 @@ copy . .
 
 run pip install --no-cache-dir -r requirements.txt
 
+env PORT=8000
 expose 8000
 
-cmd python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+cmd python -m uvicorn main:app --host 0.0.0.0 --port $PORT

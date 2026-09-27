@@ -16,19 +16,26 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const logDate = searchParams.get("date") ?? new Date().toISOString().slice(0, 10)
 
-    const { data, error } = await supabase
-        .from("water_log_entries")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("log_date", logDate)
-        .order("created_at", { ascending: true })
+    const [
+        { data, error },
+        { data: settings, error: settingsError },
+    ] = await Promise.all([
+        supabase
+            .from("water_log_entries")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("log_date", logDate)
+            .order("created_at", { ascending: true }),
+        // custom daily goal from Settings (null = use the recommended goal)
+        supabase.from("user_settings").select("water_goal_ml").eq("user_id", userId).maybeSingle(),
+    ])
 
-    if (error) {
-        console.log("Error fetching water log entries: ", error)
+    if (error || settingsError) {
+        console.log("Error fetching water log entries: ", error ?? settingsError)
         return NextResponse.json({ message: "Error fetching water log entries" }, { status: 500 })
     }
 
-    return NextResponse.json({ entries: data })
+    return NextResponse.json({ entries: data, customGoalMl: settings?.water_goal_ml ?? null })
 }
 
 // POST /api/diet/water

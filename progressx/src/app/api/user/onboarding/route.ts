@@ -1,6 +1,5 @@
-import { jwtVerify } from "jose";
+import { verifyAccessToken } from "@/app/api/libs/session";
 import { NextRequest, NextResponse } from "next/server";
-import { encoder } from "../../auth/login/google/route";
 import { supabase } from "@/app/supabaseClient/client";
 
 export async function POST(req: NextRequest) {
@@ -13,7 +12,7 @@ export async function POST(req: NextRequest) {
 
     try {
         if (token) {
-            const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET)))?.payload?.sub
+            const id = (await verifyAccessToken(token)).sub
             console.log("id: ", id)
 
             if (id) {

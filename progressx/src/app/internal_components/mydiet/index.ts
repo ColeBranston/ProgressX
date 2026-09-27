@@ -9,6 +9,7 @@ export { default as MonthCalendar } from './MonthCalendar'
 export { default as QuickAddScaler } from './QuickAddScaler'
 export { default as WaterTracker, formatVolume } from './WaterTracker'
 export { getWaterTargetMl } from './waterTarget'
+export { default as DailyScore, averageCompletion, calorieGoalCompletion } from './DailyScore'
 
 // Types
 
@@ -18,3 +19,4 @@ export type { FoodItemFormValues } from './FoodItemForm'
 export type { FoodLogEntry } from './FoodLogList'
 export type { FoodItem } from './QuickAddScaler'
 export type { WaterLogEntry } from './WaterTracker'
+export type { ScoreCategory } from './DailyScore'

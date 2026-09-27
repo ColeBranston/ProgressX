@@ -20,7 +20,11 @@ import {
     WaterTracker,
     WaterLogEntry,
     formatVolume,
-    getWaterTargetMl
+    getWaterTargetMl,
+    DailyScore,
+    ScoreCategory,
+    averageCompletion,
+    calorieGoalCompletion
 } from "../../internal_components/index"
 import { userDataContext } from '@/app/contexts/userData';
 
@@ -120,6 +124,7 @@ export default function DietPage() {
     // rendering, so it never flashes default values (e.g. "Maintain") that
     // then pop to the user's actual saved state a moment later.
     const [ waterEntries, setWaterEntries ] = useState<WaterLogEntry[]>([])
+    const [ customWaterGoalMl, setCustomWaterGoalMl ] = useState<number | null>(null) // set in Settings
     const [ waterReady, setWaterReady ] = useState(false)
     const [ entriesReady, setEntriesReady ] = useState(false)
     const [ preferencesReady, setPreferencesReady ] = useState(false)
@@ -180,13 +185,16 @@ export default function DietPage() {
         return Math.round(weighting * BMR)
     }, [userData?.height, userData?.age, userData.gender, userData?.activity, weightKg])
 
-    const waterTargetMl = useMemo(
+    const recommendedWaterMl = useMemo(
         () => getWaterTargetMl({ weightLbs: userData.weight, gender: userData.gender, activity: userData.activity }),
         [userData.weight, userData.gender, userData.activity]
     )
+    const waterTargetMl = customWaterGoalMl ?? recommendedWaterMl
     const waterConsumedMl = waterEntries.reduce((sum, entry) => sum + (Number(entry.amount_ml) || 0), 0)
 
     const proteinTarget = Math.round(2.4 * weightKg)
+    const fatsTarget = Math.round(Math.max(0.6*(weightKg), 0.2*2100/9))
+    const carbsTarget = Math.round((2100 - (2.4*(weightKg)*4 + Math.max(0.6*(weightKg), 0.2*2100/9)*9))/4)
     const isToday = selectedDate.isSame(today, 'day')
 
     // Persists the goal state to the user's diet_config row so it's the
@@ -275,7 +283,10 @@ export default function DietPage() {
                 const res = await fetch(`/api/diet/water?date=${dateKey}`)
                 if (res.ok) {
                     const json = await res.json()
-                    if (!cancelled) setWaterEntries(json.entries ?? [])
+                    if (!cancelled) {
+                        setWaterEntries(json.entries ?? [])
+                        setCustomWaterGoalMl(typeof json.customGoalMl === "number" ? json.customGoalMl : null)
+                    }
                 } else if (!cancelled) {
                     setWaterEntries([])
                 }
@@ -539,10 +550,25 @@ export default function DietPage() {
         }
     }
 
+    // Share of the day's targets met; only 100% when every tracked target is hit
+    const scoreCategories: ScoreCategory[] = [
+        { label: "Calories", weight: 0.3, fraction: calorieGoalCompletion(consumed.calories, totalExpenditure, goalState) },
+        { label: "Macros", weight: 0.3, fraction: averageCompletion([
+            { consumed: consumed.protein, target: proteinTarget },
+            { consumed: consumed.carbs, target: carbsTarget },
+            { consumed: consumed.fats, target: fatsTarget },
+        ]) },
+        { label: "Water", weight: 0.2, fraction: averageCompletion([{ consumed: waterConsumedMl, target: waterTargetMl }]) },
+        { label: "Micros", weight: 0.2, fraction: averageCompletion(microTargets.map((nutrient) => ({
+            consumed: consumed.micronutrients[nutrient.name] ?? 0,
+            target: nutrient.total,
+        }))) },
+    ]
+
     if (initialLoading) {
         return (
-            <div className="mainWrapper">
-                <div className={styles.pageLoadingContainer}>
+            <div className={`mainWrapper ${styles.dietWrapper}`}>
+                <div className={styles.pageLoadingContainer} role="status" aria-label="Loading your diet">
                     <span className={styles.spinner} />
                 </div>
             </div>
@@ -594,6 +620,9 @@ export default function DietPage() {
                 </header>
 
                 <section className={styles.statStrip} aria-label="Daily summary">
+                    <div className={styles.scoreSlot}>
+                        <DailyScore categories={scoreCategories} isToday={isToday} />
+                    </div>
                     <StatCard
                         label="Calories"
                         value={Math.round(consumed.calories).toLocaleString()}
@@ -725,15 +754,15 @@ export default function DietPage() {
                     </section>
 
                     <section className={`${styles.card} ${styles.waterCard}`}>
-                        <WaterTracker entries={waterEntries} targetMl={waterTargetMl} onAdd={addWater} onUndo={undoWater} />
+                        <WaterTracker entries={waterEntries} targetMl={waterTargetMl} isCustomGoal={customWaterGoalMl !== null} onAdd={addWater} onUndo={undoWater} />
                     </section>
 
                     <section className={`${styles.card} ${styles.nutritionCard}`}>
                         <p className={styles.cardTitle}>Macros</p>
                         <div className={styles.macroRow}>
                             <AnalyticsBar name={'Protein'} val={Math.round(consumed.protein)} total={proteinTarget} colour={"red"} measure={"g"} size={'normal'}/>
-                            <AnalyticsBar name={'Carbohydrates'} val={Math.round(consumed.carbs)} total={Math.round((2100 - (2.4*(weightKg)*4 + Math.max(0.6*(weightKg), 0.2*2100/9)*9))/4)} colour={"red"} measure={"g"} size={'normal'}/>
-                            <AnalyticsBar name={'Fats'} val={Math.round(consumed.fats)} total={Math.round(Math.max(0.6*(weightKg), 0.2*2100/9))} colour={"red"} measure={"g"} size={'normal'}/>
+                            <AnalyticsBar name={'Carbohydrates'} val={Math.round(consumed.carbs)} total={carbsTarget} colour={"red"} measure={"g"} size={'normal'}/>
+                            <AnalyticsBar name={'Fats'} val={Math.round(consumed.fats)} total={fatsTarget} colour={"red"} measure={"g"} size={'normal'}/>
                         </div>
 
                         <div className={styles.microsHeaderRow}>

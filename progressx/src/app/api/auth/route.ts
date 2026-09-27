@@ -1,21 +1,16 @@
-import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
-import { encoder } from "./login/google/route";
+import { ACCESS_COOKIE, verifyAccessToken } from "../libs/session";
 
 export async function GET(req: NextRequest) {
-    const token = req.cookies.get("token")?.value
+    const token = req.cookies.get(ACCESS_COOKIE)?.value
 
     try {
-        if (token) {
-            const decryptedToken = await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET))
-            console.log(decryptedToken)
-            const email = decryptedToken?.payload?.email
-            return NextResponse.json({ user: email}, {status : 200})
-        } else {
-            throw new Error("Missing Token")
-        }
+        if (!token) throw new Error("Missing Token")
+
+        const payload = await verifyAccessToken(token)
+        return NextResponse.json({ user: payload.email }, { status: 200 })
     } catch(e: unknown) {
         const errorMessage = e instanceof Error ? e.message : String(e);
         return NextResponse.json({ message: "No or invalid token: " + errorMessage}, { status: 401 })
     }
-}   
+}

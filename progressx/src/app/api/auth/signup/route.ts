@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
-import { supabase } from "@/app/supabaseClient/client"
+import { createAuthClient, supabase } from "@/app/supabaseClient/client"
 
 export async function POST(req: Request) {
   const { email, password } = await req.json()
 
   console.log(`Sign up request submitted, email: ${email}`)
 
-  const { data: userData, error: userError } = await supabase.auth.admin.createUser({
+  const { data: userData, error: userError } = await createAuthClient().auth.admin.createUser({
     email,
     password,
     email_confirm: true,

@@ -1,0 +1,703 @@
+.photos {
+    container-type: inline-size;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 4px 12px 24px 4px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    color: var(--secondary-color);
+    font-family: var(--primary-font-family);
+
+    /* red bar, no track (matches the research and diet pages) */
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--primary-color)) transparent;
+}
+
+.photos::-webkit-scrollbar {
+    width: 8px;
+}
+
+.photos::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.photos::-webkit-scrollbar-thumb {
+    background: rgb(var(--primary-color));
+    border-radius: 999px;
+}
+
+.photos::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+/* ---------- Toolbar ---------- */
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.toolbarText {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.toolbarTitle {
+    margin: 0;
+    font-size: 22px;
+    color: white;
+}
+
+.toolbarMeta {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-size: 13px;
+    opacity: 0.55;
+}
+
+/* ---------- "Blur photos" privacy switch ---------- */
+
+.blurSetting {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+}
+
+.blurError {
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    color: rgb(255, 110, 110);
+}
+
+.blurToggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 8px 0 12px;
+    border-radius: 19px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: white;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    font-family: var(--primary-font-family);
+    font-size: 15px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+/* narrow layouts: icon + switch only (the switch keeps its aria-label) */
+@container (max-width: 360px) {
+    .blurLabel {
+        display: none;
+    }
+}
+
+.blurToggle:hover,
+.blurToggle:focus-visible {
+    border-color: rgba(var(--primary-color), 0.7);
+    outline: none;
+}
+
+.blurToggle svg {
+    width: 18px;
+    height: 18px;
+}
+
+.switchTrack {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.18);
+    transition: background-color 0.2s ease;
+}
+
+.switchThumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: white;
+    transition: transform 0.2s ease;
+}
+
+.blurToggleOn {
+    border-color: rgba(var(--primary-color), 0.6);
+    background: rgba(var(--primary-color), 0.12);
+}
+
+.blurToggleOn .switchTrack {
+    background: rgba(var(--primary-color));
+}
+
+.blurToggleOn .switchThumb {
+    transform: translateX(16px);
+}
+
+/* pre-blurred image, blurred again with CSS in case the source can't be pre-blurred */
+.tileBlurred {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--secondary-background-color);
+}
+
+.tileBlurred::before {
+    content: "";
+    position: absolute;
+    inset: -20px;
+    background: inherit;
+    filter: blur(18px);
+}
+
+.blurBadge {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.45);
+    fill: none;
+    stroke: white;
+    stroke-width: 1.8;
+}
+
+.blurredMedia {
+    filter: blur(28px);
+    transform: scale(1.1);
+}
+
+.revealButton {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 18px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 22px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    color: white;
+    fill: none;
+    stroke: white;
+    stroke-width: 1.8;
+    font-family: var(--primary-font-family);
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.revealButton:hover {
+    background: rgba(var(--primary-color), 0.85);
+    border-color: rgba(var(--primary-color));
+}
+
+/* ---------- Month groups + grid ---------- */
+
+.month {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.monthLabel {
+    position: sticky;
+    top: -4px;
+    z-index: 2;
+    margin: 0;
+    padding: 6px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 16px;
+    color: rgba(var(--primary-color));
+    background: linear-gradient(to bottom, var(--primary-background-color) 70%, transparent);
+}
+
+.monthLabel span {
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    color: var(--secondary-color);
+    opacity: 0.5;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.tile,
+.addTile,
+.skeleton {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.tile {
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background-color: var(--secondary-background-color);
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tile:hover,
+.tile:focus-visible {
+    transform: translateY(-3px);
+    border-color: rgba(var(--primary-color));
+    box-shadow: 0 10px 24px -10px rgba(var(--primary-color), 0.7);
+    outline: none;
+}
+
+.tileImage {
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.tileImageLoaded {
+    opacity: 1;
+}
+
+.tileDate {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 24px 10px 8px;
+    text-align: left;
+    font-size: 14px;
+    color: white;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
+    pointer-events: none;
+}
+
+.addTile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 2px dashed rgba(var(--primary-color), 0.45);
+    background: rgba(var(--primary-color), 0.05);
+    color: rgba(var(--primary-color));
+    stroke: rgba(var(--primary-color));
+    stroke-width: 1.5;
+    font-family: var(--primary-font-family);
+    font-size: 15px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.addTile:hover,
+.addTile:focus-visible {
+    background: rgba(var(--primary-color), 0.12);
+    border-color: rgba(var(--primary-color));
+    outline: none;
+}
+
+.skeleton {
+    background: linear-gradient(100deg, rgba(255, 255, 255, 0.04) 30%, rgba(255, 255, 255, 0.09) 50%, rgba(255, 255, 255, 0.04) 70%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s linear infinite;
+}
+
+@keyframes shimmer {
+    from {
+        background-position: 100% 0;
+    }
+
+    to {
+        background-position: -100% 0;
+    }
+}
+
+.sentinel {
+    display: flex;
+    justify-content: center;
+    padding: 12px 0;
+}
+
+/* ---------- Empty / error ---------- */
+
+.emptyLayout {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    align-items: center;
+    gap: 24px;
+}
+
+.emptyLayout .grid {
+    grid-template-columns: 150px;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.emptyTitle {
+    margin: 0;
+    font-size: 24px;
+    color: white;
+}
+
+.emptyBody {
+    margin: 0;
+    max-width: 360px;
+    font-family: var(--secondary-font-family);
+    font-size: 14px;
+    line-height: 1.5;
+    opacity: 0.6;
+}
+
+/* ---------- Buttons ---------- */
+
+.primaryButton,
+.secondaryButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 20px;
+    border-radius: 10px;
+    font-family: var(--primary-font-family);
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.primaryButton {
+    border: none;
+    background: rgba(var(--primary-color));
+    color: white;
+}
+
+.primaryButton:hover:not(:disabled) {
+    background: white;
+    color: rgba(var(--primary-color));
+}
+
+.secondaryButton {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: white;
+}
+
+.secondaryButton:hover:not(:disabled) {
+    border-color: white;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.iconButton {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    fill: none;
+    stroke: white;
+    stroke-width: 1.8;
+    cursor: pointer;
+    transition: background-color 0.15s ease, stroke 0.15s ease;
+}
+
+.iconButton:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.deleteIconButton:hover {
+    background: rgba(var(--primary-color), 0.2);
+    stroke: rgba(var(--primary-color));
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(var(--primary-color), 0.25);
+    border-top-color: rgba(var(--primary-color));
+    animation: spin 0.7s linear infinite;
+}
+
+.primaryButton .spinner {
+    border-color: rgba(255, 255, 255, 0.35);
+    border-top-color: white;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ---------- Dialogs ---------- */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+}
+
+.uploadModal,
+.viewer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    box-sizing: border-box;
+    border-radius: 20px;
+    background: rgb(11, 11, 11);
+    box-shadow: inset 0 0 20px 6px rgba(var(--primary-color), 0.35);
+    font-family: var(--primary-font-family);
+    color: var(--secondary-color);
+}
+
+.uploadModal {
+    max-width: 560px;
+}
+
+.viewer {
+    max-width: 760px;
+    max-height: 100%;
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.modalTitle {
+    margin: 0;
+    font-size: 22px;
+    color: white;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 300px;
+    padding: 24px;
+    text-align: center;
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.dropzone:hover,
+.dropzone:focus-visible,
+.dropzoneActive {
+    border-color: rgba(var(--primary-color), 0.7);
+    background: rgba(var(--primary-color), 0.05);
+    outline: none;
+}
+
+.dropzone .primaryButton {
+    margin-top: 8px;
+}
+
+.dropzoneTitle {
+    margin: 8px 0 0;
+    font-size: 22px;
+    color: white;
+}
+
+.dropzoneBody {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-size: 13px;
+    opacity: 0.6;
+}
+
+.preview {
+    position: relative;
+    height: min(55vh, 440px);
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.uploadError {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-size: 13px;
+    color: rgb(255, 110, 110);
+}
+
+.viewerMeta {
+    margin: 2px 0 0;
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    opacity: 0.55;
+}
+
+.viewerActions {
+    display: flex;
+    gap: 8px;
+}
+
+.viewerStage {
+    position: relative;
+    height: min(72vh, 820px);
+    border-radius: 14px;
+    overflow: hidden;
+    background-color: black;
+    background-size: cover;
+    background-position: center;
+}
+
+/* dims the blurred placeholder so the photo stands out once loaded */
+.viewerStage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.viewerImage {
+    object-fit: contain;
+}
+
+.navButton {
+    position: absolute;
+    top: 50%;
+    z-index: 1;
+    width: 44px;
+    height: 44px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 4px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.navButton:hover:not(:disabled) {
+    background: rgba(var(--primary-color));
+}
+
+.navButton:disabled {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.navPrev {
+    left: 12px;
+}
+
+.navNext {
+    right: 12px;
+}
+
+.confirmDelete {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.confirmDelete .modalActions {
+    margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 8px;
+    }
+
+    .emptyLayout {
+        grid-template-columns: 1fr;
+    }
+
+    .overlay {
+        padding: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tile,
+    .tileImage,
+    .skeleton {
+        transition: none;
+        animation: none;
+    }
+}

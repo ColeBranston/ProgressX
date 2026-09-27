@@ -1,6 +1,5 @@
-import { jwtVerify } from "jose";
 import { NextRequest } from "next/server";
-import { encoder } from "@/app/api/auth/login/google/route";
+import { ACCESS_COOKIE, verifyAccessToken } from "./session";
 
 export function getPublicIdFromCloudinaryUrl(url: string) {
     // remove domain + version + extension
@@ -11,22 +10,18 @@ export function getPublicIdFromCloudinaryUrl(url: string) {
     return publicId;
   }
 
-// Shared auth helper for the diet-tracking API routes: pulls the "token" cookie,
-// verifies it the same way the existing /api/user and /api/auth routes do, and
-// returns the signed-in user's id (profiles.id / auth.users.id), or null if
-// the request isn't authenticated.
+// Shared auth helper for API routes: verifies the access-token cookie (the middleware has
+// already refreshed it if it was about to expire) and returns the signed-in user's id
+// (profiles.id / auth.users.id), or null if the request isn't authenticated.
 export async function getUserIdFromRequest(req: NextRequest): Promise<string | null> {
-    const token = req.cookies?.get("token")?.value
+    const token = req.cookies?.get(ACCESS_COOKIE)?.value
 
     if (!token) return null
 
     try {
-        const decoded = await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET!))
-        const id = decoded?.payload?.sub
-
-        return typeof id === "string" ? id : null
+        return (await verifyAccessToken(token)).sub
     } catch (e) {
-        console.log("Error verifying token: ", e)
+        console.log("Error verifying token: ", e instanceof Error ? e.message : e)
         return null
     }
 }

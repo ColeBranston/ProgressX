@@ -1,9 +1,8 @@
-import { encoder } from "@/app/api/auth/login/google/route";
+import { verifyAccessToken } from "@/app/api/libs/session";
 import { getPublicIdFromCloudinaryUrl } from "@/app/api/libs/helpers";
 import CloudinaryService from "@/app/cloundinaryClient/CloudinaryService";
 import { supabase } from "@/app/supabaseClient/client";
 import { PostgrestError } from "@supabase/supabase-js";
-import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest){
@@ -14,7 +13,7 @@ export async function POST(req: NextRequest){
 
         const token = req.cookies.get("token")?.value
         if (!token) throw new Error(`Failed to access user token`) 
-        const id = (await jwtVerify(token, encoder.encode(process.env.SUPABASE_JWT_SECRET!))).payload.sub
+        const id = (await verifyAccessToken(token)).sub
 
         const { error: checkData, data: userData} = await supabase.from("profiles").select("*").eq("id", id).single()
 
