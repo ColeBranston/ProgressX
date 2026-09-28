@@ -1,9 +1,14 @@
 import dri from "@/data/dietaryReferenceIntakes.json";
 
+// "target": reach at least `total` (most vitamins and minerals).
+// "limit": stay at or under `total` (sodium) - more is worse, not better.
+export type MicroNutrientKind = "target" | "limit"
+
 export type MicroNutrient = {
     name: string,
     total: number,
-    measure: string
+    measure: string,
+    kind: MicroNutrientKind
 }
 
 // Canonical list of the micronutrients tracked in the Micros analytics list -
@@ -11,7 +16,7 @@ export type MicroNutrient = {
 // (mydiet/FoodItemForm.tsx), and the display-preferences settings panel
 // (mydiet/MicronutrientSettings.tsx), and used server-side (api/diet/preferences)
 // to validate a user's saved preference.
-export const MICRONUTRIENT_DEFS: { name: string, measure: string }[] = [
+export const MICRONUTRIENT_DEFS: { name: string, measure: string, kind?: MicroNutrientKind }[] = [
     { name: "Vitamin A", measure: "μg" },
     { name: "Vitamin D", measure: "IU" },
     { name: "Vitamin E", measure: "mg" },
@@ -31,6 +36,7 @@ export const MICRONUTRIENT_DEFS: { name: string, measure: string }[] = [
     { name: "Calcium", measure: "mg" },
     { name: "Magnesium", measure: "mg" },
     { name: "Potassium", measure: "mg" },
+    { name: "Sodium", measure: "mg", kind: "limit" },
     { name: "Zinc", measure: "mg" },
     { name: "Iodine", measure: "μg" },
 ]
@@ -68,7 +74,7 @@ function findGroup<T extends { group: string, ageRange: string }>(groups: T[], g
 // `displayedNames`, when passed, filters the result down to just those names (in
 // MICRONUTRIENT_DEFS order) - this is how the user's saved display preference
 // (diet_config.displayed_micronutrients) narrows what shows on the diet page.
-// Omit it (or pass an empty array) to get all 21, same as before.
+// Omit it (or pass an empty array) to get all of them.
 export function getMicronutrientTargets(genderInput: unknown, ageInput: unknown, displayedNames?: string[]): MicroNutrient[] {
     const group = resolveGender(genderInput)
     const ageRange = resolveAgeRange(ageInput)
@@ -101,6 +107,8 @@ export function getMicronutrientTargets(genderInput: unknown, ageInput: unknown,
         "Calcium": caGroup?.calcium.rdaAiMg ?? 0,
         "Magnesium": feGroup?.magnesium.rdaMg ?? 0,
         "Potassium": znGroup?.potassium.aiMg ?? 0,
+        // a daily limit: Health Canada's chronic disease risk reduction level (CDRR), 2,300 mg for ages 14+
+        "Sodium": znGroup?.sodium.cdrrMg ?? 2300,
         "Zinc": znGroup?.zinc.rdaMg ?? 0,
         "Iodine": caGroup?.iodine.rdaUg ?? 0,
     }
@@ -109,5 +117,5 @@ export function getMicronutrientTargets(genderInput: unknown, ageInput: unknown,
 
     return MICRONUTRIENT_DEFS
         .filter((def) => !allow || allow.has(def.name))
-        .map((def) => ({ name: def.name, total: totals[def.name] ?? 0, measure: def.measure }))
+        .map((def) => ({ name: def.name, total: totals[def.name] ?? 0, measure: def.measure, kind: def.kind ?? "target" }))
 }

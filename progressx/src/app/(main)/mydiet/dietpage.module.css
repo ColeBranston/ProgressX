@@ -7,8 +7,7 @@
 .mainContainer {
     flex: 1;
     min-width: 0;
-    height: 100vh;
-    height: 100dvh;
+    height: var(--app-height); /* full screen, minus the top bar on phones */
     overflow-y: auto;
     box-sizing: border-box;
     padding: 32px 40px 48px;
@@ -28,8 +27,7 @@
 .pageLoadingContainer {
     flex: 1;
     min-width: 0;
-    height: 100vh;
-    height: 100dvh;
+    height: var(--app-height); /* full screen, minus the top bar on phones */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -711,4 +709,52 @@
     display: none;
     width: 0;
     height: 0;
+}
+
+/* ---------- Phones ---------- */
+
+@media (max-width: 900px) {
+    /* no sidebar next to it on phones, so the scrollbar goes back on the right */
+    .mainContainer {
+        direction: ltr;
+    }
+}
+
+@media (max-width: 560px) {
+    /* week picker on one line: the seven day pills share the width */
+    .pageHeader {
+        align-items: stretch;
+    }
+
+    .daysDots {
+        width: 100%;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        gap: 4px;
+    }
+
+    .dayDial {
+        flex: 1;
+        min-width: 0;
+        gap: 4px;
+    }
+
+    .dayPill {
+        flex: 1;
+        min-width: 0;
+        width: auto;
+        height: 50px;
+        border-radius: 12px;
+    }
+
+    .todayButton {
+        width: 36px;
+        height: 36px;
+        margin-right: 0;
+    }
+
+    .weekNavButton {
+        padding: 0 2px;
+        font-size: 24px;
+    }
 }

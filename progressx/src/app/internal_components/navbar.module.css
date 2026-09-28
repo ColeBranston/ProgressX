@@ -127,3 +127,119 @@
   font-family: var(--secondary-font-family);
   font-size: 10px;
 }
+/* ---------- Phones / small tablets: top bar + slide-in menu ---------- */
+
+.mobileBar,
+.closeButton,
+.backdrop {
+  display: none;
+}
+
+.menuButton,
+.closeButton {
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  fill: none;
+  stroke: white;
+  stroke-width: 2;
+  cursor: pointer;
+  transition: background-color 0.15s ease, stroke 0.15s ease;
+}
+
+.menuButton:hover,
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.08);
+  stroke: rgba(var(--primary-color));
+}
+
+.menuButton:focus-visible,
+.closeButton:focus-visible {
+  outline: 2px solid rgba(var(--primary-color));
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .mobileBar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--mobile-nav-height);
+    padding: 0 8px 0 16px;
+    box-sizing: border-box;
+    background-color: rgb(11, 11, 11);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .menuButton {
+    display: flex;
+  }
+
+  /* smaller logo in the top bar (the global .mainLogo rules use !important) */
+  .mobileLogo :global(.mainLogo) {
+    width: auto !important;
+    height: auto !important;
+    font-size: 140% !important;
+  }
+
+  /* the sidebar becomes a drawer that slides in from the left */
+  .navBar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 60;
+    width: min(300px, 85vw);
+    height: auto;
+    box-sizing: border-box;
+    padding: 20px 24px 32px;
+    justify-content: flex-start;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 0.25s ease, visibility 0s linear 0.25s;
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.6);
+  }
+
+  .navOpen {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform 0.25s ease, visibility 0s;
+  }
+
+  .closeButton {
+    display: flex;
+    align-self: flex-end;
+    margin-bottom: 8px;
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+  }
+
+  .navbarList {
+    width: auto;
+  }
+
+  .navbarList li {
+    padding: 6px 0;
+  }
+}
+
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) {
+  .navBar,
+  .navOpen {
+    transition: none;
+  }
+}

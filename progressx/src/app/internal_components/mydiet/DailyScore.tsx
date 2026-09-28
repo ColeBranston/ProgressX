@@ -12,11 +12,26 @@ export type ScoreCategory = {
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, Number.isFinite(n) ? n : 0))
 
-// Average of consumed / target for each item with a target, each capped at 100%
-export function averageCompletion(items: { consumed: number, target: number }[]): number | null {
+type CompletionItem = { consumed: number, target: number, kind?: "target" | "limit" }
+
+// How far past a limit (e.g. sodium) you are: 1 at or under it, shrinking the further you go over
+function limitFactor({ consumed, target }: CompletionItem) {
+    return consumed <= target ? 1 : clamp01(1 - (consumed - target) / target)
+}
+
+// Average of consumed / target for "target" items (each capped at 100%). "limit" items (sodium)
+// never add credit, they only scale the result down when you go over them - so an empty day is
+// still 0%, and 100% needs every target met AND every limit respected.
+export function averageCompletion(items: CompletionItem[]): number | null {
     const tracked = items.filter((item) => item.target > 0)
+    const targets = tracked.filter((item) => item.kind !== "limit")
+    const limits = tracked.filter((item) => item.kind === "limit")
     if (tracked.length === 0) return null
-    return tracked.reduce((sum, item) => sum + clamp01(item.consumed / item.target), 0) / tracked.length
+
+    const base = targets.length > 0
+        ? targets.reduce((sum, item) => sum + clamp01(item.consumed / item.target), 0) / targets.length
+        : 1 // only limits are shown: staying under them is the whole goal
+    return base * limits.reduce((factor, item) => factor * limitFactor(item), 1)
 }
 
 // Same goal ranges as the calorie meter (CalorieTarget): full marks inside the range,

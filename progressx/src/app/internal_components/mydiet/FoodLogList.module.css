@@ -80,3 +80,47 @@
     font-family: var(--primary-font-family);
     text-align: center;
 }
+
+.itemSide {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* save-to-Quick-Add bookmark */
+.catalogButton {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.55);
+    stroke-width: 1.8;
+    cursor: pointer;
+    transition: background-color 0.15s ease, stroke 0.15s ease;
+}
+
+.catalogButton:hover:not(:disabled) {
+    background: rgba(var(--primary-color), 0.15);
+    stroke: rgba(var(--primary-color));
+}
+
+.catalogButton:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.catalogSaved {
+    fill: rgba(var(--primary-color));
+    stroke: rgba(var(--primary-color));
+}
+
+.catalogSaved:hover:not(:disabled) {
+    fill: none;
+}

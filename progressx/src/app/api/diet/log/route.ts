@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
+import { saveFoodToCatalog, withCatalogIds } from "../../libs/foodCatalog";
 
 // GET /api/diet/log?date=YYYY-MM-DD
 // Returns the signed-in user's food log entries for the given day (defaults to today).
@@ -26,7 +27,13 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ message: "Error fetching food log entries" }, { status: 500 })
     }
 
-    return NextResponse.json({ entries: data })
+    try {
+        return NextResponse.json({ entries: await withCatalogIds(userId, data ?? []) })
+    } catch (catalogError) {
+        // the log itself loaded fine; just don't mark anything as saved to Quick Add
+        console.log("Error matching entries to the catalog: ", catalogError)
+        return NextResponse.json({ entries: (data ?? []).map((entry) => ({ ...entry, catalog_item_id: entry.food_item_id })) })
+    }
 }
 
 // POST /api/diet/log
@@ -63,11 +70,25 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "name is required" }, { status: 400 })
         }
 
+        // Save to the quick-add catalog first so the log entry can point at it (that link is how
+        // the diet page knows this food is already in the catalog).
+        let catalogId: string | null = foodItemId
+        if (saveToCatalog) {
+            try {
+                catalogId = await saveFoodToCatalog(userId, {
+                    name, servingQty, servingUnit, calories, proteinG, carbsG, fatsG, fiberG, micronutrients,
+                })
+            } catch (catalogError) {
+                // Not fatal: the item is still logged for the day, just not saved to the catalog.
+                console.log("Error saving food item to catalog: ", catalogError)
+            }
+        }
+
         const { data, error } = await supabase
             .from("food_log_entries")
             .insert({
                 user_id: userId,
-                food_item_id: foodItemId,
+                food_item_id: catalogId,
                 log_date: logDate ?? new Date().toISOString().slice(0, 10),
                 name,
                 serving_qty: servingQty,
@@ -87,28 +108,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "Error adding food log entry" }, { status: 500 })
         }
 
-        if (saveToCatalog) {
-            const { error: catalogError } = await supabase.from("food_items").insert({
-                user_id: userId,
-                name,
-                serving_size: servingQty,
-                serving_unit: servingUnit,
-                calories,
-                protein_g: proteinG,
-                carbs_g: carbsG,
-                fats_g: fatsG,
-                fiber_g: fiberG,
-                micronutrients,
-            })
-
-            // Not fatal to the log entry itself - the item was still logged for
-            // the day, it just didn't get saved to the quick-add catalog.
-            if (catalogError) {
-                console.log("Error saving food item to catalog: ", catalogError)
-            }
-        }
-
-        return NextResponse.json({ entry: data }, { status: 201 })
+        const [entry] = await withCatalogIds(userId, [data]).catch(() => [{ ...data, catalog_item_id: data.food_item_id }])
+        return NextResponse.json({ entry }, { status: 201 })
     } catch (e) {
         const error = e instanceof Error ? e : new Error(String(e))
         console.log("Error adding food log entry: ", error.message)

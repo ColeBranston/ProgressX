@@ -15,6 +15,16 @@
     --secondary-font-family:'Inter', sans-serif !important;
 
     --primary-input-background-color: rgb(113, 113, 113, 0.1) !important;
+
+    /* height available to a page: the whole screen on desktop, minus the top bar on phones */
+    --mobile-nav-height: 56px;
+    --app-height: 100vh;
+}
+
+@supports (height: 100dvh) {
+    :root {
+        --app-height: 100dvh;
+    }
 }
 
 body {
@@ -54,4 +64,27 @@ body {
     height: 100% !important;
     display: flex !important;
     color: white !important;
+}
+
+/* Phones / small tablets: the navbar turns into a top bar (see Navbar), so pages stack below it */
+@media (max-width: 900px) {
+    :root {
+        --app-height: calc(100vh - var(--mobile-nav-height));
+    }
+
+    @supports (height: 100dvh) {
+        :root {
+            --app-height: calc(100dvh - var(--mobile-nav-height));
+        }
+    }
+
+    body {
+        flex-direction: column !important;
+    }
+
+    .mainWrapper {
+        padding-left: 0;
+        min-height: 0;
+        flex: 1;
+    }
 }

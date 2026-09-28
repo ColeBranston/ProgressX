@@ -6,7 +6,7 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 100vh;
+    height: var(--app-height); /* full screen, minus the top bar on phones */
     gap: 5%;
     padding-left: 13%;
 }
@@ -83,4 +83,33 @@
 
 .uploadButtonContainer div:hover svg {
     fill: rgba(var(--primary-color));
+}
+/* ---------- Phones: stack the two upload choices ---------- */
+@media (max-width: 900px) {
+    .uploadContainer {
+        box-sizing: border-box;
+        padding: 24px 16px;
+        justify-content: flex-start;
+        gap: 24px;
+        overflow-y: auto;
+    }
+
+    .uploadButtonContainer {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .uploadButtonContainer div {
+        width: 100%;
+        height: 200px;
+    }
+
+    .uploadButtonContainer div p {
+        font-size: 36px;
+    }
+
+    .uploadButtonContainer div svg {
+        max-width: 90px;
+        max-height: 90px;
+    }
 }

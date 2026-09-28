@@ -1,7 +1,7 @@
 
 .videoPlayerContainer {
     width: 100%;
-    height: 100vh;
+    height: var(--app-height); /* full screen, minus the top bar on phones */
     display: flex;
     justify-content: center;
     align-items: center;

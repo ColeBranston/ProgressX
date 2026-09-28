@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../../libs/helpers";
+import { saveFoodToCatalog, withCatalogIds } from "../../../libs/foodCatalog";
 
 const UPDATABLE_FIELDS: Record<string, string> = {
     name: "name",
@@ -18,6 +19,8 @@ const UPDATABLE_FIELDS: Record<string, string> = {
 // PATCH /api/diet/log/[id]
 // Edits an already-logged food item for a day. Scoped to the signed-in user
 // via .eq("user_id", userId) so one user can't edit another's entries.
+// With saveToCatalog: true it also saves the (updated) item to the quick-add catalog and links
+// the entry to it - that's how a food logged without "save to catalog" can be added later.
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const userId = await getUserIdFromRequest(req)
 
@@ -49,7 +52,38 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             return NextResponse.json({ message: "Error updating food log entry" }, { status: 500 })
         }
 
-        return NextResponse.json({ entry: data })
+        if (body.saveToCatalog === true && !data.food_item_id) {
+            const catalogId = await saveFoodToCatalog(userId, {
+                name: data.name,
+                servingQty: Number(data.serving_qty),
+                servingUnit: data.serving_unit,
+                calories: Number(data.calories),
+                proteinG: Number(data.protein_g),
+                carbsG: Number(data.carbs_g),
+                fatsG: Number(data.fats_g),
+                fiberG: Number(data.fiber_g),
+                micronutrients: data.micronutrients ?? {},
+            })
+
+            const { data: linked, error: linkError } = await supabase
+                .from("food_log_entries")
+                .update({ food_item_id: catalogId })
+                .eq("id", id)
+                .eq("user_id", userId)
+                .select()
+                .single()
+
+            if (linkError) {
+                console.log("Error linking food log entry to catalog: ", linkError)
+                return NextResponse.json({ message: "Saved to catalog, but couldn't link the entry" }, { status: 500 })
+            }
+
+            const [entry] = await withCatalogIds(userId, [linked])
+            return NextResponse.json({ entry })
+        }
+
+        const [entry] = await withCatalogIds(userId, [data]).catch(() => [{ ...data, catalog_item_id: data.food_item_id }])
+        return NextResponse.json({ entry })
     } catch (e) {
         const error = e instanceof Error ? e : new Error(String(e))
         console.log("Error updating food log entry: ", error.message)

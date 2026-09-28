@@ -157,3 +157,21 @@
     cursor: pointer;
     text-decoration: underline;
 }
+/* ---------- Phones ---------- */
+@media (max-width: 900px) {
+    .researchContainer {
+        box-sizing: border-box;
+        height: var(--app-height);
+        padding: 24px 16px;
+        overflow-y: auto;
+    }
+
+    .searchFormContainer,
+    .resultsScroll {
+        width: 100%;
+    }
+
+    .searchbar {
+        box-sizing: border-box;
+    }
+}

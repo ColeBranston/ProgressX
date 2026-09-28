@@ -7,8 +7,7 @@
 .page {
     flex: 1;
     min-width: 0;
-    height: 100vh;
-    height: 100dvh;
+    height: var(--app-height); /* full screen, minus the top bar on phones */
     overflow-y: auto;
     box-sizing: border-box;
     padding: 48px 40px;
@@ -344,6 +343,13 @@
 
     to {
         background-position: -100% 0;
+    }
+}
+
+@media (max-width: 900px) {
+    /* no sidebar next to it on phones, so the scrollbar goes back on the right */
+    .page {
+        direction: ltr;
     }
 }
 

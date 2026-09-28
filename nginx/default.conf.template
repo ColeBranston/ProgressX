@@ -36,6 +36,7 @@ limit_req_zone $binary_remote_addr zone=api_auth:10m rate=10r/m;    # 1 per 6s: 
 limit_req_zone $binary_remote_addr zone=api_upload:10m rate=30r/m;  # 1 per 2s: photo uploads (Cloudinary cost)
 limit_req_zone $binary_remote_addr zone=api_search:10m rate=2r/s;   # search (Solr queries)
 limit_req_zone $binary_remote_addr zone=api_general:10m rate=5r/s;  # every other /api route
+limit_req_zone $binary_remote_addr zone=solr_ingest:10m rate=20r/s;  # GitHub Actions Solr ingestion (/solr-ingest/)
 limit_req_status 429;
 limit_req_log_level warn;
 
@@ -46,6 +47,7 @@ server {
     # so rebuilding the app (which can change its IP) doesn't leave nginx pointing at a dead address
     resolver 127.0.0.11 valid=10s ipv6=off;
     set $frontend ${FRONTEND_URL};
+    set $solr ${SOLR_ORIGIN};
 
     # nginx defaults to 1 MB; phone photos are larger (the app caps uploads at 10 MB)
     client_max_body_size 12m;
@@ -82,6 +84,40 @@ server {
     location /api/ {
         limit_req zone=api_general burst=30 nodelay;
         proxy_pass $frontend;
+    }
+
+    # ---------- Solr ingestion for the GitHub Actions ETL (.github/workflows/schedule.yml) ----------
+    # Point the SOLR_PROD_URL secret at https://github-actions:<password>@progressx.ca/solr-ingest/
+    # (the full value is in nginx/solr-ingest-url.txt, which is gitignored). pysolr/requests send the
+    # user:password from the URL as HTTP Basic auth, so the workflow code doesn't change.
+    # Only the two ingestion cores' select + update handlers are reachable; everything else in Solr
+    # (admin, config, other cores) stays private.
+    location ^~ /solr-ingest/ {
+        auth_basic "ProgressX Solr ingestion";
+        auth_basic_user_file /etc/nginx/solr-ingest.htpasswd;
+        limit_req zone=solr_ingest burst=100 nodelay;
+
+        # the clean migration sends/reads 20,000 documents per request
+        client_max_body_size 100m;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+
+        location ~ ^/solr-ingest/(raw_ingestion_data|clean_ingestion_data)/(select|update)/?$ {
+            limit_except GET POST {
+                deny all;
+            }
+
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Authorization "";  # Solr itself has no auth; don't forward the credentials
+
+            rewrite ^/solr-ingest/(.*)$ /solr/$1 break;
+            proxy_pass $solr;
+        }
+
+        return 404;
     }
 
     location / {

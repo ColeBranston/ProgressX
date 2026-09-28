@@ -31,3 +31,6 @@ yarn-error.log*
 
 cloudflare.crt
 cloudflare.key
+# Solr ingestion credentials (see nginx/default.conf.template, /solr-ingest/)
+nginx/*.htpasswd
+nginx/solr-ingest-url.txt

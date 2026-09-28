@@ -500,7 +500,7 @@ export default function DietPage() {
         }
     }
 
-    async function handleEditSubmit(values: FoodItemFormValues) {
+    async function handleEditSubmit(values: FoodItemFormValues, opts: { saveToCatalog: boolean }) {
         if (!editingEntry) return
 
         try {
@@ -516,7 +516,8 @@ export default function DietPage() {
                     carbsG: values.carbsG,
                     fatsG: values.fatsG,
                     fiberG: values.fiberG,
-                    micronutrients: values.micronutrients
+                    micronutrients: values.micronutrients,
+                    saveToCatalog: opts.saveToCatalog
                 })
             })
 
@@ -529,6 +530,46 @@ export default function DietPage() {
             }
         } catch (err) {
             console.error("Failed to update food log entry: ", err)
+        }
+    }
+
+    // The Food Log bookmark: saves a logged food to the quick-add catalog, or removes it again.
+    // Removing only deletes the catalog item - logged entries always stay.
+    const [ savingToCatalog, setSavingToCatalog ] = useState<Set<string>>(new Set())
+
+    async function toggleEntryInCatalog(target: FoodLogEntry) {
+        setSavingToCatalog((prev) => new Set(prev).add(target.id))
+        const sameFood = (entry: FoodLogEntry) => entry.name.trim().toLowerCase() === target.name.trim().toLowerCase()
+
+        try {
+            if (target.catalog_item_id) {
+                const removedId = target.catalog_item_id
+                const res = await fetch(`/api/diet/food-items/${removedId}`, { method: "DELETE" })
+                if (!res.ok) throw new Error(`status ${res.status}`)
+                setEntries((prev) => prev.map((entry) => (
+                    entry.catalog_item_id === removedId ? { ...entry, catalog_item_id: null, food_item_id: entry.food_item_id === removedId ? null : entry.food_item_id } : entry
+                )))
+            } else {
+                const res = await fetch(`/api/diet/log/${target.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ saveToCatalog: true })
+                })
+                if (!res.ok) throw new Error(`status ${res.status}`)
+                const json = await res.json()
+                // other entries of the same food that day are now in Quick Add too
+                setEntries((prev) => prev.map((entry) => (
+                    entry.id === json.entry.id ? json.entry : sameFood(entry) ? { ...entry, catalog_item_id: json.entry.catalog_item_id } : entry
+                )))
+            }
+        } catch (err) {
+            console.error("Failed to update Quick Add: ", err)
+        } finally {
+            setSavingToCatalog((prev) => {
+                const next = new Set(prev)
+                next.delete(target.id)
+                return next
+            })
         }
     }
 
@@ -562,6 +603,7 @@ export default function DietPage() {
         { label: "Micros", weight: 0.2, fraction: averageCompletion(microTargets.map((nutrient) => ({
             consumed: consumed.micronutrients[nutrient.name] ?? 0,
             target: nutrient.total,
+            kind: nutrient.kind,
         }))) },
     ]
 
@@ -682,6 +724,7 @@ export default function DietPage() {
                                             onSubmit={handleEditSubmit}
                                             onCancel={closeAddPanel}
                                             onDelete={handleDeleteEntry}
+                                            alreadyInCatalog={Boolean(editingEntry.catalog_item_id)}
                                         />
 
                                     : addItemType === "manual" ?
@@ -728,7 +771,7 @@ export default function DietPage() {
                                     }
                                 </div>
                             :
-                                <FoodLogList entries={entries} onSelect={openEntryForEdit} />
+                                <FoodLogList entries={entries} onSelect={openEntryForEdit} onToggleCatalog={toggleEntryInCatalog} savingIds={savingToCatalog} />
                             }
                         </div>
                     </section>
@@ -770,9 +813,22 @@ export default function DietPage() {
                             <button type="button" className={styles.settingsButton} onClick={() => setShowSettings(true)} aria-label="Choose displayed micronutrients">⚙</button>
                         </div>
                         <div className={styles.microGrid}>
-                            {microTargets.map((nutrient) => (
-                                <AnalyticsBar key={nutrient.name} name={nutrient.name} val={Math.round(consumed.micronutrients[nutrient.name] ?? 0)} total={nutrient.total} colour={"red"} measure={nutrient.measure} size={'small'}/>
-                            ))}
+                            {microTargets.map((nutrient) => {
+                                const val = Math.round(consumed.micronutrients[nutrient.name] ?? 0)
+                                // limits (sodium) read "x/2300 mg max" and turn amber once you're over
+                                const isLimit = nutrient.kind === "limit"
+                                return (
+                                    <AnalyticsBar
+                                        key={nutrient.name}
+                                        name={nutrient.name}
+                                        val={val}
+                                        total={nutrient.total}
+                                        colour={isLimit && val > nutrient.total ? "#ff9f0a" : "red"}
+                                        measure={isLimit ? `${nutrient.measure} max` : nutrient.measure}
+                                        size={'small'}
+                                    />
+                                )
+                            })}
                         </div>
                     </section>
                 </div>

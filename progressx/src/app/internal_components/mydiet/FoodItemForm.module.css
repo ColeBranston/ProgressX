@@ -213,3 +213,10 @@
     color: white;
     margin-right: auto;
 }
+
+.catalogNote {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-size: 13px;
+    opacity: 0.6;
+}

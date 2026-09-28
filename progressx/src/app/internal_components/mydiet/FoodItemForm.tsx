@@ -35,13 +35,15 @@ type FoodItemFormProps = {
     onSubmit: (values: FoodItemFormValues, opts: { saveToCatalog: boolean }) => Promise<void> | void
     onCancel: () => void
     onDelete?: () => void
+    // edit mode: the entry is already linked to a quick-add catalog item
+    alreadyInCatalog?: boolean
 }
 
 // Full macro + micronutrient entry form, used both for manually adding a food
 // item to the day's log and for editing an already-logged item. "Quick add"
 // also renders this form, pre-filled from a saved catalog item, so the user
 // can tweak amounts before submitting.
-export default function FoodItemForm({ mode, initialValues, onSubmit, onCancel, onDelete }: FoodItemFormProps) {
+export default function FoodItemForm({ mode, initialValues, onSubmit, onCancel, onDelete, alreadyInCatalog = false }: FoodItemFormProps) {
     const [values, setValues] = useState<FoodItemFormValues>({
         ...EMPTY_VALUES,
         ...initialValues,
@@ -131,12 +133,14 @@ export default function FoodItemForm({ mode, initialValues, onSubmit, onCancel, 
                     </div>
                     : null}
 
-                {mode === 'create' ?
+                {alreadyInCatalog ?
+                    <p className={styles.catalogNote}>In your Quick Add catalog</p>
+                :
                     <label className={styles.checkboxRow}>
                         <input type='checkbox' checked={saveToCatalog} onChange={(e) => setSaveToCatalog(e.target.checked)} />
                         Save to my food catalog for quick re-add
                     </label>
-                    : null}
+                }
             </div>
 
             <div className={styles.actions}>
