@@ -1,0 +1,90 @@
+# ProgressX privacy program
+
+ProgressX collects health and fitness information (body measurements, diet, water and workout logs,
+progress photos) from users in Canada. That makes it a private-sector organization under **PIPEDA**,
+and the information is *sensitive*, which raises the bar for consent and safeguards. Provincial
+health-information laws (Ontario's PHIPA, Alberta's HIA and others) apply to health information
+custodians such as clinicians and hospitals; ProgressX isn't one while users enter their own data.
+Revisit that if ProgressX ever receives data from, or shares it with, health care providers.
+
+This folder holds the written parts of the program. The rest is built into the app (see the table below).
+
+**Privacy Officer:** Cole Branston, cole.branston@progressx.ca. Accountable for everything here and
+named in the privacy policy.
+
+## PIPEDA's 10 principles: where each is handled
+
+| Principle | How ProgressX meets it |
+|---|---|
+| 1. Accountability | Named Privacy Officer; this program; written agreements with service providers (see *Vendors*) |
+| 2. Identifying purposes | Privacy policy (`/privacy`), sections 02–04 |
+| 3. Consent | Express consent at sign-up (18+ and terms/policy checkboxes); `/consent` for Google sign-ups, older accounts and every policy change (`TERMS_VERSION` in `progressx/src/app/internal_components/legal/legalInfo.ts`); each agreement recorded in `consent_events` |
+| 4. Limiting collection | Only what the features need; uploaded photos are re-encoded, which drops GPS location and other metadata |
+| 5. Limiting use, disclosure, retention | No selling or advertising use; data kept while the account is active and deleted immediately on account deletion (see *Retention*) |
+| 6. Accuracy | Users can edit their profile and logs in the app |
+| 7. Safeguards | TLS; hashed passwords (Supabase Auth); row-level security on every table; httpOnly session cookies; nginx rate limits; upload validation and re-encoding (`api/libs/imageUpload.ts`); no health details in server logs |
+| 8. Openness | Privacy policy and terms linked from sign-up and the app |
+| 9. Individual access | Settings > Your data > **Download my data** (`GET /api/user/export`); other requests answered within 30 days (see *Requests*) |
+| 10. Challenging compliance | Complaints to the Privacy Officer; policy points to the Office of the Privacy Commissioner of Canada |
+
+Breach reporting and record-keeping: [breach-response-plan.md](breach-response-plan.md) and
+[breach-register.md](breach-register.md).
+
+## Data inventory
+
+| Data | Where | Deleted by |
+|---|---|---|
+| Email, password hash, Google identity | Supabase Auth (`auth.users`), US | Account deletion |
+| Profile (name, username, bio, age, gender, height, weight, activity level, privacy settings) | `profiles` | Cascade from `auth.users` |
+| Settings, diet preferences | `user_settings`, `diet_config` | Cascade |
+| Food catalog and food log | `food_items`, `food_log_entries` | Cascade |
+| Water log | `water_log_entries` | Cascade |
+| Workout splits and sets | `workout_splits`, `workout_sets`, `workout_routines` | Cascade |
+| Progress photo records | `photo_collection` | Cascade |
+| Consent records | `consent_events` | Cascade |
+| Profile picture and progress photo files | Cloudinary (tagged `user_<id>`) | `deleteUserImages` in `api/libs/accountData.ts`, run before the database delete |
+| Session cookies | User's browser | Log out / account deletion |
+| Cached profile copy | User's browser (localStorage) | Log out / account deletion |
+| Search queries (not linked to accounts) | Redis cache, Solr | Cache expiry |
+| Request logs (IP, path) | nginx / Docker logs on the server | Rotated automatically: at most 5 x 10 MB per container (`docker-compose.yml`) |
+
+When you add a new table or file store with user data, add it here, to `USER_TABLES` in
+`api/libs/accountData.ts` (for the export) and make sure it cascades from `profiles` (for deletion).
+
+## Retention
+
+- Active accounts: kept while the account exists.
+- Account deletion (Settings > Your data > Delete account): Cloudinary images are deleted first (with
+  CDN invalidation), then the auth user, which cascades to every table. Immediate.
+- Backups: Supabase and Cloudinary backups expire on their own schedule; the policy promises removal
+  within 30 days. Check your Supabase plan's backup retention matches.
+- Server logs: rotated automatically by Docker (5 x 10 MB per container), and health details are never written to them.
+
+## Requests (access, correction, deletion, withdrawal)
+
+Most are self-serve in Settings. For emailed requests to the Privacy Officer:
+
+1. Verify identity: reply from the account's email address, or ask the person to sign in and use the in-app tools.
+2. Respond within **30 days** (PIPEDA). An extension of up to 30 more days is allowed only with written notice explaining why.
+3. Access: have them use Download my data, or run the same export for them.
+4. Deletion: have them use Delete account. If they can't sign in, delete from the Supabase dashboard
+   *after* removing their Cloudinary images (tag `user_<id>`).
+5. Keep a short note of the request, date received and date completed (no health details) for 24 months.
+
+## Vendors (service providers)
+
+| Vendor | Data | To do |
+|---|---|---|
+| Supabase | Everything in the database, auth | Accept their Data Processing Addendum (DPA) in the dashboard |
+| Cloudinary | Photos | Accept their DPA |
+| Google | Sign-in identity | Covered by Google Cloud / OAuth terms |
+| Cloudflare | All traffic (tunnel) | Accept their DPA |
+
+## Still to do outside the code
+
+- [ ] Enable **leaked password protection** in Supabase (Auth > Settings); the Supabase security advisor flags it as off
+- [ ] Accept each vendor's DPA (table above)
+- [ ] Have a Canadian privacy lawyer review the privacy policy, terms and this program before launch
+- [ ] If you accept users in Quebec (Law 25): complete a privacy impact assessment for storing data outside Quebec, and publish the Privacy Officer's name and title (done in the policy)
+- [ ] Consider signed (private) Cloudinary delivery for progress photos, so an image URL alone can't be opened
+- [ ] Review this program once a year, and whenever a new kind of data is collected

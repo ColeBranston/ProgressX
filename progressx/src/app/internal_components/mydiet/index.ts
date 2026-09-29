@@ -9,7 +9,8 @@ export { default as MonthCalendar } from './MonthCalendar'
 export { default as QuickAddScaler } from './QuickAddScaler'
 export { default as WaterTracker, formatVolume } from './WaterTracker'
 export { getWaterTargetMl } from './waterTarget'
-export { default as DailyScore, averageCompletion, calorieGoalCompletion } from './DailyScore'
+export { default as DailyScore, averageCompletion, calorieGoalCompletion, getDailyScore } from './DailyScore'
+export { getScoreCategories, getMacroTargets, getTotalExpenditure, weightKgFromProfile } from './dietTargets'
 
 // Types
 
@@ -20,3 +21,4 @@ export type { FoodLogEntry } from './FoodLogList'
 export type { FoodItem } from './QuickAddScaler'
 export type { WaterLogEntry } from './WaterTracker'
 export type { ScoreCategory } from './DailyScore'
+export type { DayTotals, ScoreTargets, MacroTargets } from './dietTargets'

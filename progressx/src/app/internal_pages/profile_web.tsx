@@ -27,6 +27,18 @@ export default function ProfileWeb() {
 
         if (!selectedImage) return
 
+        // quick checks for a friendly message; the server re-checks and re-encodes every upload
+        if (selectedImage.type && !selectedImage.type.startsWith("image/")) {
+            alert("That file isn't an image. Choose a JPG, PNG, WebP or HEIC photo.")
+            e.target.value = ""
+            return
+        }
+        if (selectedImage.size > 10 * 1024 * 1024) {
+            alert("That photo is over 10 MB. Choose a smaller one.")
+            e.target.value = ""
+            return
+        }
+
         const form_data = new FormData()
 
         form_data.append("file", selectedImage)
@@ -48,8 +60,10 @@ export default function ProfileWeb() {
             setIsEdit(false)
 
         } else {
-            console.log("failed to update profile photo")
-            alert("failed to update profile photo")
+            const message = data.status === 429
+                ? "You're uploading too quickly. Wait a few seconds and try again."
+                : (await data.json().catch(() => null))?.message ?? "Couldn't update your profile picture."
+            alert(message)
         }
 
         e.target.value = "";
@@ -234,7 +248,7 @@ export default function ProfileWeb() {
 
                     <form>
                         <input type="file"
-                                accept="image/*"
+                                accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/avif"
                                 ref={pfpImageForm}
                                 onChange={handleProfileImageChange}
                                 style={{ display: 'none' }}>

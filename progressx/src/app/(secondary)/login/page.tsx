@@ -4,15 +4,32 @@ import styles from './page.module.css';
 import { useContext, useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { IsLoadingContext } from '../../contexts/isLoading';
+import ConsentChecks, { ConsentState, consentPayload } from '@/app/internal_components/legal/ConsentChecks';
 
 // shown when nginx rate-limits login / signup (429)
 const TOO_MANY_ATTEMPTS = "Too many attempts. Please wait a minute and try again."
+
+// agreement ticked on the Sign Up tab before choosing Google, carried across the Google redirect
+const PENDING_CONSENT_KEY = "pendingConsent"
+
+function readPendingConsent() {
+  try {
+    const raw = sessionStorage.getItem(PENDING_CONSENT_KEY)
+    sessionStorage.removeItem(PENDING_CONSENT_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
 
 export default function Login() {
     const [loginActive, setLoginActive] = useState(true)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [tempPassword, setTempPassword] = useState('')
+    const [consent, setConsent] = useState<ConsentState>({ confirmedAge: false, acceptedTerms: false })
+    const [consentError, setConsentError] = useState(false)
+    const consentGiven = consent.confirmedAge && consent.acceptedTerms
     const router = useRouter();
     const { setIsLoading } = useContext(IsLoadingContext)
 
@@ -39,7 +56,8 @@ export default function Login() {
               },
               body: JSON.stringify({
                 token: googleToken,
-                refreshToken
+                refreshToken,
+                ...readPendingConsent()
               }),
             });
       
@@ -71,9 +89,27 @@ export default function Login() {
       }}
     },[])
 
+    // Google sign-up from the Sign Up tab: needs the boxes ticked first, and remembers the agreement
+    // across the redirect so it can be recorded when Google sends them back
+    function startGoogleSignUp(event: React.MouseEvent<HTMLAnchorElement>) {
+      if (!consentGiven) {
+        event.preventDefault()
+        setConsentError(true)
+        return
+      }
+      try {
+        sessionStorage.setItem(PENDING_CONSENT_KEY, JSON.stringify(consentPayload(consent)))
+      } catch { /* storage unavailable: they'll be asked on the consent page instead */ }
+    }
+
     async function SignUpForm(event: React.FormEvent<HTMLFormElement>) {
       event.preventDefault();
     
+      if (!consentGiven) {
+        setConsentError(true)
+        return
+      }
+
       if (password === tempPassword) {
         try {
           setIsLoading(true)
@@ -86,6 +122,7 @@ export default function Login() {
             body: JSON.stringify({
               email: email,
               password: password,
+              ...consentPayload(consent),
             }),
           });
     
@@ -192,17 +229,18 @@ export default function Login() {
               <input required className={styles.inputField} placeholder='Email' type="email" onChange={(e)=>{setEmail(e.target.value)}}/>
               <input required className={styles.inputField} placeholder='Password' type="password" onChange={(e)=>{setPassword(e.target.value)}}/>
               <input required className={styles.inputField} placeholder='Confirm Password' type="password" onChange={(e)=>{setTempPassword(e.target.value)}}/>
+              <ConsentChecks value={consent} onChange={(next) => { setConsent(next); setConsentError(false) }} />
               <button className={styles.submitButton} type="submit">Sign Up</button>
               <p className={styles.orText}>Or</p>
-              <a href='/api/auth/login/google' className={styles.googleText}>
+              <a href='/api/auth/login/google' className={styles.googleText} onClick={startGoogleSignUp}>
                 <div className={styles.googleAuthButton}>
                   <svg viewBox="-3 0 262 262" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid"><path d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" fill="#4285F4"/><path d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1" fill="#34A853"/><path d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782" fill="#FBBC05"/><path d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251" fill="#EB4335"/></svg>
                   <p>Sign in with Google</p>
                 </div>
               </a>
-              <div className={styles.disclaimerContainer}>
-                  <p>By continuing you confirm you are 18 or older and have read and accept ProgressX&apos;s <a className={styles.disclaimerLinks} href='/privacy'>privacy policy</a> and <a className={styles.disclaimerLinks} href='/terms'>terms of service</a></p>
-              </div>
+              {consentError && !consentGiven ?
+                <p className={styles.consentError} role="alert">Please confirm you&apos;re 18 or older and agree to the terms to create an account.</p>
+              : null}
           </form>
       </div>) 
       

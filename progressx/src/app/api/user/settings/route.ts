@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// PATCH /api/user/settings  { blurProgressPhotos?, waterGoalMl?, profilePrivacy? }
+// PATCH /api/user/settings  { blurProgressPhotos?, waterGoalMl?, profilePrivacy?, weightUnit? }
 // Only the fields sent are changed. Returns the full, saved settings.
 export async function PATCH(req: NextRequest) {
     const userId = await getUserIdFromRequest(req)
@@ -49,6 +49,13 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ message: `waterGoalMl must be null or a whole number from ${WATER_GOAL_MIN_ML} to ${WATER_GOAL_MAX_ML}` }, { status: 400 })
         }
         settingsUpdate.water_goal_ml = goal
+    }
+
+    if ("weightUnit" in body) {
+        if (body.weightUnit !== "lb" && body.weightUnit !== "kg") {
+            return NextResponse.json({ message: "weightUnit must be \"lb\" or \"kg\"" }, { status: 400 })
+        }
+        settingsUpdate.weight_unit = body.weightUnit
     }
 
     let privacyUpdate: "public" | "private" | null = null

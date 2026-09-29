@@ -11,6 +11,7 @@ import {
   setSessionCookies,
   verifyAccessToken,
 } from "./app/api/libs/session"
+import { TERMS_VERSION } from "./app/internal_components/legal/legalInfo"
 
 type SessionCheck =
   | { status: "valid", userId: string, refreshed?: SessionTokens }
@@ -92,15 +93,17 @@ export async function middleware(req: NextRequest) {
     return res
   }
 
+  const path = req.nextUrl.pathname
+
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("isOnboarded")
+    .select("isOnboarded, terms_version")
     .eq("id", session.userId)
     .maybeSingle()
 
   if (error) {
     // a database hiccup is not a reason to log someone out; let the page load
-    console.log("Onboarding check failed, letting the request through: ", error.message)
+    console.log("Profile check failed, letting the request through: ", error.message)
     return next(req, session.refreshed)
   }
 
@@ -111,6 +114,19 @@ export async function middleware(req: NextRequest) {
     return res
   }
 
+  // Everyone must have agreed to the current terms + privacy policy (and confirmed 18+) before
+  // anything else: Google sign-ups, older accounts, and everyone again when TERMS_VERSION changes
+  const agreed = profile.terms_version === TERMS_VERSION
+  if (path === "/consent") {
+    return agreed ? redirect(req, profile.isOnboarded ? "/" : "/onboarding", session.refreshed) : next(req, session.refreshed)
+  }
+  if (!agreed) {
+    return redirect(req, "/consent", session.refreshed)
+  }
+
+  if (path === "/onboarding") {
+    return profile.isOnboarded ? redirect(req, "/", session.refreshed) : next(req, session.refreshed)
+  }
   if (!profile.isOnboarded) {
     return redirect(req, "/onboarding", session.refreshed)
   }
@@ -119,6 +135,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // pages that need a login, plus every API route except /api/auth/* (login, signup, logout)
-  matcher: ["/", "/research", "/profile", "/mystats", "/mydiet", "/settings", "/api/((?!auth).*)"],
+  // pages that need a login (plus the consent and onboarding steps), and every API route except
+  // /api/auth/* (login, signup, logout)
+  matcher: ["/", "/research", "/profile", "/mystats", "/mystats/:path*", "/mydiet", "/settings", "/consent", "/onboarding", "/api/((?!auth).*)"],
 }

@@ -235,8 +235,9 @@ export default function ProgressPhotosComponent() {
     function selectFile(file: File | undefined) {
         if (!file) return
 
-        if (!file.type.startsWith("image/")) {
-            setUploadError("That file isn't an image. Choose a JPG, PNG or WebP photo.")
+        // quick checks for a friendly message; the server re-checks and re-encodes every upload
+        if (file.type && !file.type.startsWith("image/")) {
+            setUploadError("That file isn't an image. Choose a JPG, PNG, WebP or HEIC photo.")
             return
         }
         if (file.size > MAX_UPLOAD_BYTES) {
@@ -556,7 +557,7 @@ export default function ProgressPhotosComponent() {
             : null}
 
             <input type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,image/avif"
                     ref={fileInput}
                     onChange={handleFileChange}
                     style={{ display: 'none' }}

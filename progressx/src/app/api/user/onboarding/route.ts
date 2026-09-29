@@ -1,12 +1,18 @@
 import { verifyAccessToken } from "@/app/api/libs/session";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
+import { LEGAL_MINIMUM_AGE } from "@/app/internal_components/legal/legalInfo";
 
 export async function POST(req: NextRequest) {
     const json = await req.json()
     const { username, name, height, weight, age, gender, activity} = json
 
-    console.log("Incoming details: ", username, name, height, weight, age, gender, activity)
+    // ProgressX is 18+ only (Terms of Service); the age entered here is the one used everywhere else
+    const ageNumber = Number(age)
+    if (!Number.isInteger(ageNumber) || ageNumber < LEGAL_MINIMUM_AGE || ageNumber > 120) {
+        return NextResponse.json({ message: `You must be ${LEGAL_MINIMUM_AGE} or older to use ProgressX` }, { status: 400 })
+    }
+
 
     const token = req.cookies?.get('token')?.value
 
@@ -22,7 +28,7 @@ export async function POST(req: NextRequest) {
                     display_name: name,
                     height_cm: height,
                     weight_lbs: weight,
-                    age,
+                    age: ageNumber,
                     gender,
                     activity_level: activity
                 }).eq('id', id)

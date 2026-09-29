@@ -1,0 +1,84 @@
+.figure {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.floor {
+    stroke: rgba(255, 255, 255, 0.12);
+    stroke-width: 1;
+}
+
+.scenery {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.limb,
+.torso {
+    stroke: rgba(255, 255, 255, 0.92);
+    stroke-linecap: round;
+}
+
+.limb {
+    stroke-width: 4.6;
+}
+
+.torso {
+    stroke-width: 7;
+}
+
+.foot {
+    stroke-width: 3.6;
+}
+
+.far {
+    stroke: rgba(255, 255, 255, 0.3);
+}
+
+.head {
+    fill: rgba(255, 255, 255, 0.92);
+}
+
+.plate,
+.handle,
+.pad {
+    fill: rgb(226, 0, 0);
+}
+
+.hub {
+    fill: #0b0b0b;
+}
+
+.bar,
+.dumbbell,
+.plateSide,
+.platform {
+    stroke: rgb(226, 0, 0);
+    stroke-linecap: round;
+}
+
+.bar {
+    stroke-width: 2.4;
+}
+
+.dumbbell {
+    stroke-width: 4.2;
+}
+
+.plateSide {
+    stroke-width: 4;
+}
+
+.platform {
+    stroke-width: 3.4;
+}
+
+.cable {
+    stroke: rgba(255, 255, 255, 0.35);
+    stroke-width: 0.8;
+}

@@ -1,45 +1,29 @@
-import { verifyAccessToken } from "@/app/api/libs/session";
 import { NextRequest, NextResponse } from "next/server";
 import CloudinaryService from "@/app/cloundinaryClient/CloudinaryService";
 import { supabase } from "@/app/supabaseClient/client";
+import { getUserIdFromRequest } from "@/app/api/libs/helpers";
+import { cloudinaryImageOptions, ImageUploadError, imageDataUri, readSafeImageUpload } from "@/app/api/libs/imageUpload";
 
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024 // Cloudinary's free-plan image limit
-
+// POST /api/user/userImages/uploadUserImages  (multipart form, field "file")
+// Adds a progress photo. The upload is size-checked, type-checked from its bytes and re-encoded
+// (see libs/imageUpload) before it's stored.
 export async function POST(req: NextRequest) {
+    const id = await getUserIdFromRequest(req)
+    if (!id) return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
 
-    const cloudinary = CloudinaryService.getInstance()
+    let image: Buffer
+    try {
+        image = await readSafeImageUpload(req, { maxDimension: 2560 })
+    } catch (e) {
+        if (e instanceof ImageUploadError) return NextResponse.json({ message: e.message }, { status: e.status })
+        console.log("Error reading progress photo upload: ", e)
+        return NextResponse.json({ message: "Couldn't read that image" }, { status: 400 })
+    }
 
     try {
-        
-        const token = req.cookies.get("token")?.value
-        if (!token) return NextResponse.json({message: "Unauthorized"}, {status: 401})
+        const uploadResponse = await CloudinaryService.getInstance().uploader.upload(imageDataUri(image), cloudinaryImageOptions(id))
 
-        const id = (await verifyAccessToken(token)).sub
-
-        const formData = await req.formData();
-        const file = formData.get("file");
-
-        if (!(file instanceof File) || !file.type.startsWith("image/")) {
-            return NextResponse.json({message: "An image file is required"}, {status: 400})
-        }
-
-        if (file.size > MAX_UPLOAD_BYTES) {
-            return NextResponse.json({message: "Images must be 10 MB or smaller"}, {status: 413})
-        }
-
-        // Convert the file to a base64 string
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const base64 = `data:${file.type};base64,${buffer.toString("base64")}`;
-
-        const uploadResponse = await cloudinary.uploader.upload(base64, {
-        folder: "uploads",
-        });
-
-        console.log("Returned Data from Cloudinary upload:", uploadResponse);
-
-        console.log("User ID for image upload: ", id)
-
-        const {error: insertError, data: photo } = await supabase.from("photo_collection").insert({
+        const { error: insertError, data: photo } = await supabase.from("photo_collection").insert({
             user_id: id,
             image_link: uploadResponse.secure_url,
             description: ''
@@ -47,12 +31,14 @@ export async function POST(req: NextRequest) {
         .select("id, image_link, description, created_at")
         .single()
 
-        if (insertError) return NextResponse.json({message: "Error inserting image data into supabase"}, {status: 500})
+        if (insertError) {
+            console.log("Error saving progress photo: ", insertError)
+            return NextResponse.json({ message: "Error saving the photo" }, { status: 500 })
+        }
 
-        return NextResponse.json({ message: "Image uploaded", url: uploadResponse.secure_url, photo });
-
+        return NextResponse.json({ message: "Image uploaded", url: uploadResponse.secure_url, photo })
     } catch (e) {
-        console.log("Error Processing Image: ", e)
-        return NextResponse.json({message: "Error Processing Image: ", e}, {status: 500})
+        console.log("Error uploading progress photo: ", e)
+        return NextResponse.json({ message: "Error uploading the photo" }, { status: 500 })
     }
 }

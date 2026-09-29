@@ -1,0 +1,321 @@
+/* .mainWrapper's shared 5% left padding would leave a gap between the navbar and the scrollbar */
+:global(.mainWrapper).statsWrapper {
+    padding-left: 0;
+}
+
+/* body has overflow: hidden, so the page scrolls inside this container */
+.page {
+    flex: 1;
+    min-width: 0;
+    height: var(--app-height); /* full screen, minus the top bar on phones */
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    padding: 40px 40px 64px;
+
+    /* rtl puts the scrollbar on the left, right against the navbar (like the diet page);
+       content is switched back to ltr below */
+    direction: rtl;
+
+    /* red bar, no track (matches the other pages) */
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--primary-color)) transparent;
+}
+
+.page::-webkit-scrollbar {
+    width: 8px;
+}
+
+.page::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.page::-webkit-scrollbar-thumb {
+    background: rgb(var(--primary-color));
+    border-radius: 999px;
+}
+
+.page::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.page > * {
+    direction: ltr;
+}
+
+.content {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    color: var(--secondary-color);
+    font-family: var(--secondary-font-family);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.title {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-weight: 400;
+    font-size: 48px;
+    line-height: 1;
+    color: white;
+}
+
+.subtitle {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.tabs {
+    display: flex;
+    padding: 4px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.tabs a {
+    display: flex;
+    align-items: center;
+    height: 38px;
+    padding: 0 20px;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.65);
+    font-family: var(--primary-font-family);
+    font-size: 18px;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tabs a:hover {
+    color: white;
+}
+
+.tabs .tabActive {
+    background: rgba(var(--primary-color));
+    color: white;
+}
+
+.tabs a:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+/* ---------- Shared page pieces (used by both tabs) ---------- */
+
+.filterRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+}
+
+.filterLabel {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.segmented {
+    display: flex;
+    padding: 3px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.segmented button {
+    height: 32px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 9px;
+    background: none;
+    color: rgba(255, 255, 255, 0.65);
+    font-family: var(--secondary-font-family);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.segmented button:hover {
+    color: white;
+}
+
+.segmented button[aria-checked="true"],
+.segmented button[aria-pressed="true"] {
+    background: rgba(255, 255, 255, 0.14);
+    color: white;
+}
+
+.segmented button:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 1px;
+}
+
+.tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+}
+
+.grid2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.span2 {
+    grid-column: 1 / -1;
+}
+
+.smallMultiples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px 20px;
+}
+
+.multipleTitle {
+    margin: 0 0 2px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.note {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.loading {
+    min-height: 50vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border-radius: 100%;
+    border: 4px solid rgba(var(--primary-color), 0.25);
+    border-top-color: rgba(var(--primary-color));
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 56px 24px;
+    border-radius: 20px;
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    text-align: center;
+}
+
+.emptyTitle {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-size: 26px;
+    font-weight: 400;
+    color: white;
+}
+
+.emptyText {
+    margin: 0;
+    max-width: 420px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.primaryLink,
+.primaryButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(var(--primary-color));
+    color: white;
+    font-family: var(--primary-font-family);
+    font-size: 16px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.primaryLink:hover,
+.primaryButton:hover:not(:disabled) {
+    background: white;
+    color: rgba(var(--primary-color));
+}
+
+.primaryButton:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.errorText {
+    margin: 0;
+    font-size: 13px;
+    color: rgb(255, 110, 110);
+}
+
+@media (max-width: 900px) {
+    /* no sidebar next to it on phones, so the scrollbar goes back on the right */
+    .page {
+        direction: ltr;
+        padding: 24px 16px 48px;
+    }
+
+    .grid2 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .title {
+        font-size: 38px;
+    }
+}
+
+@media (max-width: 520px) {
+    .tabs {
+        width: 100%;
+    }
+
+    .tabs a {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spinner {
+        animation-duration: 2s;
+    }
+}

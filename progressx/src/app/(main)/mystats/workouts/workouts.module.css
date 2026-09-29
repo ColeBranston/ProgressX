@@ -1,0 +1,62 @@
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.subTabs {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.subTabs button {
+    height: 36px;
+    padding: 0 16px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: var(--primary-font-family);
+    font-size: 18px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.subTabs button:hover {
+    color: white;
+}
+
+.subTabs button[aria-selected="true"] {
+    color: white;
+    border-bottom-color: rgba(var(--primary-color));
+}
+
+.subTabs button:focus-visible {
+    outline: 2px solid white;
+    outline-offset: -2px;
+    border-radius: 6px;
+}
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+@media (max-width: 520px) {
+    .subTabs {
+        width: 100%;
+    }
+
+    .subTabs button {
+        flex: 1;
+        padding: 0 8px;
+        font-size: 16px;
+    }
+}

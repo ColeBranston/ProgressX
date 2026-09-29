@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'react'
 import styles from './onboarding.module.css'
 import { useRouter } from 'next/navigation';
 import { IsLoadingContext } from '@/app/contexts/isLoading';
+import { LEGAL_MINIMUM_AGE } from "@/app/internal_components/legal/legalInfo";
 
 export default function Onboarding() {
 
@@ -92,7 +93,8 @@ export default function Onboarding() {
             router.replace("/")
         } else {
             setIsLoading(false)
-
+            const message = (await data.json().catch(() => null))?.message
+            alert(message ?? "Couldn't save your details, please try again.")
         }
     }
 
@@ -126,7 +128,7 @@ export default function Onboarding() {
                                     </div>
                                     <div className={styles.inputWrapper}>
                                         <label htmlFor='Age'>Age</label>
-                                        <input required id='Age'className={styles.inputField} placeholder='Age' type="number" onChange={(e) => {setAge(e.target.value)}}/>
+                                        <input required id='Age'className={styles.inputField} placeholder='Age' type="number" min={LEGAL_MINIMUM_AGE} max={120} step={1} onChange={(e) => {setAge(e.target.value)}}/>
                                     </div>
                                     <div className={styles.inputWrapper}>
                                         <label htmlFor='Weight'>Weight (lbs)</label>

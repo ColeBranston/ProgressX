@@ -1,0 +1,875 @@
+/* Shared styles for the Workouts tab components */
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    padding: 20px 22px;
+    border-radius: 20px;
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    font-family: var(--secondary-font-family);
+    color: white;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.cardTitle {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-weight: 400;
+    font-size: 24px;
+    color: white;
+}
+
+.muted {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.sectionLabel {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* ---------- Buttons & inputs ---------- */
+
+.button,
+.ghostButton,
+.dangerButton,
+.iconButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-shrink: 0;
+    height: 38px;
+    padding: 0 16px;
+    border-radius: 10px;
+    font-family: var(--secondary-font-family);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.button {
+    border: none;
+    background: rgba(var(--primary-color));
+    color: white;
+}
+
+.button:hover:not(:disabled) {
+    background: white;
+    color: rgba(var(--primary-color));
+}
+
+.ghostButton {
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.ghostButton:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+.dangerButton {
+    border: 1px solid rgba(var(--primary-color), 0.6);
+    background: transparent;
+    color: rgb(255, 100, 100);
+}
+
+.dangerButton:hover:not(:disabled) {
+    background: rgba(var(--primary-color));
+    color: white;
+}
+
+.iconButton {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 16px;
+}
+
+.iconButton:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.14);
+    color: white;
+}
+
+.button:disabled,
+.ghostButton:disabled,
+.dangerButton:disabled,
+.iconButton:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.button:focus-visible,
+.ghostButton:focus-visible,
+.dangerButton:focus-visible,
+.iconButton:focus-visible,
+.chip:focus-visible,
+.exerciseCard:focus-visible,
+.pickRow:focus-visible,
+.thumbButton:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+.input,
+.select {
+    height: 38px;
+    min-width: 0;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--primary-input-background-color);
+    color: white;
+    font-family: var(--secondary-font-family);
+    font-size: 14px;
+    outline: none;
+}
+
+.input:focus,
+.select:focus {
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.select option,
+.select optgroup {
+    background: #18181b;
+    color: white;
+}
+
+.error {
+    margin: 0;
+    font-size: 13px;
+    color: rgb(255, 110, 110);
+}
+
+/* ---------- Filters ---------- */
+
+.filterBar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.search {
+    width: 100%;
+    max-width: 360px;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chip {
+    height: 30px;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    font-family: var(--secondary-font-family);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.chip:hover {
+    border-color: rgba(255, 255, 255, 0.35);
+    color: white;
+}
+
+.chip[aria-pressed="true"] {
+    border-color: rgba(var(--primary-color));
+    background: rgba(var(--primary-color));
+    color: white;
+}
+
+/* ---------- Exercise library ---------- */
+
+.libraryGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 12px;
+}
+
+.exerciseCard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    background: var(--secondary-background-color);
+    color: white;
+    text-align: left;
+    font-family: var(--secondary-font-family);
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.exerciseCard:hover {
+    border-color: rgba(var(--primary-color), 0.6);
+}
+
+.stage {
+    border-radius: 12px;
+    background: radial-gradient(ellipse at 50% 60%, rgba(255, 255, 255, 0.05), transparent 70%), #0e0e10;
+    padding: 6px;
+}
+
+.exerciseName {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.15;
+}
+
+.tagRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+}
+
+.tag {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.07);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.tagPrimary {
+    background: rgba(var(--primary-color), 0.22);
+    color: rgb(255, 170, 170);
+}
+
+.emptyResults {
+    padding: 32px 0;
+    text-align: center;
+}
+
+/* ---------- Modal ---------- */
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.72);
+}
+
+.dialog {
+    display: flex;
+    flex-direction: column;
+    width: min(560px, 100%);
+    max-height: min(88vh, 900px);
+    border-radius: 22px;
+    background: #111113;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+    color: white;
+    font-family: var(--secondary-font-family);
+    outline: none;
+}
+
+.dialogWide {
+    width: min(920px, 100%);
+}
+
+.dialogHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 20px 12px;
+}
+
+.dialogTitle {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-size: 26px;
+    font-weight: 400;
+}
+
+.dialogBody {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 4px 20px 22px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--primary-color)) transparent;
+}
+
+/* ---------- Picker ---------- */
+
+.pickList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.pickRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 10px 6px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    color: white;
+    text-align: left;
+    font-family: var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.pickRow:hover {
+    border-color: rgba(var(--primary-color), 0.6);
+}
+
+.pickRow[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.pickThumb {
+    width: 64px;
+    flex-shrink: 0;
+}
+
+.pickText {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.pickName {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.pickMeta {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* ---------- Exercise detail ---------- */
+
+.detailGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.detailStage {
+    padding: 12px;
+}
+
+.cues {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.muscleLists {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.muscleLists p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.muscleLists strong {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.prGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.pr {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.prLabel {
+    margin: 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.prValue {
+    margin: 2px 0 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.prDate {
+    margin: 2px 0 0;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+/* ---------- Splits ---------- */
+
+.splitList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+}
+
+.splitActive {
+    border-color: rgba(var(--primary-color), 0.7);
+    box-shadow: inset 0 0 0 1px rgba(var(--primary-color), 0.35);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 9px;
+    border-radius: 999px;
+    background: rgba(var(--primary-color));
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.dayList {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.dayList li {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 14px;
+}
+
+.dayList li span:last-child {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.buttonRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.templateGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.templateCard {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    color: white;
+    text-align: left;
+    font-family: var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.templateCard:hover {
+    border-color: rgba(var(--primary-color), 0.7);
+}
+
+.templateCard:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+.templateCard strong {
+    font-family: var(--primary-font-family);
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.templateCard span {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* editor */
+
+.editor {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.editorDays {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px;
+}
+
+.editorDay {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.editorDayHeader {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.editorDayHeader .input {
+    flex: 1;
+    font-weight: 600;
+}
+
+.editorRow {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.25);
+}
+
+.editorRowName {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.editorRowFields {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.editorRowFields .input {
+    height: 30px;
+    padding: 0 8px;
+    font-size: 13px;
+}
+
+.setsInput {
+    width: 44px;
+}
+
+.repsInput {
+    width: 70px;
+}
+
+.rowActions {
+    display: flex;
+    gap: 4px;
+}
+
+.rowActions .iconButton {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+}
+
+/* ---------- Log ---------- */
+
+.logToolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+}
+
+.dateNav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dateLabel {
+    min-width: 150px;
+    text-align: center;
+    font-family: var(--primary-font-family);
+    font-size: 20px;
+}
+
+.logList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.logCard {
+    display: grid;
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 16px;
+    padding: 14px;
+    border-radius: 18px;
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    font-family: var(--secondary-font-family);
+}
+
+.thumbButton {
+    padding: 0;
+    border: none;
+    border-radius: 12px;
+    background: none;
+    cursor: pointer;
+    align-self: start;
+}
+
+.logMain {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.logTitleRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.logTitle {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-size: 20px;
+    font-weight: 400;
+    color: white;
+}
+
+.target {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+}
+
+.prBadge {
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    padding: 0 8px;
+    margin-left: 8px;
+    border-radius: 999px;
+    background: rgb(255, 159, 10);
+    color: #1a1000;
+    font-family: var(--secondary-font-family);
+    font-size: 11px;
+    font-weight: 700;
+    vertical-align: middle;
+}
+
+.hint {
+    margin: 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 12px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.setTable {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.setRow {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 4px 4px 8px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+}
+
+.setIndex {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 12px;
+}
+
+.setE1rm {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.addSetRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.fieldWrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 10px;
+    border-radius: 10px;
+    background: var(--primary-input-background-color);
+    border: 1px solid transparent;
+}
+
+.fieldWrap:focus-within {
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.fieldWrap input {
+    width: 58px;
+    border: none;
+    background: none;
+    outline: none;
+    color: white;
+    font-family: var(--secondary-font-family);
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+}
+
+.fieldWrap span {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* ---------- Progress ---------- */
+
+.prList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+@media (max-width: 760px) {
+    .detailGrid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .editorDays {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .splitList {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .setRow {
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+    }
+
+    .setE1rm {
+        display: none;
+    }
+
+    .logCard {
+        grid-template-columns: 76px minmax(0, 1fr);
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .libraryGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .exerciseName {
+        font-size: 16px;
+    }
+
+    .card {
+        padding: 16px 14px;
+    }
+
+    .backdrop {
+        padding: 10px;
+        align-items: flex-end;
+    }
+
+    .dialog {
+        max-height: 92vh;
+    }
+}

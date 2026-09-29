@@ -194,3 +194,12 @@
     margin-bottom: 16px;
   }
 }
+
+.consentError {
+  margin: 0;
+  width: 100%;
+  color: rgb(255, 110, 110);
+  font-family: var(--secondary-font-family);
+  font-size: 13px;
+  text-align: left;
+}

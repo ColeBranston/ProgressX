@@ -23,8 +23,10 @@ import {
     getWaterTargetMl,
     DailyScore,
     ScoreCategory,
-    averageCompletion,
-    calorieGoalCompletion
+    getScoreCategories,
+    getMacroTargets,
+    getTotalExpenditure,
+    weightKgFromProfile
 } from "../../internal_components/index"
 import { userDataContext } from '@/app/contexts/userData';
 
@@ -43,22 +45,6 @@ function entryToFormValues(entry: FoodLogEntry): FoodItemFormValues {
         fatsG: entry.fats_g,
         fiberG: entry.fiber_g,
         micronutrients: entry.micronutrients ?? {}
-    }
-}
-
-type dietConfigType = {
-    POUND2KG: number,
-    ActivityWeighting: Record<string, number>
-}
-
-const config: dietConfigType = {
-    POUND2KG: 0.45359237,
-    ActivityWeighting: {
-        "1": 1.2,
-        "2": 1.375,
-        "3": 1.55,
-        "4": 1.725,
-        "5": 1.9,
     }
 }
 
@@ -132,7 +118,7 @@ export default function DietPage() {
 
     // Derived from userData on every render - userData is loaded from localStorage
     // after the first render, so reading it once at mount gave 0 / NaN targets.
-    const weightKg = (Number(userData.weight) || 0) * config.POUND2KG
+    const weightKg = weightKgFromProfile(userData)
 
     const today = useMemo(() => dayjs(), [])
     const weekStart = useMemo(() => selectedDate.startOf('week'), [selectedDate])
@@ -161,29 +147,10 @@ export default function DietPage() {
         return totals
     }, [entries])
 
-    // Accurate equation for calculating the BMR of a man or woman without using body fat percentage (%)
-    const totalExpenditure = useMemo(() => {
-        const height = Number(userData?.height)
-        const age = Number(userData?.age)
-        let BMR: number
-        switch (userData.gender) {
-            case "male":
-                BMR = 10 * weightKg + 6.25 * height - 5 * age + 5
-                break
-
-            case "female":
-                BMR = 10 * weightKg + 6.25 * height - 5 * age - 161
-                break
-
-            default:
-                // "other" or not loaded yet: average of the two formulas
-                BMR = 10 * weightKg + 6.25 * height - 5 * age - 78
-        }
-
-        const weighting = config.ActivityWeighting[String(userData?.activity)]
-        if (!weighting || !Number.isFinite(BMR) || BMR <= 0) return 0
-        return Math.round(weighting * BMR)
-    }, [userData?.height, userData?.age, userData.gender, userData?.activity, weightKg])
+    const totalExpenditure = useMemo(
+        () => getTotalExpenditure(userData),
+        [userData]
+    )
 
     const recommendedWaterMl = useMemo(
         () => getWaterTargetMl({ weightLbs: userData.weight, gender: userData.gender, activity: userData.activity }),
@@ -192,9 +159,7 @@ export default function DietPage() {
     const waterTargetMl = customWaterGoalMl ?? recommendedWaterMl
     const waterConsumedMl = waterEntries.reduce((sum, entry) => sum + (Number(entry.amount_ml) || 0), 0)
 
-    const proteinTarget = Math.round(2.4 * weightKg)
-    const fatsTarget = Math.round(Math.max(0.6*(weightKg), 0.2*2100/9))
-    const carbsTarget = Math.round((2100 - (2.4*(weightKg)*4 + Math.max(0.6*(weightKg), 0.2*2100/9)*9))/4)
+    const { protein: proteinTarget, carbs: carbsTarget, fats: fatsTarget } = getMacroTargets(weightKg)
     const isToday = selectedDate.isSame(today, 'day')
 
     // Persists the goal state to the user's diet_config row so it's the
@@ -591,21 +556,16 @@ export default function DietPage() {
         }
     }
 
-    // Share of the day's targets met; only 100% when every tracked target is hit
-    const scoreCategories: ScoreCategory[] = [
-        { label: "Calories", weight: 0.3, fraction: calorieGoalCompletion(consumed.calories, totalExpenditure, goalState) },
-        { label: "Macros", weight: 0.3, fraction: averageCompletion([
-            { consumed: consumed.protein, target: proteinTarget },
-            { consumed: consumed.carbs, target: carbsTarget },
-            { consumed: consumed.fats, target: fatsTarget },
-        ]) },
-        { label: "Water", weight: 0.2, fraction: averageCompletion([{ consumed: waterConsumedMl, target: waterTargetMl }]) },
-        { label: "Micros", weight: 0.2, fraction: averageCompletion(microTargets.map((nutrient) => ({
-            consumed: consumed.micronutrients[nutrient.name] ?? 0,
-            target: nutrient.total,
-            kind: nutrient.kind,
-        }))) },
-    ]
+    const scoreCategories: ScoreCategory[] = getScoreCategories(
+        { ...consumed, waterMl: waterConsumedMl },
+        {
+            totalExpenditure,
+            goal: goalState,
+            macros: { protein: proteinTarget, carbs: carbsTarget, fats: fatsTarget },
+            waterMl: waterTargetMl,
+            micros: microTargets,
+        }
+    )
 
     if (initialLoading) {
         return (

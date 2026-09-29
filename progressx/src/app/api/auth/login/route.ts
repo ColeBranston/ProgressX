@@ -5,7 +5,6 @@ import { setSessionCookies } from "@/app/api/libs/session"
 export async function POST(req: Request) {
   const { email, password } = await req.json()
 
-  console.log(`Login request submitted, email: ${email}`)
 
   // a fresh client per login, so this user's session never sticks to the shared server client
   const { data, error } = await createAuthClient().auth.signInWithPassword({

@@ -1,7 +1,16 @@
+# Container logs (which include IP addresses and request paths) are rotated so they aren't kept
+# indefinitely: at most 5 files of 10 MB per service (see docs/privacy/README.md)
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   nginx:
     image: nginx:latest
     container_name: progressx-nginx
+    logging: *logging
     ports:
       - "${NGINX_PORT}:80"
     environment:
@@ -20,6 +29,7 @@ services:
   progressx:
     build: ./progressx
     container_name: progressx-app
+    logging: *logging
     env_file: ./progressx/.env.local
     environment:
       NODE_ENV: production
@@ -35,6 +45,7 @@ services:
   search_backend:
     build: ./data/search_backend
     container_name: progressx-search-backend
+    logging: *logging
     environment:
       PORT: ${SEARCH_BACKEND_PORT}
       python_backend_env: local
@@ -52,6 +63,7 @@ services:
   redis:
     image: redis:8-alpine
     container_name: progressx-redis
+    logging: *logging
     # pure cache: capped at 256 MB, evicts least-recently-used entries, nothing written to disk
     command: ["redis-server", "--port", "${REDIS_PORT}", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru", "--save", "", "--appendonly", "no"]
     ports:
@@ -61,6 +73,7 @@ services:
   solr:
     build: ./data/db
     container_name: progressx-solr
+    logging: *logging
     command: ["-f", "--user-managed"]
     environment:
       SOLR_PORT: ${SOLR_PORT}

@@ -48,7 +48,8 @@ type AgeRange = "9-13y" | "14-18y" | "19-30y" | "31-50y" | "51-70y" | ">70y"
 
 function resolveGender(gender: unknown): Gender {
     if (gender === "male" || gender === "female") return gender
-    console.error("User's Gender is apparently alien, defaulting DRI lookup to male: ", gender)
+    // null/undefined = the profile hasn't loaded from localStorage yet (first render), not worth logging
+    if (gender !== null && gender !== undefined) console.error("User's Gender is apparently alien, defaulting DRI lookup to male: ", gender)
     return "male"
 }
 

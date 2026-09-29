@@ -1,0 +1,502 @@
+/* ---------- Card ---------- */
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    padding: 20px 22px 18px;
+    border-radius: 20px;
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.cardTitle {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-weight: 400;
+    font-size: 22px;
+    color: white;
+}
+
+.cardSubtitle {
+    margin: 4px 0 0;
+    font-family: var(--secondary-font-family);
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.cardBody {
+    min-width: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* refetching: keep the previous render, faded, instead of flashing a skeleton */
+.dimmed {
+    opacity: 0.45;
+}
+
+.viewToggle {
+    display: flex;
+    flex-shrink: 0;
+    padding: 2px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.viewToggle button {
+    height: 26px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 7px;
+    background: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.viewToggle button[aria-pressed="true"] {
+    background: rgba(255, 255, 255, 0.14);
+    color: white;
+}
+
+.viewToggle button:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 1px;
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+}
+
+.legendItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.legendSwatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+}
+
+.bar.legendSwatch,
+.legendSwatch.bar {
+    background: rgb(226, 0, 0);
+}
+
+.legendSwatch.barMuted {
+    background: rgba(226, 0, 0, 0.45);
+}
+
+.lineKey {
+    display: inline-block;
+    width: 14px;
+    height: 2px;
+    border-radius: 1px;
+    flex-shrink: 0;
+}
+
+.key_primary {
+    background: rgb(226, 0, 0);
+}
+
+.key_muted {
+    background: rgba(255, 255, 255, 0.55);
+}
+
+.key_target {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* ---------- Chart surface ---------- */
+
+.chart {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+}
+
+.chart svg {
+    display: block;
+    overflow: visible;
+}
+
+.focusable:focus {
+    outline: none;
+}
+
+.focusable:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.7);
+    outline-offset: 4px;
+    border-radius: 6px;
+}
+
+.grid {
+    stroke: rgba(255, 255, 255, 0.07);
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+.baseline {
+    stroke: rgba(255, 255, 255, 0.22);
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+.axisText,
+.rowLabel {
+    font-family: var(--secondary-font-family);
+    font-size: 11px;
+    fill: rgba(255, 255, 255, 0.5);
+    font-variant-numeric: tabular-nums;
+}
+
+.rowLabel {
+    font-size: 12px;
+    fill: rgba(255, 255, 255, 0.75);
+}
+
+.valueText {
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    font-weight: 600;
+    fill: white;
+}
+
+.target {
+    stroke: rgba(255, 255, 255, 0.45);
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+.targetText,
+.valueText {
+    paint-order: stroke;
+    stroke: #0e0e10; /* halo so the label stays readable over bars and lines */
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
+.targetText {
+    font-family: var(--secondary-font-family);
+    font-size: 11px;
+    fill: rgba(255, 255, 255, 0.7);
+}
+
+.hit {
+    fill: transparent;
+}
+
+.barGroup {
+    outline: none;
+    cursor: default;
+}
+
+.bar {
+    fill: rgba(226, 0, 0, 0.45);
+    transition: fill 0.15s ease;
+}
+
+.barHighlight {
+    fill: rgb(226, 0, 0);
+}
+
+.barActive,
+.barGroup:focus-visible .bar {
+    fill: rgb(255, 60, 60);
+}
+
+.barGroup:focus-visible .hit {
+    fill: rgba(255, 255, 255, 0.04);
+}
+
+.noData {
+    stroke: rgba(255, 255, 255, 0.25);
+    stroke-width: 2;
+    stroke-linecap: round;
+}
+
+.crosshair {
+    stroke: rgba(255, 255, 255, 0.35);
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+.line {
+    fill: none;
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.seriesPrimary .line {
+    stroke: rgb(226, 0, 0);
+}
+
+.seriesMuted .line {
+    stroke: rgba(255, 255, 255, 0.5);
+}
+
+.dot {
+    stroke: #121214; /* surface ring */
+    stroke-width: 2;
+}
+
+.seriesPrimary .dot {
+    fill: rgb(226, 0, 0);
+}
+
+.seriesMuted .dot {
+    fill: rgb(170, 170, 175);
+}
+
+/* ---------- Tooltip ---------- */
+
+.tooltip {
+    position: absolute;
+    z-index: 5;
+    pointer-events: none;
+    min-width: 120px;
+    max-width: 220px;
+    padding: 9px 11px;
+    border-radius: 10px;
+    background: rgba(24, 24, 27, 0.97);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    font-family: var(--secondary-font-family);
+}
+
+.tooltipTitle {
+    margin: 0 0 5px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.tooltipRow {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+    white-space: nowrap;
+}
+
+.tooltipRow strong {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+}
+
+/* ---------- Heatmap ---------- */
+
+.heatGroup {
+    outline: none;
+}
+
+.heatGroup:focus-visible rect {
+    stroke: white;
+    stroke-width: 1.5;
+}
+
+.heatEmpty {
+    fill: transparent;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 1;
+}
+
+.heat1 { fill: rgba(226, 0, 0, 0.22); }
+.heat2 { fill: rgba(226, 0, 0, 0.38); }
+.heat3 { fill: rgba(226, 0, 0, 0.5); }
+.heat4 { fill: rgba(226, 0, 0, 0.72); }
+.heat5 { fill: rgb(235, 20, 20); }
+
+.heatOver {
+    fill: rgb(255, 159, 10);
+}
+
+.overMark {
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    font-weight: 700;
+    fill: #1a1000;
+    pointer-events: none;
+}
+
+.heatLegend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    font-family: var(--secondary-font-family);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.heatLegend i {
+    display: inline-block;
+    width: 16px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.heatLegend .heat1 { background: rgba(226, 0, 0, 0.22); }
+.heatLegend .heat2 { background: rgba(226, 0, 0, 0.38); }
+.heatLegend .heat3 { background: rgba(226, 0, 0, 0.5); }
+.heatLegend .heat4 { background: rgba(226, 0, 0, 0.72); }
+.heatLegend .heat5 { background: rgb(235, 20, 20); }
+
+.heatLegendOver,
+.heatLegendEmpty {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 10px;
+}
+
+.heatLegend .heatOver {
+    background: rgb(255, 159, 10);
+    color: #1a1000;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 9px;
+    line-height: 10px;
+    text-align: center;
+}
+
+.heatLegend .heatEmpty {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-sizing: border-box;
+}
+
+/* ---------- Table view ---------- */
+
+.tableWrap {
+    max-height: 320px;
+    overflow: auto;
+    border-radius: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--primary-color)) transparent;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--secondary-font-family);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+    padding: 8px 10px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    white-space: nowrap;
+}
+
+.table thead th {
+    position: sticky;
+    top: 0;
+    background: #141416;
+    color: rgba(255, 255, 255, 0.55);
+    font-weight: 500;
+}
+
+.table th:first-child,
+.table td:first-child {
+    text-align: left;
+}
+
+.table tbody th {
+    color: white;
+    font-weight: 500;
+}
+
+.table td {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ---------- Stat tile ---------- */
+
+.tile {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tileLabel {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.tileValue {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-weight: 600;
+    font-size: 28px;
+    line-height: 1.15;
+    color: white;
+}
+
+.tileUnit {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.tileDelta {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.deltaGood {
+    color: rgb(48, 209, 88);
+}
+
+.deltaBad {
+    color: rgb(255, 120, 110);
+}
+
+.tileCaption {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+@media (max-width: 700px) {
+    .card {
+        padding: 16px 14px 14px;
+    }
+
+    .tileValue {
+        font-size: 24px;
+    }
+}
