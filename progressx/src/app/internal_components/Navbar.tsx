@@ -155,7 +155,7 @@ export default function Navbar(){
             </li>
           </ul>
           <ul className={styles.secondaryList}>
-            <Link href="/"><li>Company</li></Link>
+            <Link href="/homepage"><li>Company</li></Link>
             <Link href="/"><li>Program</li></Link>
             <Link href="/terms"><li>Terms & Policies</li></Link>
             <li className={styles.watermark}>@2026 progressX</li>

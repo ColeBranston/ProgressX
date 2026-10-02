@@ -14,6 +14,8 @@ export type NewSet = { exerciseId: string, weightKg: number, reps: number, split
 type WorkoutLogProps = {
     date: string, // YYYY-MM-DD
     onDateChange: (date: string) => void,
+    choice: string | undefined,         // workout picked for this date ("splitId:dayIndex" or freestyle); undefined = suggest one
+    onChoiceChange: (choice: string) => void,
     splits: WorkoutSplit[],
     sets: WorkoutSet[],
     unit: WeightUnit,
@@ -21,6 +23,7 @@ type WorkoutLogProps = {
     onAddExtra: (exerciseId: string) => void,
     onAddSet: (set: NewSet) => Promise<boolean>,
     onDeleteSet: (set: WorkoutSet) => Promise<void>,
+    onDeleteSets: (sets: WorkoutSet[]) => Promise<boolean>,
     onOpenExercise: (exerciseId: string) => void,
     onGoToSplits: () => void,
 }
@@ -28,19 +31,17 @@ type WorkoutLogProps = {
 const FREESTYLE = "freestyle"
 
 export default function WorkoutLog(props: WorkoutLogProps) {
-    const { date, onDateChange, splits, sets, unit, extraExercises, onAddExtra, onAddSet, onDeleteSet, onOpenExercise, onGoToSplits } = props
+    const { date, onDateChange, choice: pickedChoice, onChoiceChange, splits, sets, unit, extraExercises, onAddExtra, onAddSet, onDeleteSet, onDeleteSets, onOpenExercise, onGoToSplits } = props
     const today = dayjs().format("YYYY-MM-DD")
     const active = splits.find((split) => split.is_active) ?? null
 
-    // "splitId:dayIndex" or freestyle; re-suggested whenever the date or active split changes
-    const [ choice, setChoice ] = useState(FREESTYLE)
+    // "splitId:dayIndex" or freestyle: what was picked for this date, else the active split's suggested day
+    const choice = pickedChoice ?? (active ? `${active.id}:${suggestedSplitDay(active, sets, date)}` : FREESTYLE)
     const [ picking, setPicking ] = useState(false)
+    const [ pendingChoice, setPendingChoice ] = useState<string | null>(null) // switch waiting on "replace or keep"
+    const [ replacing, setReplacing ] = useState(false)
 
-    useEffect(() => {
-        setChoice(active ? `${active.id}:${suggestedSplitDay(active, sets, date)}` : FREESTYLE)
-        // only when the day or the active split changes, not after every logged set
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [date, active?.id])
+    useEffect(() => { setPendingChoice(null) }, [date])
 
     const [ chosenSplit, chosenDay ] = useMemo(() => {
         if (choice === FREESTYLE) return [null, null] as const
@@ -52,6 +53,37 @@ export default function WorkoutLog(props: WorkoutLogProps) {
 
     const planned: SplitDayExercise[] = chosenSplit && chosenDay !== null ? chosenSplit.days[chosenDay].exercises : []
     const daySets = sets.filter((s) => s.performed_on === date)
+
+    // Sets already logged on this date for a different split day than `value`
+    const setsFromOtherDay = (value: string) => daySets.filter((s) => s.split_id !== null && `${s.split_id}:${s.split_day_index}` !== value)
+    const dayName = (set: WorkoutSet) => splits.find((split) => split.id === set.split_id)?.days[set.split_day_index ?? -1]?.name ?? "another workout"
+    const choiceName = (value: string) => {
+        if (value === FREESTYLE) return "Freestyle"
+        const [splitId, index] = value.split(":")
+        return splits.find((split) => split.id === splitId)?.days[Number(index)]?.name ?? "this workout"
+    }
+
+    function changeChoice(value: string) {
+        if (value === choice) return
+        if (setsFromOtherDay(value).length > 0) return setPendingChoice(value)
+        setPendingChoice(null)
+        onChoiceChange(value)
+    }
+
+    async function confirmSwitch(replace: boolean) {
+        if (!pendingChoice) return
+        if (replace) {
+            setReplacing(true)
+            const ok = await onDeleteSets(setsFromOtherDay(pendingChoice))
+            setReplacing(false)
+            if (!ok) return
+        }
+        onChoiceChange(pendingChoice)
+        setPendingChoice(null)
+    }
+
+    const conflicting = pendingChoice ? setsFromOtherDay(pendingChoice) : []
+    const conflictingNames = Array.from(new Set(conflicting.map(dayName)))
     const plannedIds = new Set(planned.map((p) => p.exerciseId))
     const others = Array.from(new Set([...daySets.map((s) => s.exercise_id), ...extraExercises])).filter((id) => !plannedIds.has(id) && EXERCISE_BY_ID[id])
 
@@ -80,7 +112,7 @@ export default function WorkoutLog(props: WorkoutLogProps) {
 
                 <label className={styles.dateNav}>
                     <span className={styles.muted}>Workout</span>
-                    <select className={styles.select} value={choice} onChange={(e) => setChoice(e.target.value)}>
+                    <select className={styles.select} value={pendingChoice ?? choice} onChange={(e) => changeChoice(e.target.value)} disabled={replacing}>
                         {splits.map((split) => (
                             <optgroup key={split.id} label={split.is_active ? `${split.name} (active)` : split.name}>
                                 {split.days.map((day, i) => <option key={i} value={`${split.id}:${i}`}>{day.name}</option>)}
@@ -92,6 +124,24 @@ export default function WorkoutLog(props: WorkoutLogProps) {
 
                 {plannedSets > 0 ? <span className={styles.muted}>{doneSets} of {plannedSets} planned sets logged</span> : null}
             </div>
+
+            {pendingChoice && conflicting.length > 0 ?
+                <div className={styles.switchConfirm} role="alertdialog" aria-labelledby="switch-title" aria-describedby="switch-text">
+                    <p id="switch-title" className={styles.switchTitle}>Switch this day to {choiceName(pendingChoice)}?</p>
+                    <p id="switch-text" className={styles.muted}>
+                        You already logged {conflicting.length} {conflicting.length === 1 ? "set" : "sets"} for {conflictingNames.join(" and ")} on this day.
+                        Replace them if they were logged by mistake, or keep them if you did both.
+                        Kept sets still count in your progress.
+                    </p>
+                    <div className={styles.buttonRow}>
+                        <button type="button" className={styles.dangerButton} disabled={replacing} onClick={() => confirmSwitch(true)}>
+                            {replacing ? "Removing…" : `Replace (remove ${conflicting.length} ${conflicting.length === 1 ? "set" : "sets"})`}
+                        </button>
+                        <button type="button" className={styles.ghostButton} disabled={replacing} onClick={() => confirmSwitch(false)}>Keep them too</button>
+                        <button type="button" className={styles.ghostButton} disabled={replacing} onClick={() => setPendingChoice(null)}>Cancel</button>
+                    </div>
+                </div>
+            : null}
 
             {splits.length === 0 ?
                 <div className={styles.hint}>

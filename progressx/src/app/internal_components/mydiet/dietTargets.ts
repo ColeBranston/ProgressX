@@ -47,11 +47,30 @@ export function getTotalExpenditure(userData: ProfileInput): number {
 
 export type MacroTargets = { protein: number, carbs: number, fats: number }
 
-export function getMacroTargets(weightKg: number): MacroTargets {
+// Daily calories to aim for: the middle of the calorie meter's range for each goal (see CalorieTarget)
+export function getCalorieTarget(totalExpenditure: number, goal: goalType): number {
+    if (!(totalExpenditure > 0)) return 0
+    if (goal === "Deficit") return totalExpenditure - 500
+    if (goal === "Surplus") return totalExpenditure + 250
+    return totalExpenditure
+}
+
+const FALLBACK_CALORIES = 2100 // used until the profile has enough details to estimate expenditure
+const PROTEIN_G_PER_KG = 2.4
+const FAT_SHARE_OF_CALORIES = 0.25 // inside the recommended 20-35% of calories
+const MIN_FAT_G_PER_KG = 0.6 // floor so fat never gets too low on a big deficit
+
+// Macro targets that add up to the day's calorie target: protein by body weight, fat as a share of
+// calories (never below the per-kg floor), and carbs fill whatever calories are left (never negative)
+export function getMacroTargets(weightKg: number, calorieTarget: number): MacroTargets {
+    const calories = calorieTarget > 0 ? calorieTarget : FALLBACK_CALORIES
+    const protein = PROTEIN_G_PER_KG * weightKg
+    const fats = Math.max(MIN_FAT_G_PER_KG * weightKg, (FAT_SHARE_OF_CALORIES * calories) / 9)
+    const carbs = Math.max(0, (calories - protein * 4 - fats * 9) / 4)
     return {
-        protein: Math.round(2.4 * weightKg),
-        fats: Math.round(Math.max(0.6 * weightKg, 0.2 * 2100 / 9)),
-        carbs: Math.round((2100 - (2.4 * weightKg * 4 + Math.max(0.6 * weightKg, 0.2 * 2100 / 9) * 9)) / 4),
+        protein: Math.round(protein),
+        fats: Math.round(fats),
+        carbs: Math.round(carbs),
     }
 }
 

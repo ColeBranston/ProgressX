@@ -22,7 +22,7 @@ named in the privacy policy.
 | 4. Limiting collection | Only what the features need; uploaded photos are re-encoded, which drops GPS location and other metadata |
 | 5. Limiting use, disclosure, retention | No selling or advertising use; data kept while the account is active and deleted immediately on account deletion (see *Retention*) |
 | 6. Accuracy | Users can edit their profile and logs in the app |
-| 7. Safeguards | TLS; hashed passwords (Supabase Auth); row-level security on every table; httpOnly session cookies; nginx rate limits; upload validation and re-encoding (`api/libs/imageUpload.ts`); no health details in server logs |
+| 7. Safeguards | TLS; hashed passwords (Supabase Auth); row-level security on every table; httpOnly session cookies; sign-ins end after 5 hours, or 15 minutes of inactivity (`api/libs/session.ts`); nginx rate limits; upload validation and re-encoding (`api/libs/imageUpload.ts`); no health details in server logs |
 | 8. Openness | Privacy policy and terms linked from sign-up and the app |
 | 9. Individual access | Settings > Your data > **Download my data** (`GET /api/user/export`); other requests answered within 30 days (see *Requests*) |
 | 10. Challenging compliance | Complaints to the Privacy Officer; policy points to the Office of the Privacy Commissioner of Canada |
@@ -75,16 +75,20 @@ Most are self-serve in Settings. For emailed requests to the Privacy Officer:
 
 | Vendor | Data | To do |
 |---|---|---|
-| Supabase | Everything in the database, auth | Accept their Data Processing Addendum (DPA) in the dashboard |
-| Cloudinary | Photos | Accept their DPA |
+| Supabase | Everything in the database, auth | DPA in effect |
+| Cloudinary | Photos | DPA in effect |
 | Google | Sign-in identity | Covered by Google Cloud / OAuth terms |
-| Cloudflare | All traffic (tunnel) | Accept their DPA |
+| Cloudflare | All traffic (tunnel) | DPA in effect |
 
 ## Still to do outside the code
 
-- [ ] Enable **leaked password protection** in Supabase (Auth > Settings); the Supabase security advisor flags it as off
-- [ ] Accept each vendor's DPA (table above)
-- [ ] Have a Canadian privacy lawyer review the privacy policy, terms and this program before launch
-- [ ] If you accept users in Quebec (Law 25): complete a privacy impact assessment for storing data outside Quebec, and publish the Privacy Officer's name and title (done in the policy)
-- [ ] Consider signed (private) Cloudinary delivery for progress photos, so an image URL alone can't be opened
+These need the account owner's logins or signature, so they can't be done from the code.
+
+- [ ] **Turn on FileVault** on the server Mac (System Settings > Privacy & Security > FileVault). The disk holding `.env.local` (all secret keys) is currently unencrypted.
+- [ ] **Two-factor sign-in** on the Supabase, Cloudinary, Cloudflare and Google accounts that run ProgressX
+- [x] DPAs with Supabase, Cloudinary and Cloudflare are in effect
+- [ ] **Leaked password protection** (Supabase > Authentication). Only available on a paid Supabase plan; the project is on the free plan, which also has no automatic backups.
+- [ ] **Lawyer review** of the privacy policy, terms and this folder before real users sign up
+- [x] Quebec: ProgressX isn't offered to Quebec residents (Terms of Service, section 01), so the Law 25 privacy impact assessment isn't needed. If that changes, finish and sign the draft in [quebec-pia.md](quebec-pia.md) **before** accepting Quebec users.
+- [ ] Consider signed (private) Cloudinary delivery for progress photos, so an image link alone can't be opened
 - [ ] Review this program once a year, and whenever a new kind of data is collected

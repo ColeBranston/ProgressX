@@ -56,7 +56,7 @@ export type Exercise = {
 export const EXERCISES: Exercise[] = [
     // ---------- Chest ----------
     {
-        id: "barbell-bench-press", name: "Barbell Bench Press", equipment: "Barbell", motion: "bench-press",
+        id: "barbell-bench-press", name: "Flat Barbell Bench Press", equipment: "Barbell", motion: "bench-press",
         primary: ["chest"], secondary: ["front-delts", "triceps"],
         cues: ["Shoulder blades pinched and down", "Lower the bar to mid-chest", "Drive your feet into the floor"],
     },
@@ -74,6 +74,16 @@ export const EXERCISES: Exercise[] = [
         id: "cable-crossover", name: "Cable Crossover", equipment: "Cable", motion: "cable-crossover",
         primary: ["chest"], secondary: ["front-delts"],
         cues: ["Slight forward lean", "Sweep the handles down and together", "Squeeze for a second at the bottom"],
+    },
+    {
+        id: "machine-chest-press", name: "Machine Chest Press", equipment: "Machine", motion: "machine-chest-press",
+        primary: ["chest"], secondary: ["front-delts", "triceps"],
+        cues: ["Handles at mid-chest height", "Shoulder blades back against the pad", "Press out without locking your elbows hard"],
+    },
+    {
+        id: "pec-deck", name: "Pec Deck", equipment: "Machine", motion: "pec-deck",
+        primary: ["chest"], secondary: ["front-delts"],
+        cues: ["Elbows at chest height, bent about 90°", "Squeeze the pads together in front of you", "Open slowly until you feel a stretch"],
     },
     {
         id: "push-up", name: "Push-Up", equipment: "Bodyweight", motion: "push-up", bodyweight: true,
@@ -113,6 +123,11 @@ export const EXERCISES: Exercise[] = [
         cues: ["Sit tall", "Pull the handle to your stomach", "Squeeze your shoulder blades together"],
     },
     {
+        id: "neutral-grip-row", name: "Neutral-Grip Row", equipment: "Cable", motion: "seated-row",
+        primary: ["upper-back", "lats"], secondary: ["biceps", "rear-delts", "forearms"],
+        cues: ["Palms facing each other (V-handle or neutral handles)", "Pull to your lower ribs, elbows close to your sides", "Chest up, don't rock back"],
+    },
+    {
         id: "deadlift", name: "Deadlift", equipment: "Barbell", motion: "deadlift",
         primary: ["hamstrings", "glutes", "lower-back"], secondary: ["traps", "quads", "forearms", "lats"],
         cues: ["Bar over mid-foot", "Push the floor away", "Lock out with your hips, not your back"],
@@ -140,7 +155,7 @@ export const EXERCISES: Exercise[] = [
         cues: ["Back against the pad", "Dumbbells start at ear height", "Press until arms are straight"],
     },
     {
-        id: "lateral-raise", name: "Lateral Raise", equipment: "Dumbbell", motion: "lateral-raise",
+        id: "lateral-raise", name: "Dumbbell Lateral Raise", equipment: "Dumbbell", motion: "lateral-raise",
         primary: ["side-delts"], secondary: ["traps"],
         cues: ["Lead with your elbows", "Raise to shoulder height", "Lower slowly"],
     },
@@ -148,6 +163,21 @@ export const EXERCISES: Exercise[] = [
         id: "rear-delt-fly", name: "Rear Delt Fly", equipment: "Dumbbell", motion: "rear-delt-fly",
         primary: ["rear-delts"], secondary: ["upper-back"],
         cues: ["Hinge forward, flat back", "Open your arms out to the sides", "Thumbs slightly down"],
+    },
+    {
+        id: "reverse-pec-deck", name: "Reverse Pec Deck", equipment: "Machine", motion: "reverse-pec-deck",
+        primary: ["rear-delts"], secondary: ["upper-back", "traps"],
+        cues: ["Chest against the pad, handles at shoulder height", "Sweep your arms back and out in a wide arc", "Don't shrug; lead with the back of your arms"],
+    },
+    {
+        id: "machine-shoulder-press", name: "Machine Shoulder Press", equipment: "Machine", motion: "machine-shoulder-press",
+        primary: ["front-delts", "side-delts"], secondary: ["triceps"],
+        cues: ["Handles start around ear height", "Back flat against the pad", "Press up until your arms are nearly straight"],
+    },
+    {
+        id: "machine-lateral-raise", name: "Machine Lateral Raise", equipment: "Machine", motion: "machine-lateral-raise",
+        primary: ["side-delts"], secondary: ["traps"],
+        cues: ["Pivot lines up with your shoulders", "Push out and up with your elbows", "Stop at shoulder height and lower slowly"],
     },
 
     // ---------- Arms ----------
@@ -167,9 +197,24 @@ export const EXERCISES: Exercise[] = [
         cues: ["Thumbs up, palms facing in", "Elbows stay still", "Full range of motion"],
     },
     {
-        id: "triceps-pushdown", name: "Triceps Pushdown", equipment: "Cable", motion: "pushdown",
+        id: "cable-curl", name: "Cable Curl", equipment: "Cable", motion: "cable-curl",
+        primary: ["biceps"], secondary: ["forearms"],
+        cues: ["Low pulley, straight bar or handle", "Elbows stay at your sides", "Keep tension at the bottom, don't let the stack touch"],
+    },
+    {
+        id: "machine-strict-curl", name: "Machine Strict Curl", equipment: "Machine", motion: "machine-curl",
+        primary: ["biceps"], secondary: ["forearms"],
+        cues: ["Upper arms flat on the pad", "Curl all the way up and squeeze", "Lower slowly to a full stretch"],
+    },
+    {
+        id: "machine-hammer-curl", name: "Machine Hammer Curl", equipment: "Machine", motion: "machine-curl",
+        primary: ["biceps", "forearms"], secondary: [],
+        cues: ["Neutral handles, thumbs up", "Upper arms stay on the pad", "Control the lowering"],
+    },
+    {
+        id: "triceps-pushdown", name: "Rope Triceps Pushdown", equipment: "Cable", motion: "pushdown",
         primary: ["triceps"], secondary: [],
-        cues: ["Elbows tucked at your sides", "Push down until your arms are straight", "Only your forearms move"],
+        cues: ["Elbows tucked at your sides", "Push down and pull the rope apart at the bottom", "Only your forearms move"],
     },
     {
         id: "skull-crusher", name: "Skull Crusher", equipment: "Barbell", motion: "skull-crusher",
@@ -199,6 +244,11 @@ export const EXERCISES: Exercise[] = [
         cues: ["Feet shoulder-width on the platform", "Lower until knees are near 90°", "Don't lock your knees"],
     },
     {
+        id: "hack-squat", name: "Hack Squat", equipment: "Machine", motion: "hack-squat",
+        primary: ["quads", "glutes"], secondary: ["hamstrings"],
+        cues: ["Back and shoulders flat against the pads", "Feet shoulder-width, mid-platform", "Lower until your thighs are at least parallel"],
+    },
+    {
         id: "romanian-deadlift", name: "Romanian Deadlift", equipment: "Barbell", motion: "romanian-deadlift",
         primary: ["hamstrings", "glutes"], secondary: ["lower-back", "forearms"],
         cues: ["Soft knees", "Push your hips back", "Bar slides down your thighs"],
@@ -219,9 +269,14 @@ export const EXERCISES: Exercise[] = [
         cues: ["Knee lines up with the pivot", "Extend fully and squeeze", "Lower slowly"],
     },
     {
-        id: "leg-curl", name: "Lying Leg Curl", equipment: "Machine", motion: "leg-curl",
+        id: "leg-curl", name: "Lying Hamstring Curl", equipment: "Machine", motion: "leg-curl",
         primary: ["hamstrings"], secondary: ["calves"],
         cues: ["Hips pressed into the pad", "Curl your heels to your glutes", "Control the way down"],
+    },
+    {
+        id: "seated-leg-curl", name: "Seated Hamstring Curl", equipment: "Machine", motion: "seated-leg-curl",
+        primary: ["hamstrings"], secondary: ["calves"],
+        cues: ["Knees line up with the machine's pivot", "Thigh pad snug so your hips stay down", "Curl your heels under the seat, then control the return"],
     },
     {
         id: "hip-thrust", name: "Hip Thrust", equipment: "Barbell", motion: "hip-thrust",
@@ -293,7 +348,7 @@ export const EXERCISES: Exercise[] = [
         cues: ["Hang still, no swinging", "Raise your legs to hip height or higher", "Lower under control"],
     },
     {
-        id: "cable-crunch", name: "Cable Crunch", equipment: "Cable", motion: "cable-crunch",
+        id: "cable-crunch", name: "Weighted Cable Ab Crunch", equipment: "Cable", motion: "cable-crunch",
         primary: ["abs"], secondary: ["obliques"],
         cues: ["Kneel facing the stack", "Crunch your elbows toward your knees", "Hips stay still"],
     },
@@ -367,6 +422,15 @@ export const SPLIT_TEMPLATES: { name: string, description: string, days: SplitDa
         days: [
             { name: "Full Body A", exercises: [ex("back-squat", 3, "5-8"), ex("barbell-bench-press", 3, "5-8"), ex("barbell-row"), ex("lateral-raise", 3, "12-15"), ex("plank", 3, "30-60")] },
             { name: "Full Body B", exercises: [ex("deadlift", 3, "3-5"), ex("overhead-press"), ex("pull-up"), ex("walking-lunge"), ex("dumbbell-curl")] },
+        ],
+    },
+    {
+        name: "Push / Pull / Legs (Machines)",
+        description: "3 days, mostly machines and cables",
+        days: [
+            { name: "Push", exercises: [ex("barbell-bench-press", 3, "6-10"), ex("machine-chest-press", 3, "8-12"), ex("pec-deck", 3, "12-15"), ex("machine-shoulder-press", 3, "8-12"), ex("machine-lateral-raise", 3, "12-15"), ex("lateral-raise", 2, "15-20"), ex("triceps-pushdown", 3, "10-15")] },
+            { name: "Pull", exercises: [ex("lat-pulldown", 3, "8-12"), ex("neutral-grip-row", 3, "8-12"), ex("reverse-pec-deck", 3, "12-15"), ex("face-pull", 3, "12-15"), ex("machine-strict-curl", 3, "10-12"), ex("machine-hammer-curl", 2, "10-12"), ex("cable-curl", 2, "12-15"), ex("cable-crunch", 3, "10-15")] },
+            { name: "Legs", exercises: [ex("hack-squat", 3, "8-12"), ex("leg-press", 3, "10-12"), ex("leg-extension", 3, "12-15"), ex("seated-leg-curl", 3, "10-12"), ex("leg-curl", 2, "10-12")] },
         ],
     },
     {

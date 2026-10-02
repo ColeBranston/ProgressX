@@ -25,6 +25,7 @@ import {
     ScoreCategory,
     getScoreCategories,
     getMacroTargets,
+    getCalorieTarget,
     getTotalExpenditure,
     weightKgFromProfile
 } from "../../internal_components/index"
@@ -159,7 +160,7 @@ export default function DietPage() {
     const waterTargetMl = customWaterGoalMl ?? recommendedWaterMl
     const waterConsumedMl = waterEntries.reduce((sum, entry) => sum + (Number(entry.amount_ml) || 0), 0)
 
-    const { protein: proteinTarget, carbs: carbsTarget, fats: fatsTarget } = getMacroTargets(weightKg)
+    const { protein: proteinTarget, carbs: carbsTarget, fats: fatsTarget } = getMacroTargets(weightKg, getCalorieTarget(totalExpenditure, goalState))
     const isToday = selectedDate.isSame(today, 'day')
 
     // Persists the goal state to the user's diet_config row so it's the

@@ -358,7 +358,8 @@ export function LineChart({ labels, series, format, ariaLabel, height = 200, yMa
 
 // ---------- Heatmap ----------
 
-export type HeatCell = { value: number | null, display: string, over?: boolean }
+// `details` adds extra tooltip lines under the value (e.g. what a count is made of)
+export type HeatCell = { value: number | null, display: string, over?: boolean, details?: { label: string, value: string }[] }
 
 type HeatmapProps = {
     rows: { key: string, label: string }[],
@@ -409,7 +410,7 @@ export function Heatmap({ rows, columns, cell, ariaLabel, overLabel = "Over limi
                                         x: cx + cellW / 2,
                                         y: cy + cellH / 2,
                                         title: `${row.label} · ${column.label}`,
-                                        rows: [{ label: value.over ? overLabel : "", value: value.display }],
+                                        rows: [{ label: value.over ? overLabel : "", value: value.display }, ...(value.details ?? [])],
                                     })
                                     return (
                                         <g key={column.key} tabIndex={0} className={styles.heatGroup} onPointerEnter={showTip} onFocus={showTip} onBlur={() => setTip(null)} aria-label={`${row.label}, ${column.label}: ${value.display}`}>

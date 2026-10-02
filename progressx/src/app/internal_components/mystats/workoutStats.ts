@@ -153,10 +153,13 @@ export function overloadSuggestion(last: WorkoutSet[] | undefined, repRange: str
         : `Add a rep: aim for ${targets.join(", ")} reps today.`
 }
 
-// Working sets per muscle group each week (an exercise counts toward its primary muscles' groups)
-export function muscleGroupWeeklySets(sets: WorkoutSet[], weeks: Dayjs[]): Record<MuscleGroup, Record<string, number>> {
+export type GroupWeek = { sets: number, byExercise: Record<string, number> }
+
+// Working sets per muscle group each week (an exercise counts toward its primary muscles' groups),
+// with how many came from each exercise
+export function muscleGroupWeeklySets(sets: WorkoutSet[], weeks: Dayjs[]): Record<MuscleGroup, Record<string, GroupWeek>> {
     const groups = Object.keys(MUSCLE_GROUPS) as MuscleGroup[]
-    const result = Object.fromEntries(groups.map((group) => [group, Object.fromEntries(weeks.map((w) => [w.format("YYYY-MM-DD"), 0]))])) as Record<MuscleGroup, Record<string, number>>
+    const result = Object.fromEntries(groups.map((group) => [group, Object.fromEntries(weeks.map((w) => [w.format("YYYY-MM-DD"), { sets: 0, byExercise: {} }]))])) as Record<MuscleGroup, Record<string, GroupWeek>>
 
     for (const set of sets) {
         const exercise = EXERCISE_BY_ID[set.exercise_id]
@@ -164,7 +167,10 @@ export function muscleGroupWeeklySets(sets: WorkoutSet[], weeks: Dayjs[]): Recor
         const key = weekKey(set.performed_on)
         const hit = new Set(groups.filter((group) => exercise.primary.some((muscle) => MUSCLE_GROUPS[group].includes(muscle))))
         for (const group of hit) {
-            if (key in result[group]) result[group][key] += 1
+            const week = result[group][key]
+            if (!week) continue
+            week.sets += 1
+            week.byExercise[set.exercise_id] = (week.byExercise[set.exercise_id] ?? 0) + 1
         }
     }
 
@@ -179,10 +185,12 @@ export function weeklySessions(sets: WorkoutSet[], weeks: Dayjs[]): { key: strin
     })
 }
 
-// The day of the active split to suggest for `date`: whatever was already logged that day, otherwise
+// The day of the active split to suggest for `date`: whatever was logged that day most recently, otherwise
 // the day after the last one done (rotating), otherwise the first day.
 export function suggestedSplitDay(split: WorkoutSplit, sets: WorkoutSet[], date: string): number {
-    const onDate = sets.find((s) => s.split_id === split.id && s.performed_on === date && s.split_day_index !== null)
+    const onDate = sets
+        .filter((s) => s.split_id === split.id && s.performed_on === date && s.split_day_index !== null)
+        .reduce<WorkoutSet | undefined>((latest, s) => (!latest || s.created_at >= latest.created_at ? s : latest), undefined)
     if (onDate) return Math.min(onDate.split_day_index!, split.days.length - 1)
 
     const previous = sets

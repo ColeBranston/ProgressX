@@ -8,6 +8,7 @@ import { userDataContext } from "@/app/contexts/userData";
 import {
     formatVolume,
     getMacroTargets,
+    getCalorieTarget,
     getMicronutrientTargets,
     getTotalExpenditure,
     getWaterTargetMl,
@@ -29,14 +30,6 @@ type DietStatsResponse = {
     goalState: goalType,
     displayedMicronutrients: string[],
     customWaterGoalMl: number | null,
-}
-
-// Calorie goal for the chart's reference line: the middle of the diet page's goal range
-function calorieGoal(totalExpenditure: number, goal: goalType) {
-    if (!totalExpenditure) return 0
-    if (goal === "Deficit") return totalExpenditure - 500
-    if (goal === "Surplus") return totalExpenditure + 250
-    return totalExpenditure
 }
 
 // floored like the diet page's daily score ring, so 100% only shows when every target is fully met
@@ -78,10 +71,12 @@ export default function DietStatsPage() {
     // Same targets the diet page scores against
     const targets = useMemo(() => {
         const weightKg = weightKgFromProfile(userData)
+        const totalExpenditure = getTotalExpenditure(userData)
+        const goal: goalType = data?.goalState ?? "Maintain"
         return {
-            totalExpenditure: getTotalExpenditure(userData),
-            goal: data?.goalState ?? "Maintain",
-            macros: getMacroTargets(weightKg),
+            totalExpenditure,
+            goal,
+            macros: getMacroTargets(weightKg, getCalorieTarget(totalExpenditure, goal)),
             waterMl: data?.customWaterGoalMl ?? getWaterTargetMl({ weightLbs: userData.weight, gender: userData.gender, activity: userData.activity }),
             micros: getMicronutrientTargets(userData.gender, userData.age, data?.displayedMicronutrients),
         }
@@ -99,7 +94,7 @@ export default function DietStatsPage() {
     const trackedDays = days.filter((day) => day.tracked).length
     const thisWeek = weekStats[weekStats.length - 1]
     const lastWeek = weekStats.length > 1 ? weekStats[weekStats.length - 2] : null
-    const goalCalories = calorieGoal(targets.totalExpenditure, targets.goal)
+    const goalCalories = getCalorieTarget(targets.totalExpenditure, targets.goal)
 
     const weekBars = (pick: (week: WeekStat) => number | null) => weekStats.map((week, i) => ({
         key: week.key,

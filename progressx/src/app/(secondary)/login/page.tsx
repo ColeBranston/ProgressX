@@ -29,10 +29,26 @@ export default function Login() {
     const [tempPassword, setTempPassword] = useState('')
     const [consent, setConsent] = useState<ConsentState>({ confirmedAge: false, acceptedTerms: false })
     const [consentError, setConsentError] = useState(false)
+    const [sessionEnded, setSessionEnded] = useState<string | null>(null)
     const consentGiven = consent.confirmedAge && consent.acceptedTerms
     const router = useRouter();
     const { setIsLoading } = useContext(IsLoadingContext)
 
+
+    // sent here because their login ran out (see SessionWatch / middleware): explain, and show the Log In form
+    useEffect(() => {
+      // a new sign-in starts its inactivity clock fresh (see SessionWatch)
+      try { localStorage.removeItem("lastActivity") } catch { /* storage unavailable */ }
+      const params = new URLSearchParams(window.location.search)
+      const reason = params.get("expired")
+      if (!reason) return
+      setSessionEnded(reason === "idle"
+        ? "You were logged out after 15 minutes of inactivity. Please log in again."
+        : "Your session has expired. Please log in again.")
+      setLoginActive(false)
+      params.delete("expired")
+      window.history.replaceState(null, "", window.location.pathname + (params.size ? `?${params}` : "") + window.location.hash)
+    }, [])
 
     useEffect(() => {
       console.log("Searching for token: ")
@@ -261,6 +277,9 @@ export default function Login() {
                   </svg>
                 </div>
               </div>
+              {sessionEnded ?
+                <p className={styles.sessionNotice} role="status">{sessionEnded}</p>
+              : null}
               <input required className={styles.inputField} placeholder='Email' type="email" onChange={(e)=>{setEmail(e.target.value)}}/>
               <input required className={styles.inputField} placeholder='Password' type="password" onChange={(e)=>{setPassword(e.target.value)}}/>
               <button className={styles.submitButton} type="submit">Log In</button>

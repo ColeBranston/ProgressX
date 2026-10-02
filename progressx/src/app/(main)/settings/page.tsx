@@ -5,6 +5,7 @@ import Link from "next/link";
 import styles from "./settings.module.css";
 import { userDataContext, UserData } from "@/app/contexts/userData";
 import { formatVolume, getWaterTargetMl } from "@/app/internal_components/index";
+import { clearLocalAccountData } from "@/app/internal_components/SessionWatch";
 
 type Settings = {
     blurProgressPhotos: boolean,
@@ -170,13 +171,6 @@ export default function SettingsPage() {
         // clear this account's data kept in the browser so the next person on this device doesn't see it
         clearLocalAccountData()
         window.location.href = "/login" // full reload also resets in-memory state
-    }
-
-    // The browser-side copies of this account's data (cleared on log out and account deletion)
-    function clearLocalAccountData() {
-        try {
-            for (const key of ["userData", "TotalExpenditure", "user_photos"]) localStorage.removeItem(key)
-        } catch { /* storage unavailable */ }
     }
 
     async function downloadData() {

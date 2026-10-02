@@ -10,7 +10,7 @@ export { default as QuickAddScaler } from './QuickAddScaler'
 export { default as WaterTracker, formatVolume } from './WaterTracker'
 export { getWaterTargetMl } from './waterTarget'
 export { default as DailyScore, averageCompletion, calorieGoalCompletion, getDailyScore } from './DailyScore'
-export { getScoreCategories, getMacroTargets, getTotalExpenditure, weightKgFromProfile } from './dietTargets'
+export { getScoreCategories, getMacroTargets, getCalorieTarget, getTotalExpenditure, weightKgFromProfile } from './dietTargets'
 
 // Types
 

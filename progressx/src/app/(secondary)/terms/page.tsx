@@ -25,6 +25,11 @@ export default function TermsOfServicePage() {
                 that you are {LEGAL_MINIMUM_AGE} or older and able to form a binding contract. We may ask for confirmation of your age and
                 will close any account we believe belongs to someone under {LEGAL_MINIMUM_AGE}.
             </p>
+            <p className={styles.callout}>
+                ProgressX is not currently available to residents of the Province of Quebec. By creating an account or using the Service,
+                you confirm that you do not reside in Quebec. If you live in Quebec, or move there, you may not use the Service and should
+                delete your account from Settings. We will close any account we believe belongs to a Quebec resident, along with its data.
+            </p>
 
             <h2><span>02</span>Your account</h2>
             <ul>

@@ -82,6 +82,11 @@ export default function WorkoutProgress({ sets, unit, onOpenExercise, onGoToLog 
     const thisWeekSessions = sessions[sessions.length - 1]
     const groups = Object.keys(MUSCLE_GROUPS) as MuscleGroup[]
     const date = (value: string) => dayjs(value).format("MMM D, YYYY")
+    const thisWeekKey = weeks[weeks.length - 1].format("YYYY-MM-DD")
+    const groupsThisWeek = groups.filter((group) => (groupSets[group][thisWeekKey]?.sets ?? 0) > 0).length
+    const rangeWorkouts = sessions.reduce((sum, week) => sum + week.sessions, 0)
+    const rangeSets = sessions.reduce((sum, week) => sum + week.sets, 0)
+    const rangeLabel = RANGES.find((range) => range.weeks === weeksCount)?.label ?? `${weeksCount} weeks`
 
     return (
         <>
@@ -92,16 +97,98 @@ export default function WorkoutProgress({ sets, unit, onOpenExercise, onGoToLog 
                         <button key={range.weeks} type="button" role="radio" aria-checked={weeksCount === range.weeks} onClick={() => setWeeksCount(range.weeks)}>{range.label}</button>
                     ))}
                 </div>
-                <label className={styles.dateNav}>
-                    <span className={pageStyles.filterLabel}>Exercise</span>
-                    <select className={styles.select} value={exerciseId} onChange={(e) => setSelected(e.target.value)}>
-                        {logged.map((id) => <option key={id} value={id}>{EXERCISE_BY_ID[id].name}</option>)}
-                    </select>
-                </label>
-                <button type="button" className={styles.ghostButton} onClick={() => onOpenExercise(exerciseId)}>How to do it</button>
             </div>
 
-            <section className={pageStyles.tiles} aria-label={`${exercise.name} this week`}>
+            {/* ---------- Overview: every exercise combined ---------- */}
+            <section className={styles.progressSection} aria-labelledby="overview-title">
+                <header className={styles.progressSectionHeader}>
+                    <div>
+                        <p className={styles.sectionLabel}>All exercises</p>
+                        <h2 id="overview-title" className={styles.cardTitle}>Overview</h2>
+                        <p className={styles.muted}>Every set you logged, across all exercises and muscle groups</p>
+                    </div>
+                </header>
+
+                <div className={pageStyles.tiles}>
+                    <StatTile
+                        label="Workouts this week"
+                        value={String(thisWeekSessions.sessions)}
+                        caption={`${thisWeekSessions.sets} ${thisWeekSessions.sets === 1 ? "set" : "sets"} across all exercises`}
+                    />
+                    <StatTile
+                        label="Muscle groups trained this week"
+                        value={`${groupsThisWeek} of ${groups.length}`}
+                    />
+                    <StatTile
+                        label={`Workouts in the last ${rangeLabel}`}
+                        value={String(rangeWorkouts)}
+                        caption={`${rangeSets} ${rangeSets === 1 ? "set" : "sets"} total`}
+                    />
+                </div>
+
+                <div className={pageStyles.grid2}>
+                    <ChartCard
+                        className={pageStyles.span2}
+                        title="Workouts per week"
+                        subtitle="Days with at least one set logged"
+                        table={{ columns: ["Week of", "Workouts", "Sets"], rows: [...sessions].reverse().map((week) => [week.label, String(week.sessions), String(week.sets)]) }}
+                    >
+                        <BarChart
+                            data={sessions.map((week, i) => ({ key: week.key, label: week.label, value: week.sessions, highlight: i === sessions.length - 1, detail: `${week.sets} sets` }))}
+                            format={(v) => `${Math.round(v)}`}
+                            yMax={7}
+                            valueLabel="workouts"
+                            ariaLabel="Workouts per week"
+                        />
+                    </ChartCard>
+
+                    <ChartCard
+                        className={pageStyles.span2}
+                        title="Sets per muscle group"
+                        subtitle={`Working sets each week, counted toward each exercise's primary muscles (so face pulls and reverse pec deck count as Shoulders, for the rear delts). Hover a square to see which exercises. About ${GROUP_SET_GOAL}+ a week is a solid target.`}
+                        table={{ columns: ["Muscle group", ...weeks.map((wk) => wk.format("MMM D"))], rows: groups.map((group) => [group, ...weeks.map((wk) => String(groupSets[group][wk.format("YYYY-MM-DD")]?.sets ?? 0))]) }}
+                    >
+                        <Heatmap
+                            rows={groups.map((group) => ({ key: group, label: group }))}
+                            columns={weeks.map((wk) => ({ key: wk.format("YYYY-MM-DD"), label: wk.format("MMM D") }))}
+                            ariaLabel="Working sets per muscle group each week"
+                            legendLow="0 sets"
+                            legendHigh={`${GROUP_SET_GOAL}+ sets`}
+                            emptyLabel="Not trained"
+                            cell={(group, key) => {
+                                const week = groupSets[group as MuscleGroup][key]
+                                const count = week?.sets ?? 0
+                                if (count === 0) return { value: null, display: "Not trained" }
+                                const details = Object.entries(week.byExercise)
+                                    .sort((a, b) => b[1] - a[1])
+                                    .map(([id, n]) => ({ label: EXERCISE_BY_ID[id]?.name ?? id, value: String(n) }))
+                                return { value: Math.min(1, count / GROUP_SET_GOAL), display: `${count} ${count === 1 ? "set" : "sets"}`, details }
+                            }}
+                        />
+                    </ChartCard>
+                </div>
+            </section>
+
+            {/* ---------- One exercise ---------- */}
+            <section className={styles.progressSection} aria-labelledby="exercise-title">
+                <header className={styles.progressSectionHeader}>
+                    <div>
+                        <p className={styles.sectionLabel}>Per exercise</p>
+                        <h2 id="exercise-title" className={styles.cardTitle}>{exercise.name}</h2>
+                        <p className={styles.muted}>Strength, volume and records for one exercise at a time</p>
+                    </div>
+                    <div className={styles.dateNav}>
+                        <label className={styles.dateNav}>
+                            <span className={pageStyles.filterLabel}>Exercise</span>
+                            <select className={styles.select} value={exerciseId} onChange={(e) => setSelected(e.target.value)}>
+                                {logged.map((id) => <option key={id} value={id}>{EXERCISE_BY_ID[id].name}</option>)}
+                            </select>
+                        </label>
+                        <button type="button" className={styles.ghostButton} onClick={() => onOpenExercise(exerciseId)}>How to do it</button>
+                    </div>
+                </header>
+
+            <div className={pageStyles.tiles} aria-label={`${exercise.name} this week`}>
                 {weighted ?
                     <>
                         <StatTile
@@ -130,12 +217,7 @@ export default function WorkoutProgress({ sets, unit, onOpenExercise, onGoToLog 
                     delta={current.sets && lastTrained ? delta(volume(current), volume(lastTrained), volumeFormat) : null}
                     caption={`${current.sets} ${current.sets === 1 ? "set" : "sets"}${lastTrained ? ` · ${lastTrained.sets} the week before` : ""}`}
                 />
-                <StatTile
-                    label="Workouts this week"
-                    value={String(thisWeekSessions.sessions)}
-                    caption={`${thisWeekSessions.sets} ${thisWeekSessions.sets === 1 ? "set" : "sets"} across all exercises`}
-                />
-            </section>
+            </div>
 
             <div className={pageStyles.grid2}>
                 <ChartCard
@@ -185,7 +267,10 @@ export default function WorkoutProgress({ sets, unit, onOpenExercise, onGoToLog 
                 </ChartCard>
 
                 <section className={styles.card} aria-label="Personal records">
-                    <h3 className={styles.cardTitle}>Personal records</h3>
+                    <div className={styles.cardHeader}>
+                        <h3 className={styles.cardTitle}>Personal records</h3>
+                        <span className={styles.allTimeBadge}>All time</span>
+                    </div>
                     <div className={styles.prList}>
                         {records?.heaviest && weighted ?
                             <div className={styles.pr}>
@@ -219,41 +304,8 @@ export default function WorkoutProgress({ sets, unit, onOpenExercise, onGoToLog 
                     <p className={styles.muted}>Estimated 1RM uses the Epley formula: weight × (1 + reps ÷ 30).</p>
                 </section>
 
-                <ChartCard
-                    title="Workouts per week"
-                    subtitle="Days with at least one set logged"
-                    table={{ columns: ["Week of", "Workouts", "Sets"], rows: [...sessions].reverse().map((week) => [week.label, String(week.sessions), String(week.sets)]) }}
-                >
-                    <BarChart
-                        data={sessions.map((week, i) => ({ key: week.key, label: week.label, value: week.sessions, highlight: i === sessions.length - 1, detail: `${week.sets} sets` }))}
-                        format={(v) => `${Math.round(v)}`}
-                        yMax={7}
-                        valueLabel="workouts"
-                        ariaLabel="Workouts per week"
-                    />
-                </ChartCard>
-
-                <ChartCard
-                    title="Sets per muscle group"
-                    subtitle={`Working sets each week, counted toward each exercise's primary muscles. About ${GROUP_SET_GOAL}+ a week is a solid target.`}
-                    table={{ columns: ["Muscle group", ...weeks.map((wk) => wk.format("MMM D"))], rows: groups.map((group) => [group, ...weeks.map((wk) => String(groupSets[group][wk.format("YYYY-MM-DD")] ?? 0))]) }}
-                >
-                    <Heatmap
-                        rows={groups.map((group) => ({ key: group, label: group }))}
-                        columns={weeks.map((wk) => ({ key: wk.format("YYYY-MM-DD"), label: wk.format("MMM D") }))}
-                        ariaLabel="Working sets per muscle group each week"
-                        legendLow="0 sets"
-                        legendHigh={`${GROUP_SET_GOAL}+ sets`}
-                        emptyLabel="Not trained"
-                        cell={(group, key) => {
-                            const count = groupSets[group as MuscleGroup][key] ?? 0
-                            return count === 0
-                                ? { value: null, display: "Not trained" }
-                                : { value: Math.min(1, count / GROUP_SET_GOAL), display: `${count} ${count === 1 ? "set" : "sets"}` }
-                        }}
-                    />
-                </ChartCard>
             </div>
+            </section>
         </>
     )
 }

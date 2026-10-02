@@ -107,3 +107,35 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ set: data }, { status: 201 })
 }
+
+const MAX_BULK_DELETE = 200
+
+// DELETE /api/workouts/sets  { ids: string[] }
+// Removes several of the user's sets at once (used when a day's workout is switched and its sets replaced).
+export async function DELETE(req: NextRequest) {
+    const userId = await getUserIdFromRequest(req)
+
+    if (!userId) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    }
+
+    const body = await req.json().catch(() => null)
+    const ids = body?.ids
+    if (!Array.isArray(ids) || ids.length === 0 || ids.length > MAX_BULK_DELETE || !ids.every(isUuid)) {
+        return NextResponse.json({ message: `ids must be 1 to ${MAX_BULK_DELETE} set ids` }, { status: 400 })
+    }
+
+    const { data, error } = await supabase
+        .from("workout_sets")
+        .delete()
+        .in("id", ids)
+        .eq("user_id", userId)
+        .select("id")
+
+    if (error) {
+        console.log("Error deleting workout sets: ", error)
+        return NextResponse.json({ message: "Error deleting sets" }, { status: 500 })
+    }
+
+    return NextResponse.json({ deleted: (data ?? []).map((row) => row.id) })
+}

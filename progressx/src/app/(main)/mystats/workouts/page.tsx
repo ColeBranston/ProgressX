@@ -40,6 +40,7 @@ export default function WorkoutsPage() {
 
     const [ date, setDate ] = useState(() => dayjs().format("YYYY-MM-DD"))
     const [ extras, setExtras ] = useState<Record<string, string[]>>({})
+    const [ dayChoices, setDayChoices ] = useState<Record<string, string>>({}) // workout picked for each date
     const [ detailId, setDetailId ] = useState<string | null>(null)
 
     // remember the tab in the URL (?tab=progress) so refreshes and shared links land on it
@@ -160,6 +161,24 @@ export default function WorkoutsPage() {
         }
     }
 
+    async function deleteSets(toDelete: WorkoutSet[]): Promise<boolean> {
+        setActionError(null)
+        try {
+            const json = await fetch("/api/workouts/sets", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ids: toDelete.map((s) => s.id) }),
+            }).then(readJson)
+            const deleted = new Set<string>(json.deleted ?? [])
+            setSets((prev) => prev.filter((s) => !deleted.has(s.id)))
+            return true
+        } catch (err) {
+            console.error("Failed to delete sets: ", err)
+            setActionError("Couldn't remove those sets. Try again.")
+            return false
+        }
+    }
+
     function addExtra(exerciseId: string, forDate = date) {
         setExtras((prev) => ({ ...prev, [forDate]: [...(prev[forDate] ?? []).filter((id) => id !== exerciseId), exerciseId] }))
     }
@@ -210,6 +229,8 @@ export default function WorkoutsPage() {
                     <WorkoutLog
                         date={date}
                         onDateChange={setDate}
+                        choice={dayChoices[date]}
+                        onChoiceChange={(value) => setDayChoices((prev) => ({ ...prev, [date]: value }))}
                         splits={splits}
                         sets={sets}
                         unit={unit}
@@ -217,6 +238,7 @@ export default function WorkoutsPage() {
                         onAddExtra={(id) => addExtra(id)}
                         onAddSet={addSet}
                         onDeleteSet={deleteSet}
+                        onDeleteSets={deleteSets}
                         onOpenExercise={setDetailId}
                         onGoToSplits={() => selectTab("splits")}
                     />

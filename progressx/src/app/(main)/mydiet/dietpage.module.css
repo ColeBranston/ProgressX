@@ -85,7 +85,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     margin: 0;
     padding: 0;
     position: relative;
@@ -104,13 +104,26 @@
 
 .dayPillWeekday {
     font-size: 12px;
+    line-height: 1.1;
     opacity: 0.55;
     letter-spacing: 0.02em;
 }
 
 .dayPillDate {
     font-size: 17px;
+    line-height: 1.1;
     font-weight: 600;
+}
+
+/* Every pill reserves a slot for the "today" dot under the date, so the dot sits in the layout
+   (never on top of the text) and all pills keep the same alignment */
+.dayPill::after {
+    content: '';
+    flex-shrink: 0;
+    width: 4px;
+    height: 4px;
+    border-radius: 100%;
+    background-color: transparent;
 }
 
 .dayPill:hover:not(:disabled) {
@@ -131,12 +144,6 @@
 }
 
 .todayPill:not(.selectedDay)::after {
-    content: '';
-    position: absolute;
-    bottom: 8px;
-    width: 4px;
-    height: 4px;
-    border-radius: 100%;
     background-color: rgba(var(--primary-color));
 }
 

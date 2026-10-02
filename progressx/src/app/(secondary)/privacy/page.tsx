@@ -24,6 +24,10 @@ export default function PrivacyPolicyPage() {
                 information from anyone under {LEGAL_MINIMUM_AGE}. If we learn that we have, we will delete the account and its data.
                 If you believe someone under {LEGAL_MINIMUM_AGE} has an account, contact us at <a href={`mailto:${LEGAL_CONTACT_EMAIL}`}>{LEGAL_CONTACT_EMAIL}</a>.
             </p>
+            <p>
+                ProgressX is not currently offered to residents of Quebec (see our <a href="/terms">Terms of Service</a>), and we do not
+                knowingly collect personal information from them. If we learn that we have, we will delete the account and its data.
+            </p>
 
             <h2><span>02</span>Information we collect</h2>
             <h3>Account information</h3>

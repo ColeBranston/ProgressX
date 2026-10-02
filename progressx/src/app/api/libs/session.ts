@@ -6,10 +6,18 @@ import { createAuthClient } from "@/app/supabaseClient/client"
 
 export const ACCESS_COOKIE = "token"
 export const REFRESH_COOKIE = "refresh_token"
+export const LAST_ACTIVE_COOKIE = "last_active" // unix seconds of the last request the person made
 
-// How long you stay signed in without activity. The access token itself only lives ~1 hour;
-// the middleware swaps it for a new one using the refresh token before it runs out.
-export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30
+// How long a sign-in lasts, counted from when the person actually logged in (not from the last
+// refresh): after this they're sent back to the login screen, however active they've been.
+// The access token itself only lives ~1 hour; the middleware swaps it for a new one using the
+// refresh token until the sign-in reaches this age.
+export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 5
+
+// Logged out after this long without using the app. The middleware updates LAST_ACTIVE_COOKIE on every
+// request except the background session check (GET /api/session), and SessionWatch logs open tabs out
+// on the same schedule, so leaving a tab open doesn't keep someone signed in.
+export const IDLE_TIMEOUT_SECONDS = 15 * 60
 
 // Refresh a little early so a page load never starts with a token about to expire mid-request
 export const REFRESH_MARGIN_SECONDS = 5 * 60
@@ -36,7 +44,32 @@ export async function verifyAccessToken(token: string): Promise<JWTPayload & { s
     if (typeof payload.sub !== "string" || !payload.sub) {
         throw new errors.JWTClaimValidationFailed("missing sub claim", payload, "sub", "check_failed")
     }
+    if (isSignInTooOld(payload)) {
+        throw new SessionExpiredError()
+    }
     return payload as JWTPayload & { sub: string }
+}
+
+// Thrown when the token is valid but the sign-in it belongs to is older than SESSION_MAX_AGE_SECONDS
+export class SessionExpiredError extends Error {
+    constructor() {
+        super("sign-in is older than the session limit")
+        this.name = "SessionExpiredError"
+    }
+}
+
+// When the person signed in: Supabase keeps the original sign-in time in the token's `amr` claim
+// across refreshes (the token's own `iat` resets on every refresh)
+function signedInAt(payload: JWTPayload): number | null {
+    const amr = (payload as { amr?: unknown }).amr
+    if (!Array.isArray(amr)) return null
+    const times = amr.map((entry) => Number(entry?.timestamp)).filter((t) => Number.isFinite(t) && t > 0)
+    return times.length ? Math.max(...times) : null
+}
+
+function isSignInTooOld(payload: JWTPayload): boolean {
+    const at = signedInAt(payload) ?? payload.iat ?? null
+    return at !== null && Math.floor(Date.now() / 1000) - at > SESSION_MAX_AGE_SECONDS
 }
 
 export type SessionTokens = { access_token: string, refresh_token: string }
@@ -68,9 +101,22 @@ const cookieOptions = {
 export function setSessionCookies(res: NextResponse, session: SessionTokens) {
     res.cookies.set(ACCESS_COOKIE, session.access_token, cookieOptions)
     res.cookies.set(REFRESH_COOKIE, session.refresh_token, cookieOptions)
+    markActive(res)
 }
 
 export function clearSessionCookies(res: NextResponse) {
     res.cookies.delete(ACCESS_COOKIE)
     res.cookies.delete(REFRESH_COOKIE)
+    res.cookies.delete(LAST_ACTIVE_COOKIE)
+}
+
+export function markActive(res: NextResponse) {
+    res.cookies.set(LAST_ACTIVE_COOKIE, String(Math.floor(Date.now() / 1000)), cookieOptions)
+}
+
+// True when the last request was more than IDLE_TIMEOUT_SECONDS ago. No cookie (e.g. a sign-in from
+// before this existed) counts as active; the first request sets it.
+export function isIdleTooLong(lastActive: string | undefined): boolean {
+    const at = Number(lastActive)
+    return Number.isFinite(at) && at > 0 && Math.floor(Date.now() / 1000) - at > IDLE_TIMEOUT_SECONDS
 }

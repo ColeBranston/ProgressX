@@ -24,6 +24,7 @@ export type Pose = {
     arm: Limb, arm2?: Limb,
     leg: Limb, leg2?: Limb,
     armScale?: number,    // < 1 = arm pointing toward the viewer (foreshortened)
+    upperArmScale?: number, // upper arm only (defaults to armScale); negative = elbow swung past the shoulder toward the midline
     thighScale?: number,  // < 1 = thighs pointing toward the viewer (seated, front view)
 }
 
@@ -91,6 +92,7 @@ function lerpPose(a: Pose, b: Pose, t: number): Pose {
         head: a.head === undefined && b.head === undefined ? undefined : num(a.head ?? a.torso, b.head ?? b.torso, 0),
         shrug: num(a.shrug, b.shrug, 0),
         armScale: num(a.armScale, b.armScale, 1),
+        upperArmScale: lerp(a.upperArmScale ?? a.armScale ?? 1, b.upperArmScale ?? b.armScale ?? 1, t),
         thighScale: num(a.thighScale, b.thighScale, 1),
         arm: lerpLimb(a.arm, b.arm, t),
         arm2: a.arm2 && b.arm2 ? lerpLimb(a.arm2, b.arm2, t) : undefined,
@@ -167,6 +169,7 @@ function legPrims(cls: string, hip: Vec, leg: Solved, footLength: Vec | null): P
 export function frameAt(motion: Motion, t: number): Primitive[] {
     const pose = lerpPose(motion.a, motion.b, t)
     const armScale = pose.armScale ?? 1
+    const upperArmScale = pose.upperArmScale ?? armScale
     const prims: Primitive[] = []
 
     if (motion.view === "front") {
@@ -177,7 +180,7 @@ export function frameAt(motion: Motion, t: number): Primitive[] {
         const base = { shoulder: neck, hip: pose.hip }
 
         const arms = [pose.arm, pose.arm2 ?? mirrorLimb(pose.arm, pose.hip[0])]
-            .map((arm, i) => solveLimb(shoulders[i], arm, UPPER_ARM * armScale, FOREARM * armScale, base))
+            .map((arm, i) => solveLimb(shoulders[i], arm, UPPER_ARM * upperArmScale, FOREARM * armScale, base))
         const legs = [pose.leg, pose.leg2 ?? mirrorLimb(pose.leg, pose.hip[0])]
             .map((leg, i) => solveLimb(hips[i], leg, THIGH * (pose.thighScale ?? 1), SHIN, base))
 
@@ -206,8 +209,8 @@ export function frameAt(motion: Motion, t: number): Primitive[] {
     const base = { shoulder, hip: pose.hip }
     const armOffset = motion.armRelative ? torsoAngle : 0
 
-    const arm = solveLimb(shoulder, pose.arm, UPPER_ARM * armScale, FOREARM * armScale, base, armOffset)
-    const arm2 = solveLimb(shoulder, pose.arm2 ?? pose.arm, UPPER_ARM * armScale, FOREARM * armScale, base, armOffset)
+    const arm = solveLimb(shoulder, pose.arm, UPPER_ARM * upperArmScale, FOREARM * armScale, base, armOffset)
+    const arm2 = solveLimb(shoulder, pose.arm2 ?? pose.arm, UPPER_ARM * upperArmScale, FOREARM * armScale, base, armOffset)
     const leg = solveLimb(pose.hip, pose.leg, THIGH, SHIN, base)
     const leg2 = solveLimb(pose.hip, pose.leg2 ?? pose.leg, THIGH, SHIN, base)
 
@@ -467,6 +470,53 @@ export const MOTIONS: Record<string, Motion> = {
         b: { hip: [40, 73], torso: 70.5, head: 82, arm: [180, 180], leg: [272, 358, 270], leg2: [180, 270, 270] },
     },
 
+    // ---------- Machines and cables ----------
+    "hack-squat": {
+        // back on the angled sled, feet on the tilted platform; the sled slides down along the rail
+        view: "side", armRelative: true, scenery: ["M20 20 L60 89", "M62 91 L86 79"],
+        a: { hip: [50, 55], torso: -30, head: -20, arm: [200, 10], leg: { to: [68, 82], bend: -1, foot: 60 } },
+        b: { hip: [57, 67], torso: -30, head: -20, arm: [200, 10], leg: { to: [68, 82], bend: -1, foot: 60 } },
+    },
+    "seated-leg-curl": {
+        view: "side", anklePad: true, scenery: ["M34 71 H64", "M40 71 L35 40", "M50 71 V92"],
+        a: { hip: [50, 66], torso: -10, arm: [168, 150], leg: [95, 97, 10] },
+        b: { hip: [50, 66], torso: -10, arm: [168, 150], leg: [95, 200, 130] },
+    },
+    "machine-lateral-raise": {
+        view: "front", grip: "handle", scenery: ["M38 72 H82", "M60 72 V92"],
+        a: { hip: [60, 70], thighScale: 0.4, arm: [188, 192], armScale: 0.85, leg: [200, 180, 260] },
+        b: { hip: [60, 70], thighScale: 0.4, arm: [262, 250], armScale: 0.85, leg: [200, 180, 260] },
+    },
+    "reverse-pec-deck": {
+        // chest against the pad: arms start straight out in front with the handles together (toward the viewer,
+        // so the hands sit near the middle) and sweep back out to the sides
+        view: "front", grip: "handle", scenery: ["M38 72 H82", "M60 72 V92"],
+        a: { hip: [60, 70], thighScale: 0.4, arm: [268, 266], armScale: -0.25, leg: [200, 180, 260] },
+        b: { hip: [60, 70], thighScale: 0.4, arm: [268, 266], armScale: 1, leg: [200, 180, 260] },
+    },
+    "pec-deck": {
+        // elbows bent at 90 degrees on the pads; the elbows swing forward and in until they meet in front of the chest
+        view: "front", grip: "handle", scenery: ["M38 72 H82", "M60 72 V92"],
+        a: { hip: [60, 70], thighScale: 0.4, arm: [270, 360], upperArmScale: 1, leg: [200, 180, 260] },
+        b: { hip: [60, 70], thighScale: 0.4, arm: [270, 360], upperArmScale: -0.55, leg: [200, 180, 260] },
+    },
+    "machine-chest-press": {
+        view: "side", grip: "handle", scenery: ["M40 75 H68", "M54 75 V92", "M47 75 V36"],
+        a: { hip: [54, 71], torso: -5, arm: { to: [57, 49], bend: 1 }, leg: { to: [72, 90], bend: -1 } },
+        b: { hip: [54, 71], torso: -5, arm: { to: [76, 48], bend: 1 }, leg: { to: [72, 90], bend: -1 } },
+    },
+    "machine-curl": {
+        // upper arms rest on the angled pad, only the forearms move
+        view: "side", grip: "handle", scenery: ["M56 56 L68 68", "M40 75 H64", "M50 75 V92"],
+        a: { hip: [50, 71], torso: 8, arm: [140, 150], leg: { to: [70, 90], bend: -1 } },
+        b: { hip: [50, 71], torso: 8, arm: [140, 12], leg: { to: [70, 90], bend: -1 } },
+    },
+    "cable-curl": {
+        view: "side", grip: "handle", cable: [96, 88], scenery: ["M98 56 V92"],
+        a: { hip: STAND, torso: 0, arm: [182, 170], leg: STRAIGHT_LEGS },
+        b: { hip: STAND, torso: 0, arm: [176, 25], leg: STRAIGHT_LEGS },
+    },
+
     // ---------- Core ----------
     "plank": {
         view: "side", period: 3400,
@@ -489,5 +539,8 @@ export const MOTIONS: Record<string, Motion> = {
         b: { hip: [50, 71], torso: 98, arm: [175, 5], leg: [180, 270, 270] },
     },
 }
+
+// Same movement as an existing motion, with different equipment in the hands
+MOTIONS["machine-shoulder-press"] = { ...MOTIONS["seated-shoulder-press"], grip: "handle" }
 
 export const FALLBACK_MOTION = MOTIONS["curl"]
