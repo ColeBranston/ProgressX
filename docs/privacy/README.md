@@ -35,7 +35,7 @@ Breach reporting and record-keeping: [breach-response-plan.md](breach-response-p
 | Data | Where | Deleted by |
 |---|---|---|
 | Email, password hash, Google identity | Supabase Auth (`auth.users`), US | Account deletion |
-| Profile (name, username, bio, age, gender, height, weight, activity level, privacy settings) | `profiles` | Cascade from `auth.users` |
+| Profile (name, username, bio, age, gender, height, weight, activity level, privacy settings) | `profiles` | Cascade from `auth.users`. Other signed-in users can see the username, name, picture, bio and counts (`/api/profiles/:username`), never the rest |
 | Settings, diet preferences | `user_settings`, `diet_config` | Cascade |
 | Food catalog and food log | `food_items`, `food_log_entries` | Cascade |
 | Water log | `water_log_entries` | Cascade |
@@ -44,6 +44,8 @@ Breach reporting and record-keeping: [breach-response-plan.md](breach-response-p
 | Progress photo records | `photo_collection` | Cascade |
 | Consent records | `consent_events` | Cascade |
 | Profile picture and progress photo files | Cloudinary (tagged `user_<id>`) | `deleteUserImages` in `api/libs/accountData.ts`, run before the database delete |
+| Videos: captions, state, likes and favourites | `videos`, `video_likes`, `video_favourites` | Cascade |
+| Video files and thumbnails | Cloudflare R2 bucket, under `videos/<user id>/` | `deleteUserVideos` in `api/libs/accountData.ts`, run first |
 | Session cookies | User's browser | Log out / account deletion |
 | Cached profile copy | User's browser (localStorage) | Log out / account deletion |
 | Search queries (not linked to accounts) | Redis cache, Solr | Cache expiry |
@@ -55,8 +57,8 @@ When you add a new table or file store with user data, add it here, to `USER_TAB
 ## Retention
 
 - Active accounts: kept while the account exists.
-- Account deletion (Settings > Your data > Delete account): Cloudinary images are deleted first (with
-  CDN invalidation), then the auth user, which cascades to every table. Immediate.
+- Account deletion (Settings > Your data > Delete account): R2 video files, then Cloudinary
+  images (with CDN invalidation) are deleted first, then the auth user, which cascades to every table. Immediate.
 - Backups: Supabase and Cloudinary backups expire on their own schedule; the policy promises removal
   within 30 days. Check your Supabase plan's backup retention matches.
 - Server logs: rotated automatically by Docker (5 x 10 MB per container), and health details are never written to them.
@@ -69,7 +71,8 @@ Most are self-serve in Settings. For emailed requests to the Privacy Officer:
 2. Respond within **30 days** (PIPEDA). An extension of up to 30 more days is allowed only with written notice explaining why.
 3. Access: have them use Download my data, or run the same export for them.
 4. Deletion: have them use Delete account. If they can't sign in, delete from the Supabase dashboard
-   *after* removing their Cloudinary images (tag `user_<id>`).
+   *after* removing their Cloudinary images (tag `user_<id>`) and their videos (everything under
+   `videos/<user id>/` in the R2 bucket).
 5. Keep a short note of the request, date received and date completed (no health details) for 24 months.
 
 ## Vendors (service providers)
@@ -79,7 +82,7 @@ Most are self-serve in Settings. For emailed requests to the Privacy Officer:
 | Supabase | Everything in the database, auth | DPA in effect |
 | Cloudinary | Photos | DPA in effect |
 | Google | Sign-in identity | Covered by Google Cloud / OAuth terms |
-| Cloudflare | All traffic (tunnel) | DPA in effect |
+| Cloudflare | All traffic (tunnel); posted video files and thumbnails in R2 (stored under the uploader's user id, no captions or names) | DPA in effect (covers R2) |
 | SerpApi (off unless `SERPAPI_API_KEY` is set) | Food searches written by the diet assistant, from the server, with no user identifiers | Off by default: the assistant uses the in-house food database, and the chat itself never leaves this Mac (local model, conversations not stored). **Before setting the key**, add SerpApi to the service providers list on the privacy page and review its terms / DPA |
 | Websites users link in the diet assistant | Nothing about the user: the server fetches the page itself, so the site sees the server's address and a "ProgressX nutrition reader" user agent | Only links the user writes are opened |
 | Nutrition label photos (diet assistant) | Stay on this Mac: read by the local model, never stored or sent anywhere, re-encoded first (strips location metadata) | Nothing to do |

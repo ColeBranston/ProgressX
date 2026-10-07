@@ -65,14 +65,19 @@ export const PROPOSE_TOOL = "propose_food_entry"
 
 export function systemPrompt(today: string, googleEnabled: boolean): string {
     return `You are the nutrition assistant inside ProgressX, a fitness app. Today is ${today}.
-The user tells you what they ate, often roughly (e.g. "about a bowl of beef stew"). Your job is to find it in the food database so it can be added to their food log.
+The user tells you what they ate, often roughly (e.g. "about a bowl of beef stew"), and you put it on a card for their food log.
+
+Where the numbers come from, in this order:
+a. Numbers the user gives (calories, protein, carbs, fat, any micronutrient) always win. Never search the database for a food whose numbers they gave, and never replace their numbers with database ones.
+b. A link the user gives (recipe, menu item, product page) or a label photo.
+c. Only when they give neither: the food database.
 
 How to work:
 1. A rough amount like "a bowl", "a plate", "a serving" or "two slices" is fine - don't ask about it. Only if you can't tell what the food is (e.g. "some food"), ask ONE short question.
 2. Call ${FOOD_SEARCH_TOOL} with a few plain words for the food, e.g. "beef stew", "pepperoni pizza", "chicken curry rice". Each result line is: id | name | kcal per 100 g | portions.
 3. Pick the result that best matches what they ate (prefer plain, everyday versions unless they said otherwise). If nothing fits, search again with different words (at most 3 searches).${googleEnabled ? `
    If the database clearly doesn't have it (e.g. a specific restaurant item), call ${GOOGLE_TOOL} instead.` : ""}
-   If the user pasted nutrition facts themselves (e.g. "Calories 120, Fat 2 g, Carbs 24 g, Protein 3 g, per 1 cup"), don't search: call ${PROPOSE_TOOL} with food_id "${PASTED_FOOD_ID}" and the numbers will be read from their message.
+   If the user gave nutrition numbers themselves (e.g. "Calories 120, Fat 2 g, Carbs 24 g", "450 cal 35p 40c 15f", "30g protein and 200 calories"), don't search: call ${PROPOSE_TOOL} with food_id "${PASTED_FOOD_ID}" and the numbers will be read from their messages.
    If the user gave a link to the food (a recipe, menu item or product page), call ${PAGE_TOOL} with it instead of searching, then use food_id "${PAGE_FOOD_ID}".
 4. Call ${PROPOSE_TOOL} with the chosen id as food_id and the amount the user ate in their words. The app works out the numbers and shows the user a card to confirm. Don't write nutrition numbers in your message.
 5. If they ate several foods ("a banana and a cup of yogurt"), do steps 2-4 for each food separately, one card per food. Drinks with add-ins are separate foods too: a "double double" is brewed coffee + 2 cream + 2 sugar.
@@ -423,9 +428,10 @@ What the user said: ${userSaid.map((text) => `"${text}"`).join(" / ")}
 
 ${facts}
 
-Copy the nutrition facts into the JSON.
-- reference_serving: the serving the numbers are for, e.g. "1 cup (245 g)" or "1 slice (111 g)".
-- Each nutrient: the number for ONE reference serving, exactly as written (do not multiply). null if it isn't given.
+Copy the nutrition facts into the JSON. Numbers the user wrote themselves always win over anything else.
+- Shorthand: "35p 40c 15f" or "P35/C40/F15" means 35 g protein, 40 g carbs, 15 g fat; "450 cal" is 450 calories.
+- reference_serving: the serving the numbers are for, e.g. "1 cup (245 g)" or "1 slice (111 g)". If the user gave the numbers for everything they ate (e.g. "my wrap was 450 cal, 35g protein"), it's that whole amount (e.g. "1 wrap") and portions_eaten is 1.
+- Each nutrient: the number for ONE reference serving, exactly as written (do not multiply). null if it isn't given - never fill one nutrient from another (sugar is not carbs, saturated fat is not fat).
 - portions_eaten (last): how many reference servings the user ate, e.g. 2 for "2 cups" when the reference is 1 cup, or 300 / 245 for 300 g.
   ${TYPICAL_SIZES}`
 }
@@ -438,17 +444,49 @@ function amount(value: unknown, max: number): number {
 
 // ---------- nutrition facts pasted into the chat ----------
 
-// A message with calories and at least two other nutrients with numbers is a pasted label; it's read
-// directly instead of being left to the chat model (which tends to go searching anyway)
+// The nutrients the user gave numbers for, in any of the ways people type them: label style
+// ("Calories 120, Protein 5 g"), plain ("35g protein, 40 carbs"), shorthand ("450 cal 35p 40c 15f",
+// "P35 C40 F15") or micronutrients ("600mg sodium"). Questions like "how many calories in 3 eggs" have
+// no number next to a nutrient, so they don't count.
+const NUM = String.raw`\d+(?:[.,]\d+)?`
+const UNIT = String.raw`(?:\s*(?:g|grams?|mg|milligrams?|mcg|µg|μg|iu)\b)?`
+const STATED: [string, RegExp[]][] = [
+    ["calories", [
+        new RegExp(String.raw`${NUM}\s*(?:k?cals?|kcals?|calories|cal)\b`, "i"),
+        new RegExp(String.raw`\b(?:calories|k?cals?|energy)\b\s*[:=\-]?\s*${NUM}`, "i"),
+    ]],
+    ["protein", [
+        new RegExp(String.raw`${NUM}${UNIT}\s*(?:of\s+)?prot(?:ein)?s?\b`, "i"),
+        new RegExp(String.raw`\bprot(?:ein)?s?\b\s*[:=\-]?\s*${NUM}`, "i"),
+        new RegExp(String.raw`(?:^|[\s,/(])${NUM}\s*g?\s*p\b`, "i"),
+        new RegExp(String.raw`(?:^|[\s,/(])p\s*[:=]?\s*${NUM}\b`, "i"),
+    ]],
+    ["carbs", [
+        new RegExp(String.raw`${NUM}${UNIT}\s*(?:of\s+)?(?:total\s+)?carb(?:s|ohydrates?)?\b`, "i"),
+        new RegExp(String.raw`\b(?:total\s+)?carb(?:s|ohydrates?)?\b\s*[:=\-]?\s*${NUM}`, "i"),
+        new RegExp(String.raw`(?:^|[\s,/(])${NUM}\s*g?\s*c\b`, "i"),
+        new RegExp(String.raw`(?:^|[\s,/(])c\s*[:=]?\s*${NUM}\b`, "i"),
+    ]],
+    ["fat", [
+        new RegExp(String.raw`${NUM}${UNIT}\s*(?:of\s+)?(?:total\s+)?fats?\b`, "i"),
+        new RegExp(String.raw`\b(?:total\s+)?(?:fats?|lipids?)\b\s*[:=\-]?\s*${NUM}`, "i"),
+        new RegExp(String.raw`(?:^|[\s,/(])${NUM}\s*g?\s*f\b`, "i"),
+        new RegExp(String.raw`(?:^|[\s,/(])f\s*[:=]?\s*${NUM}\b`, "i"),
+    ]],
+    ...["fib(?:re|er)", "sugars?", "sodium", "salt", "cholesterol", "potassium", "calcium", "iron", "magnesium", "zinc", "saturated(?:\\s+fat)?", "vitamin\\s+[a-z]\\d*"].map((word): [string, RegExp[]] => [word, [
+        new RegExp(String.raw`${NUM}${UNIT}\s*(?:of\s+)?${word}\b`, "i"),
+        new RegExp(String.raw`\b${word}\b\s*[:=\-]?\s*${NUM}`, "i"),
+    ]]),
+]
+
+export function statedNutrients(message: string): string[] {
+    return STATED.filter(([, patterns]) => patterns.some((pattern) => pattern.test(message))).map(([name]) => name)
+}
+
+// Two or more nutrient numbers means the user gave the food's nutrition themselves: it goes straight
+// onto a card from their numbers, with no database search (the chat model tends to search anyway)
 export function looksLikeNutritionFacts(message: string): boolean {
-    const hasCalories = /\b(calories|kcal|cal|energy)\b\s*:?\s*\d|\d+\s*(kcal|calories)\b/i.test(message)
-    const nutrient = "fat|lipid\\w*|carb\\w*|protein|sodium|sugars?|fib(?:re|er)|cholesterol"
-    // "Protein 5 g" or "5 g protein"
-    const others = [
-        ...message.matchAll(new RegExp(`\\b(${nutrient})\\b\\s*:?\\s*\\d`, "gi")),
-        ...message.matchAll(new RegExp(`\\d+(?:\\.\\d+)?\\s*(?:g|mg|grams?)?\\s*(?:of\\s+)?(${nutrient})\\b`, "gi")),
-    ].map((m) => m[1].toLowerCase().slice(0, 4))
-    return hasCalories && new Set(others).size >= 2
+    return statedNutrients(message).length >= 2
 }
 
 export const PASTED_META_SCHEMA = {
@@ -459,8 +497,8 @@ export const PASTED_META_SCHEMA = {
 
 export function pastedMetaPrompt(userSaid: string[]): string {
     return `The user's messages: ${userSaid.map((text) => `"${text}"`).join(" / ")}
-The last message has nutrition facts in it.
-name: what food it is, in a few words (the product name if the label shows one; otherwise from the messages; "Food from label" if there's no way to tell).
+The last message has nutrition numbers the user gave for a food.
+name: what food it is, in a few words (the product name if the label shows one; otherwise from the messages; "Food" if there's no way to tell).
 amount: how much they say they ate, in their own words (e.g. "about 1.5 cups", "2 bars"). Not the label's serving size ("Per 3/4 cup" is the label, not what they ate). "" if they didn't say.`
 }
 
@@ -491,6 +529,8 @@ export function proposalFromText(
     basis: "link" | "pasted" | "photo" | "ai_overview" | "search" | "estimate",
     sources: OverviewSource[],
     page?: PageSource,
+    // the user typed numbers for everything they ate (no "per serving"), so the amount is exactly that
+    totals = false,
 ): FoodProposal {
     const micronutrients: Record<string, number> = {}
     // without search results the model's micronutrient guesses aren't worth logging
@@ -501,13 +541,26 @@ export function proposalFromText(
     const fiberG = amount(extracted.fiber_g, 300)
     if (fiberG > 0) micronutrients.Fibre = fiberG
 
-    const reference = String(extracted.reference_serving ?? "1 serving").trim().slice(0, 60) || "1 serving"
+    // the user gave macros but no calories: work them out (4 kcal per g of protein and carbs, 9 per g of fat)
+    let caloriesFromMacros = false
+    if ((basis === "pasted" || basis === "photo") && !(amount(extracted.calories, 10_000) > 0)) {
+        const fromMacros = 4 * amount(extracted.protein_g, 1000) + 4 * amount(extracted.carbs_g, 1000) + 9 * amount(extracted.fat_g, 1000)
+        if (fromMacros > 0) {
+            extracted = { ...extracted, calories: Math.round(fromMacros) }
+            caloriesFromMacros = true
+        }
+    }
+
+    // "per bar" is the reference serving "1 bar"
+    const reference = String(extracted.reference_serving ?? "1 serving").trim().replace(/^(per|pour)\s+(?!\d)/i, "1 ").replace(/^(per|pour)\s+/i, "").slice(0, 60) || "1 serving"
     // exact when the units line up ("about a cup" with "3/4 cup (30 g)" = 1.33); the model's guess otherwise
     const exact = servingsFromAmount(food.amount, reference)
-    const portionsEaten = round(Math.min(Math.max(exact ?? (amount(extracted.portions_eaten, 50) || 1), 0.05), 50))
+    const portionsEaten = totals ? 1 : round(Math.min(Math.max(exact ?? (amount(extracted.portions_eaten, 50) || 1), 0.05), 50))
     const said = food.amount.trim()
-    const howMuch = amountBasis(food.amount, reference)
-    const amountLine = !/[a-z0-9]/i.test(said)
+    const howMuch = totals ? "stated" : amountBasis(food.amount, reference)
+    const amountLine = totals
+        ? `Amount: your numbers are for everything you had (${reference}). Change it if you had more or less.`
+        : !/[a-z0-9]/i.test(said)
         ? `Amount: no size or amount was given, so this uses ${portionsEaten} × ${reference}. Change it if yours was different.`
         : exact !== null
             ? `Amount: "${said}" is ${portionsEaten} × ${reference}.${howMuch === "estimated" ? " Change it if yours was different." : ""}`
@@ -526,7 +579,7 @@ export function proposalFromText(
         explanation = ["Read from the label in your photo. Check the numbers against the label before adding; a blurry or angled photo can be misread.", amountLine]
         accuracy = howMuch === "estimated" ? "medium" : "high"
     } else if (basis === "pasted") {
-        explanation = ["From the nutrition facts you pasted.", amountLine]
+        explanation = ["From the numbers you gave (no database search).", ...(caloriesFromMacros ? ["Calories were worked out from your protein, carbs and fat (4, 4 and 9 kcal per gram)."] : []), amountLine]
         accuracy = howMuch === "estimated" ? "medium" : "high"
     } else if (basis === "estimate") {
         explanation = ["This food isn't in the database, so these are typical values for it, not measured ones. Micronutrients are left out.", amountLine]
@@ -542,7 +595,7 @@ export function proposalFromText(
         accuracy,
         explanation,
         basis,
-        sourceLabel: basis === "link" && page ? page.host : basis === "pasted" ? "Your nutrition facts" : basis === "photo" ? "Your label photo" : basis === "ai_overview" ? "Google AI Overview" : basis === "search" ? "Google search results" : "Rough estimate",
+        sourceLabel: basis === "link" && page ? page.host : basis === "pasted" ? "Your numbers" : basis === "photo" ? "Your label photo" : basis === "ai_overview" ? "Google AI Overview" : basis === "search" ? "Google search results" : "Rough estimate",
         matchedName: null,
         base: {
             calories: amount(extracted.calories, 10_000),

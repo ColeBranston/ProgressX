@@ -3,6 +3,7 @@ import CloudinaryService from "@/app/cloundinaryClient/CloudinaryService";
 import { fetchAllPages } from "./dateRange";
 import { getPublicIdFromCloudinaryUrl } from "./helpers";
 import { userImageTag } from "./imageUpload";
+import { deleteUserObjects, storageConfigured } from "./r2Videos";
 
 // Everything ProgressX stores about one user, for the "download my data" export (right of access)
 // and for account deletion. Every table below is removed automatically when the account is deleted
@@ -19,6 +20,9 @@ const USER_TABLES: { table: string, key: string, label: string }[] = [
     { table: "workout_sets", key: "user_id", label: "workoutSets" },
     { table: "workout_routines", key: "user_id", label: "workoutRoutines" },
     { table: "photo_collection", key: "user_id", label: "progressPhotos" },
+    { table: "videos", key: "user_id", label: "videos" },
+    { table: "video_likes", key: "user_id", label: "likedVideos" },
+    { table: "video_favourites", key: "user_id", label: "favouriteVideos" },
     { table: "consent_events", key: "user_id", label: "consentHistory" },
 ]
 
@@ -36,6 +40,7 @@ export async function collectUserData(userId: string) {
         notes: [
             "This file contains all personal information ProgressX stores about your account.",
             "Photo entries link to the image files; open a link to download that image.",
+            "Videos are listed with their captions; the video files are stored with Cloudflare R2 and can be downloaded on request.",
         ],
         profile,
         ...Object.fromEntries(sections),
@@ -79,4 +84,17 @@ export async function deleteUserImages(userId: string): Promise<DeleteResult> {
     result.deleted += Object.values(tagged.deleted ?? {}).filter((status) => status === "deleted").length
 
     return result
+}
+
+// Deletes every video file and poster the user uploaded from R2 (everything under their prefix, so
+// uploads the database never heard back about go too). Throws if R2 refuses, so account deletion stops
+// before anything else is removed.
+export async function deleteUserVideos(userId: string): Promise<number> {
+    if (!storageConfigured()) {
+        const { count, error } = await supabase.from("videos").select("id", { count: "exact", head: true }).eq("user_id", userId)
+        if (error) throw error
+        if (count) throw new Error("R2 isn't configured, so the user's videos can't be deleted")
+        return 0
+    }
+    return deleteUserObjects(userId)
 }

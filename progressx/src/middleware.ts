@@ -184,5 +184,5 @@ export async function middleware(req: NextRequest) {
 export const config = {
   // pages that need a login (plus the consent and onboarding steps), and every API route except
   // /api/auth/* (login, signup, logout)
-  matcher: ["/", "/login", "/research", "/profile", "/mystats", "/mystats/:path*", "/mydiet", "/settings", "/consent", "/onboarding", "/api/((?!auth).*)"],
+  matcher: ["/", "/login", "/research", "/search", "/profile", "/profile/:path*", "/mystats", "/mystats/:path*", "/mydiet", "/settings", "/consent", "/onboarding", "/api/((?!auth).*)"],
 }

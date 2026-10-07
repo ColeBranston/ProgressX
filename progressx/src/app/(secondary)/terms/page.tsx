@@ -7,6 +7,7 @@ import { LEGAL_CONTACT_EMAIL, LEGAL_GOVERNING_LAW, LEGAL_MINIMUM_AGE } from "@/a
 export const metadata: Metadata = {
     title: "Terms of Service | ProgressX",
     description: "The terms that govern your use of ProgressX.",
+    alternates: { canonical: "/terms" },
 }
 
 export default function TermsOfServicePage() {

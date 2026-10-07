@@ -362,3 +362,50 @@
         flex-shrink: 0;
     }
 }
+
+/* ---------- Someone else's profile (other_profile.tsx) ---------- */
+.profileImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.privacyBadge {
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font: 600 12px var(--secondary-font-family);
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.privateNotice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: auto;
+    text-align: center;
+}
+
+.privateNotice svg {
+    fill: rgba(255, 255, 255, 0.6);
+}
+
+.privateLink {
+    font: 600 14px var(--secondary-font-family);
+    color: rgba(var(--primary-color));
+}
+
+.profileSpinner {
+    width: 36px;
+    height: 36px;
+    margin: auto;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(var(--primary-color));
+    animation: profileSpin 0.8s linear infinite;
+}
+
+@keyframes profileSpin {
+    to { transform: rotate(360deg); }
+}

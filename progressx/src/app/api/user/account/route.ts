@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAuthClient, supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
 import { clearSessionCookies } from "../../libs/session";
-import { deleteUserImages } from "../../libs/accountData";
+import { deleteUserImages, deleteUserVideos } from "../../libs/accountData";
 
 // DELETE /api/user/account  { confirmEmail }
 // Permanently deletes the signed-in user's account and everything stored about them:
 //   1. every image in Cloudinary (profile picture, progress photos, anything tagged with their id)
+//      and every video in Cloudflare R2
 //   2. the login (auth.users), which cascades to the profile and every table of their data
-// Images go first: if Cloudinary fails, nothing has been deleted yet and the user can simply try again.
+// Files go first: if Cloudinary or Stream fails, nothing has been deleted yet and the user can simply try again.
 // The request must repeat the account's email address, so it can't be triggered by a stray click.
 export async function DELETE(req: NextRequest) {
     const userId = await getUserIdFromRequest(req)
@@ -30,6 +31,14 @@ export async function DELETE(req: NextRequest) {
         return NextResponse.json({ message: "Type your account's email address to confirm" }, { status: 400 })
     }
 
+    let videos
+    try {
+        videos = await deleteUserVideos(userId)
+    } catch (e) {
+        console.log("Account deletion stopped: couldn't delete videos from R2: ", e instanceof Error ? e.message : e)
+        return NextResponse.json({ message: "Couldn't delete your videos right now, so your account wasn't deleted. Please try again." }, { status: 502 })
+    }
+
     let images
     try {
         images = await deleteUserImages(userId)
@@ -45,7 +54,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     // no email or other personal details in the log, just that it happened
-    console.log(`Account deleted (${images.deleted} images removed from Cloudinary)`)
+    console.log(`Account deleted (${images.deleted} images removed from Cloudinary, ${videos} video files from R2)`)
 
     const res = NextResponse.json({ message: "Your account and all of its data have been deleted" })
     clearSessionCookies(res)

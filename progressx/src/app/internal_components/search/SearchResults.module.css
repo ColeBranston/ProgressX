@@ -1,0 +1,233 @@
+/* Search results page: videos and profiles tabs */
+
+.page {
+    width: 100%;
+    max-width: 1100px;
+    height: var(--app-height);
+    box-sizing: border-box;
+    padding: 60px 40px 40px 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    color: white;
+}
+
+.searchRow {
+    display: flex;
+    gap: 10px;
+    max-width: 560px;
+}
+
+.input {
+    flex: 1;
+    min-width: 0;
+    height: 44px;
+    padding: 0 18px;
+    border-radius: 100px;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    background: rgb(11, 11, 11);
+    color: white;
+    font: 16px var(--secondary-font-family); /* 16px stops iOS zooming in */
+}
+
+.input:focus {
+    outline: none;
+    border-color: rgba(var(--primary-color), 0.8);
+}
+
+.submit {
+    height: 44px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 100px;
+    background: rgba(var(--primary-color));
+    color: white;
+    font: 18px var(--primary-font-family);
+    cursor: pointer;
+}
+
+.submit:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.heading {
+    margin: 6px 0 0;
+    font: 34px var(--primary-font-family);
+    overflow-wrap: anywhere;
+}
+
+.tabs {
+    display: flex;
+    gap: 24px;
+    border-bottom: 2px solid rgb(113, 113, 113, 0.5);
+}
+
+.tab,
+.activeTab {
+    position: relative;
+    padding: 0 0 8px;
+    border: none;
+    background: none;
+    color: white;
+    font: 24px var(--primary-font-family);
+    cursor: pointer;
+    transition: color 0.1s linear;
+}
+
+.tab:hover,
+.activeTab {
+    color: rgba(var(--primary-color));
+}
+
+.activeTab::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 5px;
+    border-radius: 5px;
+    background: rgba(var(--primary-color));
+}
+
+.panel {
+    min-height: 200px;
+}
+
+.empty {
+    margin: 10px 0;
+    font: 15px/1.5 var(--secondary-font-family);
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.profiles {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 640px;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: var(--secondary-background-color);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: white;
+    text-decoration: none;
+    transition: border-color 0.1s linear;
+}
+
+.profile:hover {
+    border-color: rgba(var(--primary-color), 0.6);
+}
+
+.avatar {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(var(--primary-color));
+    background: white;
+}
+
+.who {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+    font-family: var(--secondary-font-family);
+}
+
+.who strong {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.who > span {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.you,
+.badge {
+    padding: 1px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font: 600 11px var(--secondary-font-family);
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+    font: 12px var(--secondary-font-family);
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.more {
+    margin-top: 12px;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    background: none;
+    color: white;
+    font: 600 13px var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.spinner {
+    display: block;
+    width: 30px;
+    height: 30px;
+    margin: 20px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(var(--primary-color));
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.input:focus-visible,
+.submit:focus-visible,
+.tab:focus-visible,
+.activeTab:focus-visible,
+.profile:focus-visible,
+.more:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+    .page {
+        padding: 20px 16px 32px;
+    }
+
+    .heading {
+        font-size: 28px;
+    }
+}

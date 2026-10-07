@@ -90,6 +90,9 @@ To rotate one, change it in the provider's dashboard, update this file, then reb
 | `SEARCH_BACKEND_URL` | No | Where `/api/search` sends queries. Local dev: `http://localhost:8000`. Docker Compose overrides it. | n/a |
 | `APP_URL` | No | Public address of the site. Local dev: `http://localhost:3001`. Docker Compose overrides it. | n/a |
 | `OLLAMA_URL`, `OLLAMA_MODEL`, `FOODS_SOLR_URL` | No | Diet assistant model and food database, for `npm run dev` (`http://localhost:11435`, `gemma4:e2b`, `http://localhost:8983/solr/foods`). Docker Compose overrides them from the root `.env`. | n/a |
+| `R2_ACCOUNT_ID` | No | Cloudflare account that holds the video bucket (R2's S3 endpoint is `https://<id>.r2.cloudflarestorage.com`). Empty = video uploads are off (the feed still loads). | Cloudflare dashboard > R2 > Overview (Account ID) |
+| `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | **Yes** | Keys of an R2 API token with **Object Read & Write** on the video bucket only. Signs upload and playback links, checks uploads, deletes videos (including on account deletion). | R2 > Manage API tokens > Create API token |
+| `R2_VIDEO_BUCKET` | No | The bucket's name (default `progressx-videos`). | n/a |
 | `SERPAPI_API_KEY` | Yes | Optional. Leave empty normally. If set, the assistant can also read Google's AI Overview (through SerpApi) for foods the database doesn't have, like restaurant items; each uncached lookup uses one search from the plan's quota. Add SerpApi to the privacy policy first (see docs/privacy/README.md). | serpapi.com > Dashboard > API Key |
 
 Set automatically, not in any file:
@@ -159,6 +162,58 @@ has been idle takes about a minute (the vision part loads); later ones take ~25 
 
 Re-run it after changing `data/foods/ingest_foods.py` or to pick up a newer USDA release (update the
 file names in `DATASETS`). It replaces the core's contents; no app restart needed.
+
+## Search engines and Google sign-in branding
+
+The site has one public address, `https://progressx.ca`. nginx permanently redirects `http://` and
+`www.` requests there (using the `CF-Visitor` header Cloudflare adds), every public page declares it
+as its canonical address (`metadataBase` in `src/app/layout.tsx`, `SITE_URL` in `src/app/siteUrl.ts`),
+and `/sitemap.xml` and `/robots.txt` list the public pages (home, login, terms, privacy). Google's
+OAuth branding check needs the home page reachable without logging in and linking to the privacy
+policy, which it does; if it ever reports the home page as unresponsive, check the tunnel was up at
+that time and request re-verification.
+
+## Videos (Cloudflare R2)
+
+Videos (the For You feed, the Videos / Liked / Favourites tabs, other people's profiles) are files in a
+private R2 bucket; the database (`videos`, `video_likes`, `video_favourites`) holds who posted what,
+captions, and the like / favourite counts (kept in step by triggers).
+
+- **Uploads** go straight from the browser to R2 with a one-time signed `PUT` link from
+  `/api/videos/upload` (the file's exact size and type are part of the signature), so video files never
+  pass through this Mac or the tunnel. `/api/videos/:id/complete` then reads the uploaded file's
+  structure from R2 (ranged reads) and only posts it if it really is an MP4 / MOV within the limits,
+  otherwise deletes it. Limits: MP4 / MOV, 200 MB, 3 minutes (`internal_components/videos/videoTypes.ts`).
+  Per user: 10 uploads an hour, 3 unfinished at a time; unfinished uploads are cleared after 2 hours.
+- **Thumbnails**: the uploader's browser captures a frame, the server re-encodes it with sharp and stores
+  it next to the video (`videos/<user id>/<video id>.jpg`).
+- **No transcoding**: videos play exactly as uploaded. H.264 MP4 plays everywhere; HEVC (iPhone's
+  "High Efficiency" setting) plays in Safari and in Chrome / Edge on hardware that decodes HEVC, but not
+  in Firefox. There's one quality, so large files start slower on weak connections.
+- **Playback** uses signed `GET` links valid for up to 3 hours, handed out only to people allowed to see
+  the video: the poster, or anyone if the poster's profile is **public**. Making a profile private hides
+  its videos from the feed, its profile page and everyone else's Liked / Favourites lists straight away
+  (links already handed out keep working until they expire).
+- **Liked and Favourites** lists are only ever shown to their owner.
+- **Deleting** a video removes its file and thumbnail from R2 first, then the database. Account deletion
+  deletes everything under `videos/<user id>/` in the bucket before anything else.
+- **Cloudflare's terms**: videos are served from R2's own storage address, never through progressx.ca or
+  the tunnel (serving video through the proxy on a Free / Pro / Business plan isn't allowed). Don't put
+  the bucket behind a custom domain on the progressx.ca zone. Cloudflare's own recommendation for video
+  is Stream; R2 was chosen for cost.
+
+Set up (once):
+
+1. Cloudflare dashboard > R2: enable R2 (asks for a payment method; 10 GB storage free each month, no
+   charge for downloads).
+2. Create the bucket `progressx-videos` (private; no public access, no custom domain). The Cloudflare
+   Developer Platform connector can do this, or the dashboard.
+3. R2 > Manage API tokens > Create API token: **Object Read & Write**, limited to that bucket. Put the
+   Access Key ID, Secret Access Key and your Account ID in `progressx/.env.local`.
+4. Let the site upload to the bucket (CORS), then rebuild the app:
+   ```bash
+   cd progressx && node --env-file=.env.local scripts/r2-setup.mjs
+   ```
 
 ## Docker Compose commands
 

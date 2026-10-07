@@ -1,0 +1,277 @@
+/* Posting a video (the original drop-zone design from the profile's videos tab) */
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.container {
+    position: relative;
+    width: min(720px, 100%);
+    min-height: min(60vh, 520px);
+    max-height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 56px 32px 32px;
+    background-color: black;
+    box-shadow: inset 0 0 20px 10px rgba(var(--primary-color), .5);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    color: white;
+    animation: appear 0.1s forwards;
+}
+
+@keyframes appear {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+
+.exitButton {
+    position: absolute;
+    top: 14px;
+    right: 22px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: white;
+    font-size: 44px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.1s linear;
+}
+
+.exitButton:hover {
+    color: rgba(var(--primary-color));
+}
+
+.dropZone {
+    width: 80%;
+    min-height: 300px;
+    border: 3px dashed rgba(255, 255, 255, 0.18);
+    border-radius: 15px;
+    background: none;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: border 0.1s linear, background-color 0.1s linear;
+}
+
+.dropZone:hover,
+.dragging {
+    border-color: rgba(var(--primary-color), 0.6);
+}
+
+.dragging {
+    background: rgba(var(--primary-color), 0.06);
+}
+
+.selectHeader {
+    font: 24px var(--primary-font-family);
+}
+
+.selectBody {
+    font-family: var(--secondary-font-family);
+}
+
+.selectButton {
+    background-color: rgba(var(--primary-color));
+    min-width: 120px;
+    border-radius: 7.5px;
+    margin-top: 10px;
+    padding: 6px 10px;
+    font: 600 14px var(--secondary-font-family);
+}
+
+.limits {
+    margin-top: 10px;
+    font: 12px var(--secondary-font-family);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.details {
+    width: 100%;
+    display: flex;
+    gap: 20px;
+}
+
+.preview {
+    width: 42%;
+    max-height: 420px;
+    aspect-ratio: 9 / 16;
+    border-radius: 12px;
+    background: #111;
+    object-fit: contain;
+}
+
+.fields {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: var(--secondary-font-family);
+}
+
+.label {
+    font: 600 13px var(--secondary-font-family);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.caption {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font: 16px/1.4 var(--secondary-font-family);
+}
+
+.caption:focus {
+    outline: none;
+    border-color: rgba(var(--primary-color), 0.9);
+}
+
+.counter {
+    align-self: flex-end;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.hint {
+    margin: 0;
+    font: 13px/1.5 var(--secondary-font-family);
+    color: rgba(255, 255, 255, 0.6);
+    text-align: inherit;
+}
+
+.buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 10px;
+}
+
+.primary,
+.secondary {
+    height: 40px;
+    padding: 0 18px;
+    border-radius: 10px;
+    font: 700 14px var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.primary {
+    border: none;
+    background: rgba(var(--primary-color));
+    color: white;
+}
+
+.secondary {
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: none;
+    color: white;
+}
+
+.status {
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+}
+
+.statusTitle {
+    margin: 0;
+    font: 26px var(--primary-font-family);
+}
+
+.bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.bar span {
+    display: block;
+    height: 100%;
+    background: rgba(var(--primary-color));
+    transition: width 0.2s linear;
+}
+
+.spinner {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(var(--primary-color));
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.error {
+    margin: 0;
+    font: 600 14px var(--secondary-font-family);
+    color: rgb(255, 150, 150);
+    text-align: center;
+}
+
+.exitButton:focus-visible,
+.dropZone:focus-visible,
+.primary:focus-visible,
+.secondary:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+    .backdrop {
+        padding: 12px;
+    }
+
+    .container {
+        padding: 52px 16px 20px;
+    }
+
+    .dropZone,
+    .status {
+        width: 100%;
+    }
+
+    .details {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .preview {
+        width: 60%;
+        max-height: 300px;
+    }
+
+    .fields {
+        width: 100%;
+    }
+}

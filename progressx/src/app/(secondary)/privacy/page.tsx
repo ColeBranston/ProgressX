@@ -6,6 +6,7 @@ import { LEGAL_CONTACT_EMAIL, LEGAL_MINIMUM_AGE, PRIVACY_OFFICER_EMAIL, PRIVACY_
 export const metadata: Metadata = {
     title: "Privacy Policy | ProgressX",
     description: "How ProgressX collects, uses and protects your information.",
+    alternates: { canonical: "/privacy" },
 }
 
 export default function PrivacyPolicyPage() {
@@ -97,14 +98,14 @@ export default function PrivacyPolicyPage() {
             <h2><span>05</span>How we share information</h2>
             <p>We share personal information only in these situations:</p>
             <ul>
-                <li><strong>With other users, as you choose.</strong> Your username, profile picture and any content you post may be visible to other users depending on your profile privacy setting.</li>
+                <li><strong>With other users, as you choose.</strong> Other signed-in users can see your username, name, profile picture, bio and follower, following and like counts. Videos you post are shown to other users (including in the For You feed) only while your profile is public; when it is private, only you can see them. The videos you like or favourite are visible only to you.</li>
                 <li>
                     <strong>With service providers</strong> who help us run the Service and may only use your information to provide their services to us:
                     <ul>
                         <li>Supabase: authentication and database hosting</li>
-                        <li>Cloudinary: storage and delivery of photos and videos</li>
+                        <li>Cloudinary: storage and delivery of photos</li>
                         <li>Google: sign-in, if you choose to use it</li>
-                        <li>Cloudflare: network delivery and security</li>
+                        <li>Cloudflare: network delivery and security, and storage and streaming of videos you post</li>
                     </ul>
                 </li>
                 <li><strong>For legal reasons.</strong> If required by law, or to protect the rights, safety and property of our users, the public or ProgressX.</li>

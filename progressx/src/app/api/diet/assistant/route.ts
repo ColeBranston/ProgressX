@@ -6,7 +6,7 @@ import { FoodPageError, linksIn, readFoodPage } from "../../libs/foodPage";
 import { ImageUploadError, cleanImage } from "../../libs/imageUpload";
 import {
     ChatMessage, EXTRACTION_SCHEMA, FOOD_SEARCH_TOOL, FoodProposal, GOOGLE_TOOL, MAX_USER_MESSAGE, PAGE_FOOD_ID, PAGE_TOOL, PASTED_FOOD_ID,
-    NO_LABEL, PASTED_META_SCHEMA, PHOTO_MARKER, PROPOSE_TOOL, labelPhotoPrompt, describePrompt, looksLikeNutritionFacts, pastedMetaPrompt, extractionPrompt, forChatModel, latestFoodIds, latestPage, searchThatFound, latestGoogleResults, portionPrompt, portionSchema, proposalFromDatabase,
+    NO_LABEL, PASTED_META_SCHEMA, PHOTO_MARKER, PROPOSE_TOOL, labelPhotoPrompt, describePrompt, looksLikeNutritionFacts, statedNutrients, pastedMetaPrompt, extractionPrompt, forChatModel, latestFoodIds, latestPage, searchThatFound, latestGoogleResults, portionPrompt, portionSchema, proposalFromDatabase,
     proposalFromText, sanitizeHistory, systemPrompt, tools,
 } from "../../libs/dietAssistant";
 
@@ -162,12 +162,21 @@ async function buildProposal(
     plainFoods: () => Promise<string>,
     signal: AbortSignal,
     fromPhoto = false,
+    totals = false,
 ): Promise<FoodProposal | { rejected: string, plainFoods: string }> {
     // nutrition facts the user typed or pasted into the chat
     if (foodId === PASTED_FOOD_ID) {
         const pasted = { query: "what the user pasted", kind: "search_snippets" as const, text: userSaid.join("\n\n"), sources: [] }
         const extracted = await structured(extractionPrompt({ ...food, name: food.name || "Food" }, userSaid, [pasted]), EXTRACTION_SCHEMA, signal)
-        return proposalFromText(food, extracted, fromPhoto ? "photo" : "pasted", [])
+        // typed numbers: only the nutrients the user actually gave (the model likes to fill carbs from
+        // sugar and the like). Calories missing here are worked out from the macros later.
+        if (!fromPhoto) {
+            const given = new Set(statedNutrients(userSaid[userSaid.length - 1] ?? ""))
+            for (const [key, nutrient] of [["calories", "calories"], ["protein_g", "protein"], ["carbs_g", "carbs"], ["fat_g", "fat"]] as const) {
+                if (!given.has(nutrient)) extracted[key] = null
+            }
+        }
+        return proposalFromText(food, extracted, fromPhoto ? "photo" : "pasted", [], undefined, totals)
     }
 
     let match = foodId && foodId !== PAGE_FOOD_ID ? await getFood(foodId) : null
@@ -283,24 +292,29 @@ export async function POST(req: NextRequest) {
                 let searches = 0
                 let proposals = 0
 
-                // pasted nutrition facts: read straight into a card, no searching
+                // nutrition numbers the user gave (typed, pasted or shorthand): straight onto a card, no searching
                 if (looksLikeNutritionFacts(latestSaid)) {
                     const fromPhoto = latestSaid.includes(PHOTO_MARKER)
-                    if (!fromPhoto) send({ type: "status", text: "Reading your nutrition facts" })
+                    if (!fromPhoto) send({ type: "status", text: "Using the numbers you gave" })
                     const meta = await structured(pastedMetaPrompt(userSaid), PASTED_META_SCHEMA, req.signal)
                     let amount = String(meta.amount ?? "").trim().slice(0, 80)
-                    // the label's own serving size isn't an amount eaten; for photos, only what the user typed counts
-                    if (/^(per|pour)\b/i.test(amount) || (fromPhoto && !message.toLowerCase().includes(amount.toLowerCase()))) amount = ""
+                    // the label's own serving size isn't an amount eaten, and only an amount the user actually
+                    // typed counts (the model fills in "one" or "one serving" when there isn't one)
+                    const typed = message.toLowerCase()
+                    const said = amount.toLowerCase()
+                    if (/^(per|pour)\b/i.test(amount) || !typed.includes(said) || typed.split(said).slice(0, -1).every((before) => /\b(per|pour|serving size:?)\s*$/.test(before))) amount = ""
+                    // typed numbers with no amount and no "per serving": they're for everything they ate
+                    const totals = !fromPhoto && !amount && !/\bper\b|serving size|\bservings?\b|\/\s*100\s*g|\bpour\b/i.test(message)
                     let name = String(meta.name ?? "").trim().slice(0, 80)
                     if (!name || /not (visible|shown|given)|unknown|n\/a|\bproduct\b\s*$/i.test(name)) name = fromPhoto ? "Food from label" : "Food"
                     const food = { name, amount }
-                    const built = await buildProposal(food, PASTED_FOOD_ID, history, userSaid, plainFoods, req.signal, fromPhoto)
+                    const built = await buildProposal(food, PASTED_FOOD_ID, history, userSaid, plainFoods, req.signal, fromPhoto, totals)
                     if (!("rejected" in built)) {
                         history.push({ role: "assistant", content: "", tool_calls: [{ function: { name: PROPOSE_TOOL, arguments: { food_id: PASTED_FOOD_ID, ...food } } }] })
                         history.push({ role: "tool", tool_name: PROPOSE_TOOL, content: JSON.stringify({ shown: true, entry: `${built.name} from the user's pasted nutrition facts`, accuracy: built.accuracy }) })
                         const reply = fromPhoto
                             ? "I've put it on a card from the label in your photo. Check the numbers and the amount, then add it."
-                            : "I've put it on a card from the nutrition facts you pasted. Check the amount, then add it."
+                            : "I've put it on a card using the numbers you gave, no database search. Check the amount, then add it."
                         history.push({ role: "assistant", content: reply })
                         send({ type: "proposal", proposal: built })
                         send({ type: "delta", text: reply })

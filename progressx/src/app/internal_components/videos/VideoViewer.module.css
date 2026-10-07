@@ -1,0 +1,321 @@
+/* Full-size video from a profile grid */
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.82);
+}
+
+.dialog {
+    display: flex;
+    width: min(960px, 100%);
+    height: min(88vh, 860px);
+    border-radius: 18px;
+    overflow: hidden;
+    background: #0d0d0f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: white;
+}
+
+.stage {
+    position: relative;
+    flex: 1.4;
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: black;
+}
+
+.video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.unavailable {
+    padding: 0 24px;
+    text-align: center;
+    font: 14px var(--secondary-font-family);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.tapLayer {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.playBadge {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.45);
+    fill: white;
+}
+
+.mute,
+.step {
+    position: absolute;
+    padding: 6px;
+    border: none;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 50%;
+    display: flex;
+    fill: white;
+    color: white;
+    cursor: pointer;
+}
+
+.mute {
+    top: 14px;
+    left: 14px;
+}
+
+.step {
+    top: 50%;
+    width: 42px;
+    height: 42px;
+    margin-top: -21px;
+    justify-content: center;
+    align-items: center;
+}
+
+.prev {
+    left: 14px;
+}
+
+.prev svg {
+    transform: rotate(180deg);
+}
+
+.next {
+    right: 14px;
+}
+
+.side {
+    flex: 1;
+    min-width: 260px;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 18px;
+    overflow-y: auto;
+    font-family: var(--secondary-font-family);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    color: white;
+    text-decoration: none;
+}
+
+.author img {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(var(--primary-color));
+}
+
+.author span {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.author strong {
+    font-size: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.author small {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.author:hover strong {
+    text-decoration: underline;
+}
+
+.close {
+    padding: 0 6px;
+    border: none;
+    background: none;
+    color: white;
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: rgba(var(--primary-color));
+}
+
+.caption {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04);
+    color: white;
+    fill: white;
+    font: 600 13px var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.actions button:hover {
+    border-color: rgba(var(--primary-color), 0.7);
+}
+
+.actions .on {
+    border-color: rgba(var(--primary-color), 0.8);
+    fill: rgba(var(--primary-color));
+}
+
+.owner {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.owner p {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.owner div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.danger {
+    height: 34px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(var(--primary-color));
+    color: white;
+    font: 700 13px var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.textButton {
+    padding: 0;
+    border: none;
+    background: none;
+    color: rgba(255, 255, 255, 0.6);
+    font: 600 13px var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.textButton:hover:not(:disabled) {
+    color: white;
+}
+
+.danger:disabled,
+.textButton:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.notice {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.mute:focus-visible,
+.step:focus-visible,
+.close:focus-visible,
+.author:focus-visible,
+.actions button:focus-visible,
+.danger:focus-visible,
+.textButton:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+.tapLayer:focus-visible {
+    outline: 2px solid white;
+    outline-offset: -4px;
+}
+
+@media (max-width: 900px) {
+    .backdrop {
+        padding: 0;
+    }
+
+    .dialog {
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        border: none;
+    }
+
+    .side {
+        flex: none;
+        max-width: none;
+        min-width: 0;
+        max-height: 40%;
+        padding: 14px 16px;
+        gap: 12px;
+    }
+}

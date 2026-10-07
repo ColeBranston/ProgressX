@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import styles from './navbar.module.css';
 import Link from "next/link";
 
@@ -12,12 +12,14 @@ export default function Navbar(){
 
     // phones / small tablets: the sidebar becomes a slide-in menu opened from the top bar
     const [ menuOpen, setMenuOpen ] = useState(false)
+    const [ query, setQuery ] = useState("")
     const closeButtonRef = useRef<HTMLButtonElement | null>(null)
     const menuButtonRef = useRef<HTMLButtonElement | null>(null)
 
-    // close the menu whenever the page changes
+    // close the menu whenever the page changes; on the results page, keep the words in the box
     useEffect(() => {
         setMenuOpen(false)
+        setQuery(pathname === "/search" ? new URLSearchParams(window.location.search).get("q") ?? "" : "")
     }, [pathname])
 
     useEffect(() => {
@@ -35,6 +37,14 @@ export default function Navbar(){
             menuButton?.focus()
         }
     }, [menuOpen])
+
+    function search(e: FormEvent) {
+        e.preventDefault()
+        const words = query.trim()
+        if (!words) return
+        const tab = pathname === "/search" ? new URLSearchParams(window.location.search).get("tab") : null
+        go(`/search?${new URLSearchParams({ q: words, ...(tab ? { tab } : {}) })}`)
+    }
 
     function go(path: string) {
         setMenuOpen(false)
@@ -75,7 +85,7 @@ export default function Navbar(){
         </div>
         <div>
           <div className={styles.searchFormContainer}>
-            <form className={styles.searchForm}>
+            <form className={styles.searchForm} onSubmit={search} role="search">
               <svg xmlns="http://www.w3.org/2000/svg"
                 className={styles.searchIcon}
                 viewBox="0 0 24 24" 
@@ -90,7 +100,16 @@ export default function Navbar(){
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
 
-              <input className={styles.searchbar} placeholder="Search" type={"text"}/>
+              <input
+                className={styles.searchbar}
+                placeholder="Search"
+                type="search"
+                aria-label="Search videos and people"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                maxLength={80}
+                enterKeyHint="search"
+              />
             </form>
           </div>
           <ul className={styles.navbarList}>

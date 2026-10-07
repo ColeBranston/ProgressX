@@ -1,0 +1,169 @@
+/* Video thumbnails on profile tabs (same tile size as the "Add new video" button) */
+
+.grid {
+    width: 95%;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    padding: 10px;
+    gap: 15px;
+}
+
+.tile {
+    position: relative;
+    width: 150px;
+    height: 200px;
+    padding: 0;
+    border: 2px solid black;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: var(--secondary-background-color);
+    color: white;
+    cursor: pointer;
+    transition: border-color 100ms linear;
+}
+
+.tile:hover:not(:disabled) {
+    border-color: rgba(var(--primary-color));
+}
+
+.tile:disabled {
+    cursor: default;
+}
+
+.tile:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+.thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 8px 6px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+    font: 600 12px var(--secondary-font-family);
+}
+
+.stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.stat svg {
+    fill: white;
+}
+
+.byline {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    max-width: calc(100% - 16px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font: 600 11px var(--secondary-font-family);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.state {
+    height: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    font: 500 13px/1.4 var(--secondary-font-family);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.remove {
+    padding: 6px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    background: none;
+    color: white;
+    font: 600 12px var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.more {
+    align-self: center;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    background: none;
+    color: white;
+    font: 600 13px var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.notice {
+    margin: 8px 10px;
+    font: 14px var(--secondary-font-family);
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.inlineEmpty {
+    display: flex;
+    align-items: center;
+    max-width: 320px;
+    font: 14px/1.5 var(--secondary-font-family);
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.spinner,
+.smallSpinner {
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(var(--primary-color));
+    animation: spin 0.8s linear infinite;
+}
+
+.spinner {
+    width: 30px;
+    height: 30px;
+    margin: 20px;
+}
+
+.smallSpinner {
+    width: 18px;
+    height: 18px;
+    border-width: 2px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 900px) {
+    .grid {
+        width: 100%;
+        box-sizing: border-box;
+        gap: 8px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .tile {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 3 / 4;
+    }
+}

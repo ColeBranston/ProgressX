@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import './global.css';
+import { SITE_URL } from './siteUrl';
 
 import { IsLoadingProvider } from './contexts/isLoading'
 import LoadingScreen  from './internal_components/LoadingScreen'
@@ -19,6 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL), // canonical addresses resolve against this
   title: "ProgressX",
   description: "Fitness Social Media App",
 };

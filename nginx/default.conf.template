@@ -40,8 +40,29 @@ limit_req_zone $binary_remote_addr zone=solr_ingest:10m rate=20r/s;  # GitHub Ac
 limit_req_status 429;
 limit_req_log_level warn;
 
+# ---------- One public address: https://progressx.ca ----------
+# Cloudflare tells us how the visitor arrived (CF-Visitor / X-Forwarded-Proto). Plain http:// and the
+# www. host get a permanent redirect to https://progressx.ca, so Google indexes one copy of each page.
+# Requests that don't come through Cloudflare (local checks on this machine) are left alone.
+map $http_cf_visitor $visitor_scheme {
+    default                  "";
+    "~\"scheme\":\"http\""  "http";
+    "~\"scheme\":\"https\"" "https";
+}
+
+map "$visitor_scheme|$http_x_forwarded_proto|$host" $canonical_redirect {
+    default                    0;
+    "~^http\|"                 1;  # visitor used http://
+    "~^\|http\|"               1;  # no CF-Visitor, but the edge says http
+    "~\|www\.progressx\.ca$"   1;  # www. host
+}
+
 server {
     listen 80;
+
+    if ($canonical_redirect) {
+        return 301 https://progressx.ca$request_uri;
+    }
 
     # Re-resolve the app container through Docker's DNS instead of once at startup,
     # so rebuilding the app (which can change its IP) doesn't leave nginx pointing at a dead address
