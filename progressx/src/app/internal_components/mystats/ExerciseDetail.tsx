@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import dayjs from "dayjs";
 import styles from "./workouts.module.css";
 import Modal from "./Modal";
 import ExerciseAnimation from "./ExerciseAnimation";
+import Exercise3D from "./Exercise3D";
 import MuscleMap from "./MuscleMap";
 import { LineChart } from "./charts";
 import { EXERCISE_BY_ID, MUSCLE_LABELS, WeightUnit, formatWeight, fromKg } from "./exercises";
@@ -23,6 +24,7 @@ export default function ExerciseDetail({ exerciseId, sets, unit, onClose, onLogT
     const records = useMemo(() => personalRecords(sets, exerciseId), [sets, exerciseId])
     const weeks = useMemo(() => exerciseWeeks(sets, exerciseId, recentWeeks(12)), [sets, exerciseId])
     const logged = sets.some((s) => s.exercise_id === exerciseId)
+    const [ view, setView ] = useState<"3d" | "2d">("3d")
 
     if (!exercise) return null
 
@@ -33,9 +35,18 @@ export default function ExerciseDetail({ exerciseId, sets, unit, onClose, onLogT
         <Modal title={exercise.name} onClose={onClose} wide>
             <div className={styles.detailGrid}>
                 <div className={styles.editor}>
-                    <div className={`${styles.stage} ${styles.detailStage}`}>
-                        <ExerciseAnimation motion={exercise.motion} label={`${exercise.name} demonstration`} />
+                    <div className={styles.viewToggle} role="radiogroup" aria-label="Demonstration view">
+                        {(["3d", "2d"] as const).map((option) => (
+                            <button key={option} type="button" role="radio" aria-checked={view === option} onClick={() => setView(option)}>{option.toUpperCase()}</button>
+                        ))}
                     </div>
+                    {view === "3d" ?
+                        <Exercise3D motion={exercise.motion} primary={exercise.primary} secondary={exercise.secondary} label={`${exercise.name} demonstration`} />
+                    :
+                        <div className={`${styles.stage} ${styles.detailStage}`}>
+                            <ExerciseAnimation motion={exercise.motion} label={`${exercise.name} demonstration`} />
+                        </div>
+                    }
                     <div className={styles.tagRow}>
                         <span className={styles.tag}>{exercise.equipment}</span>
                         {exercise.bodyweight ? <span className={styles.tag}>Bodyweight: log any added weight</span> : null}

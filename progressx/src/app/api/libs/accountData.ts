@@ -14,6 +14,7 @@ const USER_TABLES: { table: string, key: string, label: string }[] = [
     { table: "food_items", key: "user_id", label: "savedFoods" },
     { table: "food_log_entries", key: "user_id", label: "foodLog" },
     { table: "water_log_entries", key: "user_id", label: "waterLog" },
+    { table: "weight_log_entries", key: "user_id", label: "weightLog" },
     { table: "workout_splits", key: "user_id", label: "workoutSplits" },
     { table: "workout_sets", key: "user_id", label: "workoutSets" },
     { table: "workout_routines", key: "user_id", label: "workoutRoutines" },

@@ -19,7 +19,7 @@ function limitFactor({ consumed, target }: CompletionItem) {
     return consumed <= target ? 1 : clamp01(1 - (consumed - target) / target)
 }
 
-// Average of consumed / target for "target" items (each capped at 100%). "limit" items (sodium)
+// Average of consumed / target for "target" items (each capped at 100%). "limit" items (sodium, cholesterol)
 // never add credit, they only scale the result down when you go over them - so an empty day is
 // still 0%, and 100% needs every target met AND every limit respected.
 export function averageCompletion(items: CompletionItem[]): number | null {

@@ -37,3 +37,6 @@ nginx/solr-ingest-url.txt
 
 # Solr index data (live search database, rebuilt by ingestion; far too large for git)
 data/db/var/solr/
+
+# Downloaded nutrition datasets (rebuilt by data/foods/ingest_foods.py)
+data/foods/raw/

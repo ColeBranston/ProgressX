@@ -929,3 +929,118 @@
     text-transform: uppercase;
     color: rgba(255, 255, 255, 0.7);
 }
+
+/* ---------- 3D exercise viewer (exercise detail) ---------- */
+
+.viewToggle {
+    display: flex;
+    align-self: flex-start;
+    padding: 3px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.viewToggle button {
+    height: 28px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 7px;
+    background: none;
+    color: rgba(255, 255, 255, 0.6);
+    font: 600 12px var(--secondary-font-family);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+
+.viewToggle button[aria-checked="true"] {
+    background: rgba(255, 255, 255, 0.14);
+    color: white;
+}
+
+.viewToggle button:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 1px;
+}
+
+.viewer3d {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 6 / 5;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0b0909;
+}
+
+.viewer3dCanvas {
+    position: absolute;
+    inset: 0;
+    cursor: grab;
+}
+
+.viewer3dCanvas:active {
+    cursor: grabbing;
+}
+
+.viewer3dLoading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 28px;
+    height: 28px;
+    margin: -14px 0 0 -14px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    border-top-color: rgba(var(--primary-color));
+    animation: viewerSpin 0.8s linear infinite;
+}
+
+@keyframes viewerSpin {
+    to { transform: rotate(360deg); }
+}
+
+.viewer3dLegend {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.65);
+    pointer-events: none;
+}
+
+.viewer3dLegend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.viewer3dLegend i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+}
+
+.legendPrimary {
+    background: #ff2a14;
+    box-shadow: 0 0 8px rgba(255, 42, 20, 0.8);
+}
+
+.legendSecondary {
+    background: #9a2a2a;
+}
+
+.viewer3dHint {
+    margin-left: auto;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .viewer3dLoading {
+        animation: none;
+    }
+}

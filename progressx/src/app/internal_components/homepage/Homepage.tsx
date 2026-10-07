@@ -207,7 +207,7 @@ export default function Homepage() {
                 </nav>
                 <div className={styles.navActions}>
                     <Link href="/login" className={styles.navGhost}>Log in</Link>
-                    <Link href="/" className={styles.navCta}>Open app <Arrow /></Link>
+                    <Link href="/login" className={styles.navCta}>Open app <Arrow /></Link>
                 </div>
             </header>
 
@@ -239,7 +239,7 @@ export default function Homepage() {
                             </p>
                             <div className={styles.heroButtons}>
                                 <Magnetic><Link href="/login" className={styles.primaryButton}>Start for free <Arrow /></Link></Magnetic>
-                                <Link href="/" className={styles.secondaryButton}>Open the app</Link>
+                                <Link href="/login" className={styles.secondaryButton}>Open the app</Link>
                             </div>
                         </div>
                     </div>
@@ -421,7 +421,7 @@ export default function Homepage() {
                         <h2 className={styles.ctaTitle}>Your next PR<br /><span className={styles.redText}>starts today.</span></h2>
                         <div className={styles.heroButtons}>
                             <Magnetic><Link href="/login" className={styles.primaryButton}>Create your account <Arrow /></Link></Magnetic>
-                            <Link href="/" className={styles.secondaryButton}>Open the app</Link>
+                            <Link href="/login" className={styles.secondaryButton}>Open the app</Link>
                         </div>
                         <p className={styles.ctaNote}>Free to use. 18+. Not available in Quebec.</p>
                     </div>
@@ -433,7 +433,7 @@ export default function Homepage() {
                         <p>Fitness, measured.</p>
                     </div>
                     <nav className={styles.footerLinks} aria-label="Footer">
-                        <Link href="/">Open the app</Link>
+                        <Link href="/login">Open the app</Link>
                         <Link href="/login">Log in</Link>
                         <Link href="/terms">Terms</Link>
                         <Link href="/privacy">Privacy</Link>
@@ -633,7 +633,7 @@ function StoryWidget({ kind, active }: { kind: string, active: boolean }) {
             return (
                 <div className={`${cls} ${styles.widgetCta}`}>
                     <Link href="/login" className={styles.primaryButton}>Start for free <Arrow /></Link>
-                    <Link href="/" className={styles.secondaryButton}>Open the app</Link>
+                    <Link href="/login" className={styles.secondaryButton}>Open the app</Link>
                 </div>
             )
     }

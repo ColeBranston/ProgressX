@@ -1,7 +1,7 @@
 import dri from "@/data/dietaryReferenceIntakes.json";
 
 // "target": reach at least `total` (most vitamins and minerals).
-// "limit": stay at or under `total` (sodium) - more is worse, not better.
+// "limit": stay at or under `total` (sodium, cholesterol) - more is worse, not better.
 export type MicroNutrientKind = "target" | "limit"
 
 export type MicroNutrient = {
@@ -37,6 +37,7 @@ export const MICRONUTRIENT_DEFS: { name: string, measure: string, kind?: MicroNu
     { name: "Magnesium", measure: "mg" },
     { name: "Potassium", measure: "mg" },
     { name: "Sodium", measure: "mg", kind: "limit" },
+    { name: "Cholesterol", measure: "mg", kind: "limit" },
     { name: "Zinc", measure: "mg" },
     { name: "Iodine", measure: "μg" },
 ]
@@ -46,11 +47,14 @@ export const ALL_MICRONUTRIENT_NAMES: string[] = MICRONUTRIENT_DEFS.map((def) =>
 type Gender = "male" | "female"
 type AgeRange = "9-13y" | "14-18y" | "19-30y" | "31-50y" | "51-70y" | ">70y"
 
-function resolveGender(gender: unknown): Gender {
-    if (gender === "male" || gender === "female") return gender
+// The DRI tables only have male and female groups. "other" (a choice at onboarding) averages the two,
+// the same way the calorie target does. Anything else means the profile hasn't loaded yet.
+function resolveGroups(gender: unknown): Gender[] {
+    if (gender === "male" || gender === "female") return [gender]
+    if (gender === "other") return ["male", "female"]
     // null/undefined = the profile hasn't loaded from localStorage yet (first render), not worth logging
-    if (gender !== null && gender !== undefined) console.error("User's Gender is apparently alien, defaulting DRI lookup to male: ", gender)
-    return "male"
+    if (gender !== null && gender !== undefined) console.error("Unexpected gender value, using the male DRI groups: ", gender)
+    return ["male"]
 }
 
 function resolveAgeRange(age: unknown): AgeRange {
@@ -77,8 +81,24 @@ function findGroup<T extends { group: string, ageRange: string }>(groups: T[], g
 // (diet_config.displayed_micronutrients) narrows what shows on the diet page.
 // Omit it (or pass an empty array) to get all of them.
 export function getMicronutrientTargets(genderInput: unknown, ageInput: unknown, displayedNames?: string[]): MicroNutrient[] {
-    const group = resolveGender(genderInput)
     const ageRange = resolveAgeRange(ageInput)
+    const perGroup = resolveGroups(genderInput).map((group) => targetsFor(group, ageRange))
+    const totals: Record<string, number> = {}
+    for (const name of ALL_MICRONUTRIENT_NAMES) {
+        const average = perGroup.reduce((sum, t) => sum + (t[name] ?? 0), 0) / perGroup.length
+        totals[name] = Math.round(average * 100) / 100
+    }
+
+    const allow = displayedNames && displayedNames.length > 0 ? new Set(displayedNames) : null
+
+    return MICRONUTRIENT_DEFS
+        .filter((def) => !allow || allow.has(def.name))
+        .map((def) => ({ name: def.name, total: totals[def.name] ?? 0, measure: def.measure, kind: def.kind ?? "target" }))
+}
+
+const CHOLESTEROL_DAILY_VALUE_MG = 300
+
+function targetsFor(group: Gender, ageRange: AgeRange): Record<string, number> {
 
     const aDEK = findGroup(dri.vitamins.aDEK.groups, group, ageRange)
     const cGroup = findGroup(dri.vitamins.cThiaminRiboflavinNiacinB6.groups, group, ageRange)
@@ -88,7 +108,7 @@ export function getMicronutrientTargets(genderInput: unknown, ageInput: unknown,
     const feGroup = findGroup(dri.elements.ironMagnesiumManganeseMolybdenumPhosphorus.groups, group, ageRange)
     const znGroup = findGroup(dri.elements.zincPotassiumSodiumChloride.groups, group, ageRange)
 
-    const totals: Record<string, number> = {
+    return {
         "Vitamin A": aDEK?.vitaminA.rdaUgRae ?? 0,
         "Vitamin D": aDEK?.vitaminD.rdaIu ?? 0,
         "Vitamin E": aDEK?.vitaminE.rdaMg ?? 0,
@@ -110,13 +130,10 @@ export function getMicronutrientTargets(genderInput: unknown, ageInput: unknown,
         "Potassium": znGroup?.potassium.aiMg ?? 0,
         // a daily limit: Health Canada's chronic disease risk reduction level (CDRR), 2,300 mg for ages 14+
         "Sodium": znGroup?.sodium.cdrrMg ?? 2300,
+        // a daily limit: the DRIs set no number for cholesterol, so this is the 300 mg Daily Value that
+        // Canadian (and US) nutrition labels use for "% DV"
+        "Cholesterol": CHOLESTEROL_DAILY_VALUE_MG,
         "Zinc": znGroup?.zinc.rdaMg ?? 0,
         "Iodine": caGroup?.iodine.rdaUg ?? 0,
     }
-
-    const allow = displayedNames && displayedNames.length > 0 ? new Set(displayedNames) : null
-
-    return MICRONUTRIENT_DEFS
-        .filter((def) => !allow || allow.has(def.name))
-        .map((def) => ({ name: def.name, total: totals[def.name] ?? 0, measure: def.measure, kind: def.kind ?? "target" }))
 }

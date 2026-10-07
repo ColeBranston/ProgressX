@@ -170,6 +170,10 @@
     font-size: 140%;
     line-height: 0.8;
     text-shadow: 0 0 18px rgba(226, 0, 0, 0.6);
+    /* The X is 1.4x the size of "Progress" and shares its baseline, so it sticks up. Shift it so its
+       centre matches the word's: the word reaches from the top of the P (0.86em) to the bottom of the
+       g (0.127em below the baseline), measured in Anton. Shift = (0.86 * 1.4 - (0.86 - 0.127)) / 2 / 1.4 */
+    transform: translateY(0.168em);
 }
 
 .navLinks {

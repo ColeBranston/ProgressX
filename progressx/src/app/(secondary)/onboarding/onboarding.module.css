@@ -1,239 +1,499 @@
+/* Onboarding: three short steps, scrollable on any screen (the app's body doesn't scroll, so the page does) */
 
-body {
-    overflow-y: hidden;
+.page {
+    position: fixed;
+    inset: 0;
+    overflow-y: auto;
+    background: #050303;
+    color: white;
+    font-family: var(--secondary-font-family);
 }
 
-.mainContainer {
-    width: 100vw;
-    height: 100vh;
+.glow {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(60% 45% at 50% 0%, rgba(var(--primary-color), 0.18), transparent 70%),
+        radial-gradient(40% 40% at 90% 100%, rgba(var(--primary-color), 0.08), transparent 70%);
+}
+
+.shell {
+    position: relative;
+    width: min(560px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: clamp(28px, 7vh, 72px) 0 48px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 22px;
+}
+
+/* ---------- header ---------- */
+
+.header {
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    text-align: center;
+    gap: 6px;
+    animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.welcome {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-size: 22px;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.logo {
+    width: auto !important;
+    height: auto !important;
+    font-size: 52px !important;
+}
+
+.lead {
+    max-width: 420px;
+    margin: 8px 0 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.signedIn {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.signedIn strong {
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75);
+    word-break: break-all;
+}
+
+@keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* ---------- step indicator ---------- */
+
+.progress {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.progress li {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.stepBar {
+    height: 4px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+.stepBar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: rgba(var(--primary-color));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stepDone .stepBar::after,
+.stepCurrent .stepBar::after {
+    transform: scaleX(1);
+}
+
+.stepCurrent .stepBar::after {
+    box-shadow: 0 0 10px rgba(var(--primary-color), 0.8);
+}
+
+.stepLabel {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.stepCurrent .stepLabel {
+    color: white;
+    font-weight: 600;
+}
+
+.stepDone .stepLabel {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+/* ---------- card ---------- */
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 24px;
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(170deg, rgba(30, 20, 20, 0.85), rgba(14, 10, 10, 0.9));
+    box-shadow: 0 30px 80px -40px rgba(var(--primary-color), 0.45);
+    animation: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+.cardTitle {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-weight: 400;
+    font-size: 30px;
+    outline: none;
+}
+
+.fields {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    animation: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.field label,
+.field legend {
+    padding: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.legendRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.input {
+    width: 100%;
+    height: 48px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: white;
+    font: 500 16px var(--secondary-font-family); /* 16px stops iOS zooming in */
+    box-sizing: border-box;
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+
+.input::placeholder {
+    color: rgba(255, 255, 255, 0.28);
+}
+
+/* white focus ring, so red only ever means "something's wrong" */
+.input:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+}
+
+.input[aria-invalid="true"]:focus {
+    border-color: rgb(255, 110, 110);
+    box-shadow: 0 0 0 3px rgba(255, 110, 110, 0.15);
+}
+
+.input[aria-invalid="true"] {
+    border-color: rgb(255, 110, 110);
+}
+
+.short {
+    max-width: 140px;
+}
+
+.inputAffix,
+.inputUnit {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.inputAffix span {
+    position: absolute;
+    left: 14px;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 16px;
+    pointer-events: none;
+}
+
+.inputAffix .input {
+    padding-left: 32px;
+}
+
+.inputUnit span {
+    position: absolute;
+    right: 14px;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.inputUnit .input {
+    padding-right: 44px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.fieldHint,
+.fieldError {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+.fieldHint {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.fieldError {
+    color: rgb(255, 120, 120);
+}
+
+/* ---------- choices ---------- */
+
+.chips {
+    display: flex;
+    gap: 8px;
+}
+
+.chip {
+    flex: 1;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.8);
+    font: 600 14px var(--secondary-font-family);
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+}
+
+.chip:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.chip[aria-checked="true"] {
+    border-color: rgba(var(--primary-color));
+    background: rgba(var(--primary-color), 0.16);
     color: white;
 }
 
-.welcomeContainer {
+.unitToggle {
     display: flex;
-    flex-wrap: wrap;
-    position: absolute;
-    text-align: center;
-    justify-content: center;
+    padding: 3px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.unitToggle button {
+    height: 26px;
+    padding: 0 10px;
+    border: none;
+    border-radius: 7px;
+    background: none;
+    color: rgba(255, 255, 255, 0.55);
+    font: 600 12px var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.unitToggle button[aria-checked="true"] {
+    background: rgba(255, 255, 255, 0.14);
+    color: white;
+}
+
+.activityList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.activity {
+    display: flex;
     align-items: center;
-    font-family: var(--primary-font-family);
-
-}
-
-@keyframes typing {
-  from { width: 0 }
-  to { width: 100% }
-}
-
-.welcomeText {
-    display: flex;
-    gap: 15px;
-    overflow: hidden;
-    white-space: nowrap;
-    animation: typing 2s steps(30) forwards;
-}
-
-@keyframes shrink {
-    from {
-        scale: 1;
-    }
-    to {
-        scale: 0.6;
-    }
-}
-
-.welcomeTextComplete {
-    display: flex;
-    white-space: nowrap;
-    flex-wrap: nowrap;
+    gap: 14px;
     width: 100%;
-    gap: 15px;
-    animation: shrink 2s forwards;
-}
-
-@keyframes shiftUp {
-    from {
-        top: 45vh;
-    }
-    to {
-        top: 2.5vh;
-    }
-}
-
-.welcomeContainerComplete {
-    display: flex;
-    position: absolute;
-    flex-wrap: wrap;
-    text-align: center;
-    justify-content: center;
-    align-items: center;
-    font-family: var(--primary-font-family);
-    animation: shiftUp 2s forwards;
-}
-
-.welcomeInitialText {
-    font-size: 64px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.logoExtra {
-    font-size: 64px !important;
-    width: 100% !important;
-    height: max-content !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-}
-
-@keyframes formShiftUp {
-    0% {
-        top: 100vh;
-        box-shadow: 0 0 30px 20px rgba(var(--primary-color), 0.5);
-    }
-    25% {
-        top: 12.5vh;
-        box-shadow: 0 0 20px 10px rgba(var(--primary-color), 0.5);
-
-    }
-    30% {
-        top: 12.5vh;
-        box-shadow: 0 0 0px 0px rgba(var(--primary-color), 0.5),
-                inset 0 0 20px 10px rgba(var(--primary-color), 0.5);  
-
-    }
-    100% {
-        top: 12.5vh;
-        box-shadow: inset 0 0 20px 10px rgba(var(--primary-color), 0.5); 
-    }
-}
-
-.emailContainer {
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: white;
     text-align: left;
-    width: 80%;
-    height: 7.5%;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s, transform 0.2s;
 }
 
-.emailHeader {
-  color: white;
-  font-size: 200%;
-  font-family: var(--primary-font-family);
-  padding: 0;
-  margin: 0;
-  user-select: none;
+.activity:hover {
+    border-color: rgba(255, 255, 255, 0.28);
 }
 
-.userEmail {
-    color: var(--tertiary-color);
+.activity[aria-checked="true"] {
+    border-color: rgba(var(--primary-color));
+    background: rgba(var(--primary-color), 0.13);
 }
 
-.onboardingForm {
-    width: 40vw;
-    height: 80vh;
-    position: absolute;
-    animation: formShiftUp 8s forwards;
-    border-radius: 5%;
+.activityMeter {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+.activityMeter i {
+    width: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.activityMeter i:nth-child(1) { height: 30%; }
+.activityMeter i:nth-child(2) { height: 47%; }
+.activityMeter i:nth-child(3) { height: 64%; }
+.activityMeter i:nth-child(4) { height: 82%; }
+.activityMeter i:nth-child(5) { height: 100%; }
+
+.activityMeter .meterOn {
+    background: rgba(var(--primary-color));
+}
+
+.activityText {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 5vh;
-    background: var(--secondary-background-color);
+    gap: 2px;
 }
 
-.inputFieldContainer {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 1vh;
+.activityText strong {
+    font-size: 15px;
+    font-weight: 600;
 }
 
-.inputField {
-  font-family: var(--primary-font-family);
-  border-radius: 5px;
-  overflow: hidden;
-  font-size: 120%;
-  border: none;
-  background-color: var(--primary-input-background-color);
-  color: #ffffff;
-  padding-left: 10px;
-  padding-right: 10px;
-  width: 60%;
-  height: 5vh;
-  display: flex;
-  text-decoration: none !important;
+.activityText span {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.55);
 }
 
- /* Remove arrows in most browsers */
-.inputField[type="number"]::-webkit-inner-spin-button,
-.inputField[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
+/* ---------- actions ---------- */
+
+.formError {
     margin: 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 80, 80, 0.1);
+    border: 1px solid rgba(255, 80, 80, 0.3);
+    font-size: 13.5px;
+    color: rgb(255, 160, 160);
 }
 
-/* For Firefox */
-.inputField[type="number"] {
-    -moz-appearance: textfield;
-        }
-
-.inputField::placeholder, .selectField::placeholder{
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.inputField:focus, .selectField:focus{
-  border: none;
-  outline: none;
-}
-
-.inputWrapper {
+.actions {
     display: flex;
-    width: 75%;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
 }
 
-.selectField {
-    font-family: var(--primary-font-family);
-    border-radius: 5px;
-    overflow: hidden;
-    font-size: 120%;
+.primary,
+.secondary {
+    height: 48px;
+    padding: 0 22px;
+    border-radius: 12px;
+    font: 600 15px var(--secondary-font-family);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.primary {
+    min-width: 150px;
     border: none;
-    background-color: var(--primary-input-background-color);
+    background: rgba(var(--primary-color));
+    color: white;
+    box-shadow: 0 12px 30px -12px rgba(var(--primary-color), 0.9);
+}
+
+.primary:hover:not(:disabled) {
+    background: white;
     color: rgba(var(--primary-color));
-    padding-left: 10px;
-    padding-right: 10px;
-    width: 64%;
-    height: 5vh;
-    display: flex;
 }
 
-.selectField option {
-    background: black;
+.secondary {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
 }
 
-.submitButton {
-  font-family: var(--primary-font-family);
-  border-radius: 5px;
-  overflow: hidden;
-  font-size: 120%;
-  border: none;
-  color: white;
-  cursor: pointer;
-  background-color: rgba(var(--primary-color));
-  transition: background-color 0.1s linear,
-              color 0.1s linear;
-
-  width: 25%;
-  height: 5%;
+.secondary:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
-.submitButton:hover {
-  background-color: white;
-  color: rgba(var(--primary-color));
+.primary:disabled,
+.secondary:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.chip:focus-visible,
+.activity:focus-visible,
+.unitToggle button:focus-visible,
+.primary:focus-visible,
+.secondary:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+    .card {
+        padding: 20px 16px;
+    }
+
+    .logo {
+        font-size: 44px !important;
+    }
+
+    .primary {
+        flex: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .header,
+    .progress,
+    .card,
+    .fields {
+        animation: none;
+    }
+
+    .stepBar::after {
+        transition: none;
+    }
 }

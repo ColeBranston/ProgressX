@@ -1,7 +1,7 @@
 import styles from "./mystats.module.css";
 import StatsNav from "./StatsNav";
 
-// Shared by the Diet (/mystats) and Workouts (/mystats/workouts) tabs, so switching tabs keeps the header
+// Shared by the Diet (/mystats), Workouts (/mystats/workouts) and Weight (/mystats/weight) tabs, so switching tabs keeps the header
 export default function MyStatsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
         <div className={`mainWrapper ${styles.statsWrapper}`}>

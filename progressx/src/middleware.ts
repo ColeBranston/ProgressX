@@ -114,6 +114,20 @@ export async function middleware(req: NextRequest) {
     return session.status === "invalid" ? nextWithoutSession(req) : NextResponse.next()
   }
 
+  const hadSession = req.cookies.has(ACCESS_COOKIE) || req.cookies.has(REFRESH_COOKIE)
+
+  // The login page: anyone signed in goes straight to the app; everyone else sees the form
+  if (req.nextUrl.pathname === "/login") {
+    return session.status === "valid" ? redirect(req, "/", session.refreshed) : NextResponse.next()
+  }
+
+  // Visitors who aren't signed in get the public homepage at the site's root (same address, no
+  // redirect), so the root URL describes the app to new people, search engines and Google's
+  // OAuth branding check. Signed-in users get the app there as before.
+  if (req.nextUrl.pathname === "/" && session.status !== "valid" && !hadSession) {
+    return NextResponse.rewrite(new URL("/homepage", req.url))
+  }
+
   if (session.status === "unavailable") {
     // keep the cookies so the next attempt can refresh once Supabase is reachable again
     return redirect(req, "/login")
@@ -121,7 +135,6 @@ export async function middleware(req: NextRequest) {
 
   if (session.status === "invalid") {
     // ?expired lets the login page explain why they're there (only when they had been signed in)
-    const hadSession = req.cookies.has(ACCESS_COOKIE) || req.cookies.has(REFRESH_COOKIE)
     const res = redirect(req, !hadSession ? "/login" : session.reason === "idle" ? "/login?expired=idle" : "/login?expired=1")
     clearSessionCookies(res)
     return res
@@ -171,5 +184,5 @@ export async function middleware(req: NextRequest) {
 export const config = {
   // pages that need a login (plus the consent and onboarding steps), and every API route except
   // /api/auth/* (login, signup, logout)
-  matcher: ["/", "/research", "/profile", "/mystats", "/mystats/:path*", "/mydiet", "/settings", "/consent", "/onboarding", "/api/((?!auth).*)"],
+  matcher: ["/", "/login", "/research", "/profile", "/mystats", "/mystats/:path*", "/mydiet", "/settings", "/consent", "/onboarding", "/api/((?!auth).*)"],
 }

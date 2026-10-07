@@ -36,6 +36,17 @@ function niceTicks(max: number, count = 4): number[] {
     return ticks
 }
 
+// Ticks covering lo..hi that don't start at zero (for values like body weight, where the change matters)
+function rangeTicks(lo: number, hi: number, count = 4): number[] {
+    const span = Math.max(hi - lo, 1e-6)
+    const rough = span / count
+    const power = Math.pow(10, Math.floor(Math.log10(rough)))
+    const step = [1, 2, 2.5, 5, 10].map((m) => m * power).find((s) => s >= rough) ?? rough
+    const ticks: number[] = []
+    for (let v = Math.floor(lo / step) * step; v <= hi + step * 0.999; v += step) ticks.push(Math.round(v * 1e6) / 1e6)
+    return ticks.length > 1 ? ticks : [ticks[0], ticks[0] + step]
+}
+
 export function compactNumber(value: number): string {
     return Math.abs(value) >= 10000
         ? new Intl.NumberFormat(undefined, { notation: "compact", maximumFractionDigits: 1 }).format(value)
@@ -250,22 +261,37 @@ type LineChartProps = {
     height?: number,
     yMax?: number,
     target?: { value: number, label: string },
+    // zoom the y axis to the data instead of starting at 0 (e.g. body weight); minSpan keeps small
+    // wobbles from looking like big swings
+    zoom?: { minSpan: number },
+    tickFormat?: (value: number) => string,
+    // draw the line straight across days with no value (for things that change continuously, like
+    // body weight) instead of breaking it; points are still only drawn where there's a value
+    connectGaps?: boolean,
 }
 
-export function LineChart({ labels, series, format, ariaLabel, height = 200, yMax, target }: LineChartProps) {
+export function LineChart({ labels, series, format, ariaLabel, height = 200, yMax, target, zoom, tickFormat = compactNumber, connectGaps = false }: LineChartProps) {
     const [ ref, width ] = useElementWidth<HTMLDivElement>()
     const [ index, setIndex ] = useState<number | null>(null)
 
     const all = series.flatMap((s) => s.values.filter((v): v is number => v !== null))
-    const max = yMax ?? Math.max(1, ...all, target?.value ?? 0) * 1.1
-    const ticks = niceTicks(max)
-    const top = yMax ?? ticks[ticks.length - 1]
+    let ticks: number[]
+    if (zoom && all.length) {
+        const lo = Math.min(...all, target?.value ?? Infinity)
+        const hi = Math.max(...all, target?.value ?? -Infinity)
+        const pad = Math.max(0, zoom.minSpan - (hi - lo)) / 2
+        ticks = rangeTicks(lo - pad, hi + pad)
+    } else {
+        ticks = niceTicks(yMax ?? Math.max(1, ...all, target?.value ?? 0) * 1.1)
+    }
+    const bottom = zoom && all.length ? ticks[0] : 0
+    const top = !zoom && yMax ? yMax : ticks[ticks.length - 1]
 
     const plotW = Math.max(0, width - MARGIN.left - MARGIN.right)
     const plotH = height - MARGIN.top - MARGIN.bottom
     const n = labels.length
     const x = (i: number) => MARGIN.left + (n <= 1 ? plotW / 2 : (i / (n - 1)) * plotW)
-    const y = (v: number) => MARGIN.top + plotH - (Math.min(v, top) / top) * plotH
+    const y = (v: number) => MARGIN.top + plotH - ((Math.min(Math.max(v, bottom), top) - bottom) / (top - bottom || 1)) * plotH
     const every = labelEvery(n, plotW, 52)
     const showDots = n <= 45
 
@@ -274,7 +300,7 @@ export function LineChart({ labels, series, format, ariaLabel, height = 200, yMa
         let d = ""
         let drawing = false
         values.forEach((v, i) => {
-            if (v === null) { drawing = false; return }
+            if (v === null) { if (!connectGaps) drawing = false; return }
             d += `${drawing ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`
             drawing = true
         })
@@ -317,10 +343,10 @@ export function LineChart({ labels, series, format, ariaLabel, height = 200, yMa
                     onKeyDown={onKey}
                     onBlur={() => setIndex(null)}
                 >
-                    {ticks.filter((tick) => tick <= top).map((tick) => (
+                    {ticks.filter((tick) => tick <= top && tick >= bottom).map((tick) => (
                         <g key={tick}>
                             <line className={styles.grid} x1={MARGIN.left} x2={width - MARGIN.right} y1={y(tick)} y2={y(tick)} />
-                            <text className={styles.axisText} x={MARGIN.left - 8} y={y(tick)} textAnchor="end" dominantBaseline="middle">{compactNumber(tick)}</text>
+                            <text className={styles.axisText} x={MARGIN.left - 8} y={y(tick)} textAnchor="end" dominantBaseline="middle">{tickFormat(tick)}</text>
                         </g>
                     ))}
                     {labels.map((label, i) => (i % every === 0 || i === n - 1) && !(i !== n - 1 && n - 1 - i < every) ?
@@ -338,7 +364,7 @@ export function LineChart({ labels, series, format, ariaLabel, height = 200, yMa
                             <path className={styles.line} d={path(s.values)} />
                             {s.values.map((v, i) => {
                                 // lone points (no neighbours) always get a dot so they don't vanish
-                                const lone = v !== null && (s.values[i - 1] ?? null) === null && (s.values[i + 1] ?? null) === null
+                                const lone = v !== null && !connectGaps && (s.values[i - 1] ?? null) === null && (s.values[i + 1] ?? null) === null
                                 return v !== null && (showDots || lone || i === index) ?
                                     <circle key={i} className={styles.dot} cx={x(i)} cy={y(v)} r={i === index ? 5 : 4} />
                                 : null

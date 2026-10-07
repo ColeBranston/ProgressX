@@ -159,18 +159,33 @@ function gripAt(motion: Motion, hand: Vec, view: "side" | "front"): Primitive[] 
     }
 }
 
-function legPrims(cls: string, hip: Vec, leg: Solved, footLength: Vec | null): Primitive[] {
-    const toe = leg.tip ?? add(leg.end, footLength ?? [FOOT, 0])
-    return [line(cls, hip, leg.joint), line(cls, leg.joint, leg.end), line(`${cls} foot`, leg.end, toe)]
+// ---------- Solved skeleton (shared by the 2D figure and the 3D viewer) ----------
+
+export const SEGMENT_LENGTHS = { torso: TORSO, upperArm: UPPER_ARM, forearm: FOREARM, thigh: THIGH, shin: SHIN, foot: FOOT, headOffset: HEAD_OFFSET }
+export const BODY_HALF_WIDTHS = { shoulder: SHOULDER_HALF, hip: HIP_HALF }
+
+export type SolvedLimb = Solved & { root: Vec, toe: Vec }
+
+// Every joint of the figure `t` of the way from pose a to pose b, in drawing coordinates.
+// Side view: index 0 is the near limb, 1 the far one. Front view: 0 is the figure's right (viewer's left).
+export type Skeleton = {
+    view: "side" | "front",
+    pose: Pose,
+    hip: Vec,            // hip centre
+    neck: Vec,           // shoulder centre
+    head: Vec,
+    shoulders: [Vec, Vec],
+    hips: [Vec, Vec],
+    arms: [SolvedLimb, SolvedLimb],
+    legs: [SolvedLimb, SolvedLimb],
+    torsoAngle: number,
+    hasArm2: boolean,
 }
 
-// The figure `t` of the way from pose a to pose b (0..1). The primitive list always has the same
-// length and order for a given motion, so it can be animated by updating attributes in place.
-export function frameAt(motion: Motion, t: number): Primitive[] {
+export function solvePose(motion: Motion, t: number): Skeleton {
     const pose = lerpPose(motion.a, motion.b, t)
     const armScale = pose.armScale ?? 1
     const upperArmScale = pose.upperArmScale ?? armScale
-    const prims: Primitive[] = []
 
     if (motion.view === "front") {
         const neck = add(pose.hip, [0, -TORSO * (pose.torsoScale ?? 1)])
@@ -178,17 +193,58 @@ export function frameAt(motion: Motion, t: number): Primitive[] {
         const shoulders: [Vec, Vec] = [add(neck, [-SHOULDER_HALF, -shrug]), add(neck, [SHOULDER_HALF, -shrug])]
         const hips: [Vec, Vec] = [add(pose.hip, [-HIP_HALF, 0]), add(pose.hip, [HIP_HALF, 0])]
         const base = { shoulder: neck, hip: pose.hip }
-
-        const arms = [pose.arm, pose.arm2 ?? mirrorLimb(pose.arm, pose.hip[0])]
-            .map((arm, i) => solveLimb(shoulders[i], arm, UPPER_ARM * upperArmScale, FOREARM * armScale, base))
-        const legs = [pose.leg, pose.leg2 ?? mirrorLimb(pose.leg, pose.hip[0])]
-            .map((leg, i) => solveLimb(hips[i], leg, THIGH * (pose.thighScale ?? 1), SHIN, base))
-
-        if (motion.cable) arms.forEach((arm, i) => prims.push(line("cable", i === 0 ? motion.cable! : [120 - motion.cable![0], motion.cable![1]], arm.end)))
-        legs.forEach((leg, i) => prims.push(...legPrims("limb", hips[i], leg, [i === 0 ? -FOOT * 0.6 : FOOT * 0.6, 0])))
-        prims.push(line("torso", neck, pose.hip), line("limb", shoulders[0], shoulders[1]), line("limb", hips[0], hips[1]))
+        const arms = [pose.arm, pose.arm2 ?? mirrorLimb(pose.arm, pose.hip[0])].map((arm, i): SolvedLimb => {
+            const solved = solveLimb(shoulders[i], arm, UPPER_ARM * upperArmScale, FOREARM * armScale, base)
+            return { ...solved, root: shoulders[i], toe: solved.end }
+        }) as [SolvedLimb, SolvedLimb]
+        const legs = [pose.leg, pose.leg2 ?? mirrorLimb(pose.leg, pose.hip[0])].map((leg, i): SolvedLimb => {
+            const solved = solveLimb(hips[i], leg, THIGH * (pose.thighScale ?? 1), SHIN, base)
+            return { ...solved, root: hips[i], toe: solved.tip ?? add(solved.end, [i === 0 ? -FOOT * 0.6 : FOOT * 0.6, 0]) }
+        }) as [SolvedLimb, SolvedLimb]
         // a torso leaning toward the viewer (bent over) also brings the head down between the shoulders
-        prims.push(circle("head", add(neck, [0, (-HEAD_OFFSET - shrug * 0.3) * (pose.torsoScale ?? 1)]), HEAD_RADIUS))
+        const head = add(neck, [0, (-HEAD_OFFSET - shrug * 0.3) * (pose.torsoScale ?? 1)])
+        return { view: "front", pose, hip: pose.hip, neck, head, shoulders, hips, arms, legs, torsoAngle: 0, hasArm2: Boolean(pose.arm2) }
+    }
+
+    // Side view, facing right
+    const torsoAngle = pose.torso ?? 0
+    const shoulder = add(pose.hip, dir(torsoAngle, TORSO * (pose.torsoScale ?? 1)))
+    const head = add(shoulder, dir(pose.head ?? torsoAngle, HEAD_OFFSET))
+    const base = { shoulder, hip: pose.hip }
+    const armOffset = motion.armRelative ? torsoAngle : 0
+    const arm = (limb: Limb): SolvedLimb => {
+        const solved = solveLimb(shoulder, limb, UPPER_ARM * upperArmScale, FOREARM * armScale, base, armOffset)
+        return { ...solved, root: shoulder, toe: solved.end }
+    }
+    const leg = (limb: Limb): SolvedLimb => {
+        const solved = solveLimb(pose.hip, limb, THIGH, SHIN, base)
+        return { ...solved, root: pose.hip, toe: solved.tip ?? add(solved.end, [FOOT, 0]) }
+    }
+    return {
+        view: "side", pose, hip: pose.hip, neck: shoulder, head,
+        shoulders: [shoulder, shoulder], hips: [pose.hip, pose.hip],
+        arms: [arm(pose.arm), arm(pose.arm2 ?? pose.arm)],
+        legs: [leg(pose.leg), leg(pose.leg2 ?? pose.leg)],
+        torsoAngle, hasArm2: Boolean(pose.arm2),
+    }
+}
+
+function legPrims(cls: string, leg: SolvedLimb): Primitive[] {
+    return [line(cls, leg.root, leg.joint), line(cls, leg.joint, leg.end), line(`${cls} foot`, leg.end, leg.toe)]
+}
+
+// The figure `t` of the way from pose a to pose b (0..1). The primitive list always has the same
+// length and order for a given motion, so it can be animated by updating attributes in place.
+export function frameAt(motion: Motion, t: number): Primitive[] {
+    const sk = solvePose(motion, t)
+    const prims: Primitive[] = []
+
+    if (sk.view === "front") {
+        const { arms, legs, shoulders, hips, neck } = sk
+        if (motion.cable) arms.forEach((arm, i) => prims.push(line("cable", i === 0 ? motion.cable! : [120 - motion.cable![0], motion.cable![1]], arm.end)))
+        legs.forEach((leg) => prims.push(...legPrims("limb", leg)))
+        prims.push(line("torso", neck, sk.hip), line("limb", shoulders[0], shoulders[1]), line("limb", hips[0], hips[1]))
+        prims.push(circle("head", sk.head, HEAD_RADIUS))
         arms.forEach((arm, i) => prims.push(line("limb", shoulders[i], arm.joint), line("limb", arm.joint, arm.end)))
 
         if (motion.grip === "barbell") {
@@ -203,33 +259,26 @@ export function frameAt(motion: Motion, t: number): Primitive[] {
     }
 
     // Side view, facing right. The "far" arm and leg are drawn faded behind the body.
-    const torsoAngle = pose.torso ?? 0
-    const shoulder = add(pose.hip, dir(torsoAngle, TORSO * (pose.torsoScale ?? 1)))
-    const head = add(shoulder, dir(pose.head ?? torsoAngle, HEAD_OFFSET))
-    const base = { shoulder, hip: pose.hip }
-    const armOffset = motion.armRelative ? torsoAngle : 0
-
-    const arm = solveLimb(shoulder, pose.arm, UPPER_ARM * upperArmScale, FOREARM * armScale, base, armOffset)
-    const arm2 = solveLimb(shoulder, pose.arm2 ?? pose.arm, UPPER_ARM * upperArmScale, FOREARM * armScale, base, armOffset)
-    const leg = solveLimb(pose.hip, pose.leg, THIGH, SHIN, base)
-    const leg2 = solveLimb(pose.hip, pose.leg2 ?? pose.leg, THIGH, SHIN, base)
+    const [arm, arm2] = sk.arms
+    const [leg, leg2] = sk.legs
+    const shoulder = sk.neck
 
     if (motion.cable) prims.push(line("cable", motion.cable, motion.cableTo === "ankle" ? leg.end : arm.end))
-    prims.push(...legPrims("limb far", pose.hip, leg2, null))
+    prims.push(...legPrims("limb far", leg2))
     prims.push(line("limb far", shoulder, arm2.joint), line("limb far", arm2.joint, arm2.end))
-    if (motion.gripHands !== "near" && pose.arm2) prims.push(...gripAt(motion, arm2.end, "side"))
+    if (motion.gripHands !== "near" && sk.hasArm2) prims.push(...gripAt(motion, arm2.end, "side"))
 
-    prims.push(line("torso", pose.hip, shoulder), circle("head", head, HEAD_RADIUS))
-    prims.push(...legPrims("limb", pose.hip, leg, null))
+    prims.push(line("torso", sk.hip, shoulder), circle("head", sk.head, HEAD_RADIUS))
+    prims.push(...legPrims("limb", leg))
     prims.push(line("limb", shoulder, arm.joint), line("limb", arm.joint, arm.end))
 
     prims.push(...gripAt(motion, arm.end, "side"))
     if (motion.backBar) {
-        const bar = add(shoulder, dir(torsoAngle - 90, 3))
+        const bar = backBarAt(sk)
         prims.push(circle("plate", bar, motion.plateR ?? 7), circle("hub", bar, 1.6))
     }
     if (motion.hipBar) {
-        const bar = add(pose.hip, dir(torsoAngle + 90, 7))
+        const bar = hipBarAt(sk)
         prims.push(circle("plate", bar, motion.plateR ?? 7), circle("hub", bar, 1.6))
     }
     if (motion.platform) {
@@ -237,10 +286,17 @@ export function frameAt(motion: Motion, t: number): Primitive[] {
         prims.push(line("platform", add(center, dir(leg.lowerAngle + 90, 11)), add(center, dir(leg.lowerAngle - 90, 11))))
     }
     if (motion.anklePad) {
-        prims.push(circle("pad", add(leg.end, dir(leg.lowerAngle + 90, 1)), 3.4))
+        prims.push(circle("pad", anklePadAt(leg), 3.4))
     }
     return prims
 }
+
+// Equipment positions shared with the 3D viewer
+export const backBarAt = (sk: Skeleton): Vec => add(sk.neck, dir(sk.torsoAngle - 90, 3))
+export const hipBarAt = (sk: Skeleton): Vec => add(sk.hip, dir(sk.torsoAngle + 90, 7))
+export const anklePadAt = (leg: SolvedLimb): Vec => add(leg.end, dir(leg.lowerAngle + 90, 1))
+export const platformAt = (leg: SolvedLimb): { center: Vec, angle: number } => ({ center: add(leg.end, dir(leg.lowerAngle, 4)), angle: leg.lowerAngle })
+export { dir as directionOf }
 
 // ---------- The motions ----------
 

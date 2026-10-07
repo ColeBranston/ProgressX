@@ -14,6 +14,7 @@ import {
     MicronutrientSettings,
     MonthCalendar,
     QuickAddScaler,
+    FoodAssistant,
     FoodItemFormValues,
     FoodLogEntry,
     FoodItem,
@@ -30,6 +31,7 @@ import {
     weightKgFromProfile
 } from "../../internal_components/index"
 import { userDataContext } from '@/app/contexts/userData';
+import WeightCheckIn from '@/app/internal_components/weight/WeightCheckIn';
 
 // Indexed by dayjs' date.day() (0 = Sunday .. 6 = Saturday), matching weekStart
 // below since dayjs' default start of week is Sunday.
@@ -434,6 +436,12 @@ export default function DietPage() {
     }
 
     async function handleCreateSubmit(values: FoodItemFormValues, opts: { saveToCatalog: boolean }) {
+        if (await addEntry(values, opts)) closeAddPanel()
+    }
+
+    // Logs a food for the selected day; true once it's saved. The assistant uses this directly so the
+    // chat stays open (one message can produce several foods to add).
+    async function addEntry(values: FoodItemFormValues, opts: { saveToCatalog: boolean }): Promise<boolean> {
         try {
             const res = await fetch("/api/diet/log", {
                 method: "POST",
@@ -457,13 +465,13 @@ export default function DietPage() {
             if (res.ok) {
                 const json = await res.json()
                 setEntries((prev) => [...prev, json.entry])
-                closeAddPanel()
-            } else {
-                console.error("Failed to add food log entry")
+                return true
             }
+            console.error("Failed to add food log entry")
         } catch (err) {
             console.error("Failed to add food log entry: ", err)
         }
+        return false
     }
 
     async function handleEditSubmit(values: FoodItemFormValues, opts: { saveToCatalog: boolean }) {
@@ -704,7 +712,10 @@ export default function DietPage() {
                                                 onCancel={() => setQuickAddSource(null)}
                                             />
                                         :
-                                            <div className={styles.catalogList}>
+                                            <>
+                                            <FoodAssistant dateKey={dateKey} onAdd={addEntry} />
+                                            <p className={styles.catalogHeading}>Saved foods</p>
+                                            <div className={`${styles.catalogList} ${styles.catalogListCompact}`}>
                                                 {loadingCatalog ?
                                                     <div className={styles.spinnerContainer}><span className={styles.spinner} /></div>
                                                 : catalogItems.length === 0 ?
@@ -717,6 +728,7 @@ export default function DietPage() {
                                                     ))
                                                 }
                                             </div>
+                                            </>
                                         }
                                         </>
 
@@ -759,6 +771,10 @@ export default function DietPage() {
 
                     <section className={`${styles.card} ${styles.waterCard}`}>
                         <WaterTracker entries={waterEntries} targetMl={waterTargetMl} isCustomGoal={customWaterGoalMl !== null} onAdd={addWater} onUndo={undoWater} />
+                    </section>
+
+                    <section className={`${styles.card} ${styles.weightCard}`} aria-label="Weigh-in">
+                        <WeightCheckIn dateKey={dateKey} isToday={isToday} />
                     </section>
 
                     <section className={`${styles.card} ${styles.nutritionCard}`}>

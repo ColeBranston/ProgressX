@@ -64,7 +64,12 @@ export async function readSafeImageUpload(req: NextRequest, { maxDimension, qual
         throw new ImageUploadError("Images must be 10 MB or smaller", 413)
     }
 
-    const input = Buffer.from(await file.arrayBuffer())
+    return cleanImage(Buffer.from(await file.arrayBuffer()), { maxDimension, quality })
+}
+
+// Checks an image's real format from its bytes and returns a brand new JPEG made from its pixels
+// (steps 2 and 3 above), or throws ImageUploadError. Shared by every place users send images.
+export async function cleanImage(input: Buffer, { maxDimension, quality = 86 }: Options): Promise<Buffer> {
     const format = sniffImageFormat(input)
     if (!format) {
         throw new ImageUploadError("That file isn't a supported image. Upload a JPG, PNG, WebP or HEIC photo.", 415)

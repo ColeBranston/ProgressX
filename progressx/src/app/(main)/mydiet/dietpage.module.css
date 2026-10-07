@@ -228,6 +228,27 @@
     font-family: var(--primary-font-family);
 }
 
+.catalogHeading {
+    width: 90%;
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* under the assistant in Quick Add: the chat gets most of the room */
+.catalogListCompact {
+    flex: 0 1 auto;
+    max-height: 30%;
+}
+
+.catalogListCompact > p {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
 .catalogItemButton {
     background: rgba(255, 255, 255, 0.05);
     border: none;
@@ -492,6 +513,7 @@
     grid-template-columns: minmax(320px, 1fr) auto minmax(280px, 320px);
     grid-template-areas:
         "food calories water"
+        "weight weight weight"
         "nutrition nutrition nutrition";
 }
 
@@ -556,6 +578,11 @@
 
 .nutritionCard {
     grid-area: nutrition;
+}
+
+.weightCard {
+    grid-area: weight;
+    border-color: rgba(186, 140, 255, 0.2);
 }
 
 .addFoodButton {
@@ -630,6 +657,7 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
         grid-template-areas:
             "calories water"
+            "weight weight"
             "food food"
             "nutrition nutrition";
     }
@@ -677,6 +705,7 @@
         grid-template-areas:
             "calories"
             "water"
+            "weight"
             "food"
             "nutrition";
     }

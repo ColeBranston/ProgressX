@@ -1,0 +1,629 @@
+/* Nutrition assistant chat, at the top of Quick Add */
+
+.assistant {
+    width: 90%;
+    flex: 1 1 62%;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    border: 1px solid rgba(var(--primary-color), 0.35);
+    background:
+        radial-gradient(120% 60% at 50% 0%, rgba(var(--primary-color), 0.12), transparent 70%),
+        rgba(255, 255, 255, 0.02);
+    color: var(--secondary-color);
+    font-family: var(--secondary-font-family);
+    overflow: hidden;
+    user-select: text;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(var(--primary-color));
+}
+
+.title p {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-size: 16px;
+    letter-spacing: 0.02em;
+    color: var(--secondary-color);
+}
+
+.linkButton {
+    padding: 0;
+    border: none;
+    background: none;
+    color: rgba(255, 255, 255, 0.6);
+    font: 600 12px var(--secondary-font-family);
+    cursor: pointer;
+    align-self: flex-start;
+}
+
+.linkButton:hover {
+    color: white;
+}
+
+/* ---------- messages ---------- */
+
+.log {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--primary-color)) transparent;
+}
+
+.empty {
+    margin: auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.empty p {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.empty .attribution {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.suggestion {
+    padding: 7px 11px;
+    border-radius: 99px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.85);
+    font: 500 12.5px var(--secondary-font-family);
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.suggestion:hover {
+    border-color: rgba(var(--primary-color), 0.8);
+    background: rgba(var(--primary-color), 0.12);
+}
+
+.bubble {
+    margin: 0;
+    max-width: 88%;
+    padding: 9px 12px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    animation: pop 0.25s ease-out both;
+}
+
+.user {
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+    background: rgba(var(--primary-color), 0.85);
+    color: white;
+}
+
+.reply {
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.error {
+    align-self: flex-start;
+    background: rgba(255, 80, 80, 0.1);
+    border: 1px solid rgba(255, 80, 80, 0.3);
+    color: rgb(255, 170, 170);
+}
+
+.status {
+    margin: 0;
+    align-self: flex-start;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+}
+
+.typing {
+    align-self: flex-start;
+    display: inline-flex;
+    gap: 4px;
+    padding: 11px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.typing i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    animation: blink 1.2s infinite ease-in-out;
+}
+
+.typing i:nth-child(2) { animation-delay: 0.15s; }
+.typing i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes blink {
+    0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-2px); }
+}
+
+@keyframes pop {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* ---------- proposal card ---------- */
+
+.proposal {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(var(--primary-color), 0.7);
+    background: linear-gradient(170deg, rgba(40, 14, 14, 0.9), rgba(16, 10, 10, 0.95));
+    box-shadow: 0 14px 40px -24px rgba(var(--primary-color), 0.9);
+    animation: pop 0.3s ease-out both;
+}
+
+.proposalStale {
+    opacity: 0.5;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+}
+
+.proposalAdded {
+    border-color: rgba(70, 200, 120, 0.6);
+    box-shadow: none;
+}
+
+.addedNote,
+.failedNote {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.addedNote {
+    color: rgb(110, 220, 150);
+}
+
+.failedNote {
+    color: rgb(255, 150, 150);
+}
+
+.proposalHead {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.proposalName {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-size: 20px;
+    overflow-wrap: anywhere;
+}
+
+.basis {
+    flex-shrink: 0;
+    padding: 3px 8px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.basisEstimate {
+    background: rgba(255, 159, 10, 0.15);
+    color: #ffb340;
+}
+
+.servings {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.servings label {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.servingsField {
+    width: 96px;
+}
+
+.unitSelect {
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 140px;
+    height: 36px;
+    padding: 0 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    font: 500 13px var(--secondary-font-family);
+}
+
+.unitSelect option {
+    background: #1a1010;
+}
+
+.matched {
+    margin: -4px 0 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+    overflow-wrap: anywhere;
+}
+
+.totals {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+}
+
+.total {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 4px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.total span {
+    font-family: var(--primary-font-family);
+    font-size: 17px;
+}
+
+.total:first-child span {
+    color: rgba(var(--primary-color));
+}
+
+.total small {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.how {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.how ul {
+    margin: 0;
+    padding-left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.accuracy {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12.5px;
+    font-weight: 700;
+}
+
+.accuracy i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.accuracy_high {
+    color: rgb(110, 220, 150);
+}
+
+.accuracy_medium {
+    color: #ffb340;
+}
+
+.accuracy_low {
+    color: rgb(255, 120, 120);
+}
+
+.micros {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 14px;
+    font-size: 12.5px;
+}
+
+.micros li {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.micros li span:last-child {
+    color: white;
+    font-variant-numeric: tabular-nums;
+}
+
+.muted {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.sources {
+    margin: 0;
+    font-size: 11.5px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.5);
+    overflow-wrap: anywhere;
+}
+
+.sources a {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.saveCheck {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+}
+
+.saveCheck input {
+    accent-color: rgb(var(--primary-color));
+}
+
+.proposalActions {
+    display: flex;
+    gap: 8px;
+}
+
+.primaryButton,
+.secondaryButton {
+    flex: 1;
+    height: 40px;
+    border-radius: 10px;
+    font: 600 14px var(--secondary-font-family);
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.primaryButton {
+    border: none;
+    background: rgba(var(--primary-color));
+    color: white;
+}
+
+.primaryButton:hover:not(:disabled) {
+    background: white;
+    color: rgba(var(--primary-color));
+}
+
+.secondaryButton {
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.secondaryButton:hover {
+    border-color: rgba(255, 255, 255, 0.45);
+}
+
+.primaryButton:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+/* ---------- composer ---------- */
+
+.composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.composer textarea {
+    flex: 1;
+    min-height: 40px;
+    max-height: 110px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    color: white;
+    font: 400 16px/1.25 var(--secondary-font-family); /* 16px stops iOS zooming in */
+    resize: none;
+    field-sizing: content;
+    box-sizing: border-box;
+}
+
+.composer textarea::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.composer textarea:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.photoButton {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.photoButton:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+.photoButton:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.photoTray {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.photoTray img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.photoTray span {
+    flex: 1;
+    min-width: 0;
+}
+
+.photoError {
+    color: rgb(255, 150, 150);
+}
+
+.photoBubble {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px;
+}
+
+.photoBubble img {
+    display: block;
+    max-width: 180px;
+    max-height: 180px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.photoBubble p {
+    margin: 0;
+    padding: 0 6px 3px;
+}
+
+.sendButton {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 12px;
+    background: rgba(var(--primary-color));
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.sendButton:hover:not(:disabled) {
+    background: white;
+    color: rgba(var(--primary-color));
+}
+
+.sendButton:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.photoButton:focus-visible,
+.suggestion:focus-visible,
+.linkButton:focus-visible,
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.sendButton:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+    .assistant {
+        min-height: 380px;
+    }
+
+    .totals {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .micros {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bubble,
+    .proposal {
+        animation: none;
+    }
+
+    .typing i {
+        animation: none;
+        opacity: 0.6;
+    }
+}

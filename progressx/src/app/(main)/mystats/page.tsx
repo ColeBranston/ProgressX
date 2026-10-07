@@ -301,7 +301,7 @@ export default function DietStatsPage() {
                     <ChartCard
                         className={styles.span2}
                         title="Micronutrients"
-                        subtitle="Weekly average as a share of your daily target. Sodium is a limit, so it only flags when you go over."
+                        subtitle="Weekly average as a share of your daily target. Sodium and cholesterol are limits, so they only flag when you go over."
                         dimmed={loading}
                         table={{
                             columns: ["Nutrient", ...weekStats.map((week) => week.label)],

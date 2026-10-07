@@ -7,6 +7,7 @@ import styles from "./mystats.module.css";
 const TABS = [
     { href: "/mystats", label: "Diet" },
     { href: "/mystats/workouts", label: "Workouts" },
+    { href: "/mystats/weight", label: "Weight" },
 ]
 
 export default function StatsNav() {

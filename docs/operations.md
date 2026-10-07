@@ -12,6 +12,8 @@ browser ──► Cloudflare ──► cloudflared tunnel (on this Mac) ──�
                                                                   │                                                     └─► redis (cache)
                                                                   ├─ /solr-ingest/ ─► solr   (GitHub Actions ingestion, password protected)
                                                                   └─ everything else ─► progressx (Next.js) ─► Supabase, Cloudinary
+                                                                                          └─ /api/diet/assistant ─► ollama (Gemma 4), solr `foods` core
+                                                                                                                    (SerpApi/Google only if SERPAPI_API_KEY is set)
 ```
 
 | Service (compose name) | Container | What it is |
@@ -20,7 +22,8 @@ browser ──► Cloudflare ──► cloudflared tunnel (on this Mac) ──�
 | `progressx` | `progressx-app` | The Next.js app: pages and every `/api` route (`progressx/`). |
 | `search_backend` | `progressx-search-backend` | FastAPI service that queries Solr for research articles (`data/search_backend/`). |
 | `redis` | `progressx-redis` | Cache for search results. Memory only (256 MB, nothing saved to disk); safe to restart or flush. |
-| `solr` | `progressx-solr` | Search index of research articles. Data lives on disk in `data/db/var/solr`, so it survives rebuilds. |
+| `solr` | `progressx-solr` | Search index of research articles, plus the `foods` core (nutrition database for the diet assistant). Data lives on disk in `data/db/var/solr`, so it survives rebuilds. |
+| `ollama` | `progressx-ollama` | Local LLM (Gemma 4) behind the diet assistant in Quick Add. On first start it downloads `OLLAMA_MODEL` into the `ollama` Docker volume (a few GB, takes a few minutes); later starts reuse it. |
 
 **Not in Docker Compose:**
 
@@ -52,11 +55,17 @@ None of these are secret.
 | `SEARCH_BACKEND_PORT` | `8000` | Port the FastAPI search service listens on. |
 | `SOLR_PORT` | `8983` | Port Solr listens on. |
 | `REDIS_PORT` | `6379` | Port Redis listens on. |
+| `OLLAMA_PORT` | `11435` | Port the Ollama container is published on, on `127.0.0.1` (not 11434, which a Mac copy of Ollama would use). |
 | `FRONTEND_URL` | `http://progressx:8080` | How nginx reaches the app (compose service name + `FRONTEND_PORT`). |
 | `SEARCH_BACKEND_URL` | `http://search_backend:8000` | How the app reaches the search service. Overrides the value in `progressx/.env.local`. |
 | `SOLR_URL` | `http://solr:8983/solr/` | How the search service reaches Solr (passed to it as `solr_local_url`). |
 | `SOLR_ORIGIN` | `http://solr:8983` | Solr host for nginx's `/solr-ingest/` route (no `/solr` path). |
 | `REDIS_URL` | `redis://redis:6379/0` | Redis connection for the search cache. Leave empty to run search without a cache. |
+| `FOODS_SOLR_URL` | `http://solr:8983/solr/foods` | The nutrition database the diet assistant searches. Overrides the value in `progressx/.env.local`. |
+| `OLLAMA_URL` | `http://ollama:11434` | How the app reaches Ollama. Overrides the value in `progressx/.env.local`. To use the Ollama app on the Mac instead (it can use the GPU, so it's much faster), set `http://host.docker.internal:11434`. |
+| `OLLAMA_MODEL` | `gemma4:e2b` | Model the diet assistant uses. It must fit in Docker's memory (Docker Desktop > Settings > Resources, 8 GB by default): `gemma4:e2b` needs about 5 GB, `gemma4:e4b` about 7-10 GB (raise Docker's memory to 12 GB+ first). After changing it, `docker compose up -d ollama progressx` downloads and switches to it. |
+| `OLLAMA_KEEP_ALIVE` | `30m` | How long the model stays in memory after the last chat. The first message after that takes ~10 s longer while it loads. |
+| `OLLAMA_CONTEXT_LENGTH` | `8192` | The model's context window in tokens. Bigger uses more memory. |
 | `APP_URL` | `https://progressx.ca` | Public address of the site. Google sign-in sends people back to `APP_URL/login`, so it must match an allowed redirect URL in Supabase (Authentication > URL Configuration). |
 | `SEARCH_CACHE_TTL_SECONDS` | `3600` | How long a search result stays cached (1 hour). |
 | `DOC_CACHE_TTL_SECONDS` | `86400` | How long a single article stays cached (1 day). |
@@ -80,6 +89,8 @@ To rotate one, change it in the provider's dashboard, update this file, then reb
 | `CLOUDINARY_API_SECRET` | **Yes** | Signs Cloudinary uploads and deletes. | Cloudinary > Settings > API Keys |
 | `SEARCH_BACKEND_URL` | No | Where `/api/search` sends queries. Local dev: `http://localhost:8000`. Docker Compose overrides it. | n/a |
 | `APP_URL` | No | Public address of the site. Local dev: `http://localhost:3001`. Docker Compose overrides it. | n/a |
+| `OLLAMA_URL`, `OLLAMA_MODEL`, `FOODS_SOLR_URL` | No | Diet assistant model and food database, for `npm run dev` (`http://localhost:11435`, `gemma4:e2b`, `http://localhost:8983/solr/foods`). Docker Compose overrides them from the root `.env`. | n/a |
+| `SERPAPI_API_KEY` | Yes | Optional. Leave empty normally. If set, the assistant can also read Google's AI Overview (through SerpApi) for foods the database doesn't have, like restaurant items; each uncached lookup uses one search from the plan's quota. Add SerpApi to the privacy policy first (see docs/privacy/README.md). | serpapi.com > Dashboard > API Key |
 
 Set automatically, not in any file:
 
@@ -110,6 +121,44 @@ Set in `progressx/src/app/api/libs/session.ts`; change them, then rebuild the ap
 |---|---|---|
 | `SESSION_MAX_AGE_SECONDS` | 5 hours | How long a login lasts, counted from when the person logged in, however active they are. |
 | `IDLE_TIMEOUT_SECONDS` | 15 minutes | Logged out after this long without using the app. Keep `IDLE_TIMEOUT_MS` in `internal_components/SessionWatch.tsx` the same. |
+
+## Food database (diet assistant)
+
+The assistant in Quick Add looks foods up in the `foods` Solr core: about 19,000 foods from USDA
+FoodData Central (FNDDS survey foods, SR Legacy, Foundation; public domain) and Health Canada's
+Canadian Nutrient File (Open Government Licence - Canada, which requires the attribution shown in the
+chat). Each food stores its nutrients per 100 g and its portion sizes in grams.
+
+Build or rebuild it (needs the solr container running; takes a few seconds, downloads ~20 MB to
+`data/foods/raw/` the first time):
+
+```bash
+python3 data/foods/ingest_foods.py
+```
+
+**Links:** if a user pastes a link (a recipe, menu item or product page), the assistant can read it
+(`progressx/src/app/api/libs/foodPage.ts`). It only opens links the user wrote, never ones the model
+makes up; it refuses anything that resolves to a private or internal address (so it can't reach Solr,
+Redis, Ollama or this Mac), checked again on every redirect; and it gives up after 10 s or 2 MB. The
+page's schema.org nutrition data is used when present (most recipe sites), otherwise the text around
+the nutrition facts. Many restaurant sites block automated reading or build their pages with
+JavaScript, so those links often can't be read; the assistant then offers the database instead.
+Sites whose pages load nutrition from their own public data URL get a small adapter in `foodPage.ts`
+(`ADAPTERS`) that reads that URL directly - currently Starbucks (`starbucks.com` / `starbucks.ca`
+`/menu/product/<id>/<form>` -> `/apiproxy/v1/ordering/<id>/<form>`, every size's full nutrition panel; the
+size the user names is picked in code). If a site changes its data URL the adapter falls back to reading
+the page normally.
+
+**Label photos:** users can send a photo of a nutrition label (camera button in the chat). The browser
+shrinks it to 1600 px and re-encodes it as a JPEG; the server then refuses anything over 6 MB per
+request / 4 MB per photo, checks the real format from the file's bytes (JPEG, PNG or WebP only - SVG and
+anything else that can carry scripts is refused), and re-encodes it from its pixels with sharp
+(`cleanImage` in `api/libs/imageUpload.ts`, the same check as progress photos) before Gemma reads it.
+Photos are never stored, and are limited to 10 per user per 15 minutes. The first photo after the model
+has been idle takes about a minute (the vision part loads); later ones take ~25 s.
+
+Re-run it after changing `data/foods/ingest_foods.py` or to pick up a newer USDA release (update the
+file names in `DATASETS`). It replaces the core's contents; no app restart needed.
 
 ## Docker Compose commands
 

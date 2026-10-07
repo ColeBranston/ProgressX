@@ -1,6 +1,6 @@
 # ProgressX privacy program
 
-ProgressX collects health and fitness information (body measurements, diet, water and workout logs,
+ProgressX collects health and fitness information (body measurements, diet, water, weight and workout logs,
 progress photos) from users in Canada. That makes it a private-sector organization under **PIPEDA**,
 and the information is *sensitive*, which raises the bar for consent and safeguards. Provincial
 health-information laws (Ontario's PHIPA, Alberta's HIA and others) apply to health information
@@ -39,6 +39,7 @@ Breach reporting and record-keeping: [breach-response-plan.md](breach-response-p
 | Settings, diet preferences | `user_settings`, `diet_config` | Cascade |
 | Food catalog and food log | `food_items`, `food_log_entries` | Cascade |
 | Water log | `water_log_entries` | Cascade |
+| Weight log (morning / night weigh-ins) | `weight_log_entries` | Cascade |
 | Workout splits and sets | `workout_splits`, `workout_sets`, `workout_routines` | Cascade |
 | Progress photo records | `photo_collection` | Cascade |
 | Consent records | `consent_events` | Cascade |
@@ -79,6 +80,9 @@ Most are self-serve in Settings. For emailed requests to the Privacy Officer:
 | Cloudinary | Photos | DPA in effect |
 | Google | Sign-in identity | Covered by Google Cloud / OAuth terms |
 | Cloudflare | All traffic (tunnel) | DPA in effect |
+| SerpApi (off unless `SERPAPI_API_KEY` is set) | Food searches written by the diet assistant, from the server, with no user identifiers | Off by default: the assistant uses the in-house food database, and the chat itself never leaves this Mac (local model, conversations not stored). **Before setting the key**, add SerpApi to the service providers list on the privacy page and review its terms / DPA |
+| Websites users link in the diet assistant | Nothing about the user: the server fetches the page itself, so the site sees the server's address and a "ProgressX nutrition reader" user agent | Only links the user writes are opened |
+| Nutrition label photos (diet assistant) | Stay on this Mac: read by the local model, never stored or sent anywhere, re-encoded first (strips location metadata) | Nothing to do |
 
 ## Still to do outside the code
 
