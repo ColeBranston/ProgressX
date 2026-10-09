@@ -1,5 +1,6 @@
 import { supabase } from "@/app/supabaseClient/client";
 import { deleteObjects, playbackFor } from "./r2Videos";
+import { followingSet } from "./follows";
 import { CAPTION_MAX, type Playback, type VideoCard, type VideoStatus } from "@/app/internal_components/videos/videoTypes";
 
 export type { VideoCard, VideoStatus }
@@ -57,7 +58,10 @@ export async function reactionsFor(viewerId: string, videoIds: string[]) {
 
 // Cards for videos the viewer is allowed to see (callers filter with canView first)
 export async function toCards(rows: VideoRowWithAuthor[], viewerId: string): Promise<VideoCard[]> {
-    const { liked, favourited } = await reactionsFor(viewerId, rows.map((r) => r.id))
+    const [ { liked, favourited }, follows ] = await Promise.all([
+        reactionsFor(viewerId, rows.map((r) => r.id)),
+        followingSet(viewerId, rows.map((r) => r.user_id)),
+    ])
     return Promise.all(rows.map(async (row) => {
         let playback: Playback | null = null
         if (row.status === "ready") {
@@ -84,6 +88,7 @@ export async function toCards(rows: VideoRowWithAuthor[], viewerId: string): Pro
                 username: row.profiles?.display_username ?? "",
                 name: row.profiles?.display_name ?? "",
                 pfp: row.profiles?.profile_image ?? null,
+                following: follows.has(row.user_id),
             },
             playback,
         }

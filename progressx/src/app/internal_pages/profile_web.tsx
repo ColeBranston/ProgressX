@@ -3,12 +3,14 @@ export const ssr = false;
 
 import Link from "next/link";
 import { UserData, userDataContext } from "@/app/contexts/userData";
-import { ChangeEvent, Suspense, useContext, useEffect, useRef, useState } from "react";
+import { ChangeEvent, Suspense, useCallback, useContext, useEffect, useRef, useState } from "react";
 import styles from "./profile.module.css"
 import Image from "next/image";
 
 import { VideosComponent, ProgressPhotosComponent, FavouriteVideosComponent, LikedPhotosComponent } from '../internal_components'
 import { useSearchParams } from "next/navigation";
+import FollowList from "../internal_components/follows/FollowList";
+import { pressable } from "../internal_components/a11y";
 
 export default function ProfileWeb() {
 
@@ -16,6 +18,7 @@ export default function ProfileWeb() {
     const [ selector, setSelector ] = useState(0)
     
     const [ isEdit, setIsEdit ] = useState(false)
+    const [ followList, setFollowList ] = useState<"followers" | "following" | null>(null)
 
     const pfpImageForm = useRef<HTMLInputElement>(null)
 
@@ -68,6 +71,22 @@ export default function ProfileWeb() {
 
         e.target.value = "";
     }
+
+    // the counts on this page come from the saved profile copy; refresh them (followers change all the time)
+    const refreshCounts = useCallback(async () => {
+        const res = await fetch("/api/user").catch(() => null)
+        if (!res?.ok) return
+        const json = await res.json().catch(() => null)
+        const row = json?.userData
+        if (!row) return
+        setUserData((prev: UserData) => (
+            prev.followers === row.followers_count && prev.following === row.following_count && prev.likes === row.likes_count
+                ? prev
+                : { ...prev, followers: row.followers_count ?? 0, following: row.following_count ?? 0, likes: row.likes_count ?? 0 }
+        ))
+    }, [setUserData])
+
+    useEffect(() => { refreshCounts() }, [refreshCounts])
 
     function togglePrivate() {
         if (isEdit) {
@@ -126,7 +145,7 @@ export default function ProfileWeb() {
                                 {isEdit?
                                 <>
                                     <Image src={ String(userData.pfp ?? "/male_default.svg") } alt="Profile picture" fill sizes="(max-width: 768px) 100px, 150px" style={{ objectFit: 'cover' }} priority/>
-                                    <div className={styles.editProfileImageCover} onClick={()=>{pfpImageForm?.current?.click()}}>
+                                    <div className={styles.editProfileImageCover} aria-label="Change profile picture" {...pressable(()=>{pfpImageForm?.current?.click()})}>
                                         <svg width="40" height="40" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M14.8917 7.84227C14.6838 7.84227 14.4845 7.92487 14.3375 8.07187C14.1905 8.21887 14.1079 8.4182 14.1079 8.62607V13.3287C14.1079 13.5365 14.0253 13.7359 13.8783 13.8829C13.7313 14.0298 13.532 14.1125 13.3241 14.1125H2.35133C2.14347 14.1125 1.94407 14.0299 1.79713 13.8829C1.65013 13.7359 1.56753 13.5365 1.56753 13.3287V2.35587C1.56753 2.148 1.65013 1.94867 1.79713 1.80167C1.94407 1.65467 2.14347 1.57207 2.35133 1.57207H7.05393C7.2618 1.57207 7.4612 1.48953 7.60813 1.34253C7.75513 1.19553 7.83773 0.9962 7.83773 0.788333C7.83773 0.580467 7.75513 0.381067 7.60813 0.234133C7.4612 0.0871333 7.2618 0.00453334 7.05393 0.00453334H2.35133C1.72773 0.00453334 1.12967 0.252267 0.688667 0.693267C0.247733 1.1342 0 1.73227 0 2.35587V13.3287C0 13.9523 0.247733 14.5503 0.688667 14.9913C1.12967 15.4323 1.72773 15.68 2.35133 15.68H13.3241C13.9477 15.68 14.5458 15.4323 14.9867 14.9913C15.4277 14.5503 15.6755 13.9523 15.6755 13.3287V8.62607C15.6755 8.4182 15.5929 8.2188 15.4459 8.07187C15.2989 7.92493 15.0995 7.84227 14.8917 7.84227ZM3.13507 8.43793V11.7611C3.13507 11.969 3.21767 12.1684 3.36467 12.3153C3.51167 12.4623 3.711 12.5449 3.91887 12.5449H7.24207C7.3452 12.5455 7.44747 12.5257 7.54293 12.4867C7.6384 12.4477 7.72533 12.3903 7.79853 12.3176L13.2223 6.88607L15.4481 4.7072C15.5216 4.63433 15.5799 4.54767 15.6197 4.45213C15.6595 4.3566 15.68 4.2542 15.68 4.15073C15.68 4.04727 15.6595 3.9448 15.6197 3.84927C15.5799 3.7538 15.5216 3.66707 15.4481 3.59427L12.125 0.231867C12.0521 0.1584 11.9654 0.100067 11.8699 0.0602667C11.7744 0.0204667 11.6719 0 11.5685 0C11.465 0 11.3626 0.0204667 11.2671 0.0602667C11.1716 0.100067 11.0849 0.1584 11.012 0.231867L8.8018 2.44993L3.3624 7.88147C3.28973 7.95467 3.23227 8.0416 3.19327 8.13707C3.15427 8.23253 3.13453 8.3348 3.13507 8.43793ZM11.5685 1.89347L13.7865 4.11153L12.6736 5.22447L10.4555 3.0064L11.5685 1.89347ZM4.70267 8.75927L9.3504 4.11153L11.5685 6.3296L6.92073 10.9773H4.70267V8.75927Z"/>
                                         </svg>
@@ -172,8 +191,8 @@ export default function ProfileWeb() {
                                     </button>
                                 </div>
                                 <div className={styles.profileInfoRow}>
-                                    <p className={styles.profileStatsContainer}><span className={styles.profileStatsText}>{userData.following ?? 0}</span>Following</p>
-                                    <p className={styles.profileStatsContainer}><span className={styles.profileStatsText}>{userData.followers ?? 0}</span>Followers</p>
+                                    <button type="button" className={`${styles.profileStatsContainer} ${styles.profileStatsButton}`} onClick={() => setFollowList("following")}><span className={styles.profileStatsText}>{userData.following ?? 0}</span>Following</button>
+                                    <button type="button" className={`${styles.profileStatsContainer} ${styles.profileStatsButton}`} onClick={() => setFollowList("followers")}><span className={styles.profileStatsText}>{userData.followers ?? 0}</span>Followers</button>
                                     <p className={styles.profileStatsContainer}><span className={styles.profileStatsText}>{userData.likes ?? 0}</span>Likes</p>
                                 </div>
                                 <div className={styles.profileInfoRow}>
@@ -193,13 +212,13 @@ export default function ProfileWeb() {
                             </div>
                         </div>
                         <ul className={styles.selectorsList}>
-                            <li onClick={()=>{setSelector(0)}} className={selector == 0? styles.activeSelector : ''}>
+                            <li {...pressable(()=>{setSelector(0)})} className={selector == 0? styles.activeSelector : ''}>
                                 <svg width="30" height="30" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M1.3335 2.66667C1.3335 2.29848 1.63198 2 2.00016 2H14.0002C14.3684 2 14.6668 2.29848 14.6668 2.66667V13.3333C14.6668 13.7015 14.3684 14 14.0002 14H2.00016C1.63198 14 1.3335 13.7015 1.3335 13.3333V2.66667ZM2.66683 3.33333V12.6667H13.3335V3.33333H2.66683ZM4.00016 4.66667H7.3335V7.33333H4.00016V4.66667ZM7.3335 8.66667H4.00016V11.3333H7.3335V8.66667ZM8.66683 4.66667H12.0002V7.33333H8.66683V4.66667ZM12.0002 8.66667H8.66683V11.3333H12.0002V8.66667Z"/>
                                 </svg>
                                 <p>Videos</p>
                             </li>
-                            <li onClick={()=>{setSelector(1)}} className={selector == 1? styles.activeSelector : ''}>
+                            <li {...pressable(()=>{setSelector(1)})} className={selector == 1? styles.activeSelector : ''}>
                                 <svg className={styles.armSVG} width="30" height="30" viewBox="0 0 19 19" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M4.66064 8.07501C5.20536 9.61288 6.04487 11.0297 7.13213 12.2461" strokeWidth="1.1875" strokeMiterlimit="10"/>
                                     <path d="M1.84795 3.94843C1.76179 4.1581 1.71645 4.38229 1.71436 4.60897V8.06014C1.71436 10.8953 3.83701 17.2707 5.96709 17.2707C10.0491 17.2707 13.0179 13.6043 14.3761 11.5484C15.0423 11.4351 15.6622 11.1334 16.1625 10.679C16.6628 10.2246 17.0225 9.63651 17.1993 8.9842C17.376 8.33189 17.3624 7.64263 17.1599 6.99783C16.9574 6.35304 16.5747 5.77967 16.0568 5.34547C15.5389 4.91126 14.9075 4.63436 14.2373 4.54749C13.5671 4.46061 12.886 4.56739 12.2745 4.85521C11.6631 5.14303 11.1467 5.59986 10.7866 6.17173C10.4264 6.74359 10.2375 7.4066 10.2421 8.08241C9.46646 8.46405 8.74102 8.94019 8.08232 9.49999C7.74372 9.86783 7.48459 10.3015 7.32114 10.774C7.15768 11.2465 7.09341 11.7476 7.13232 12.2461C7.15125 12.7492 7.23354 13.2479 7.37725 13.7305" strokeWidth="1.1875" strokeMiterlimit="10"/>
@@ -208,13 +227,13 @@ export default function ProfileWeb() {
                                 </svg>
                                 <p>Progress Photos</p>
                             </li>
-                            <li onClick={()=>{setSelector(2)}} className={selector == 2? styles.activeSelector : ''}>
+                            <li {...pressable(()=>{setSelector(2)})} className={selector == 2? styles.activeSelector : ''}>
                                 <svg width="30" height="30" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
                                     <path fillRule="evenodd" clipRule="evenodd" d="M6.9982 0C6.79977 0 6.60548 0.056768 6.43827 0.163603C6.27319 0.269073 6.1413 0.418991 6.05772 0.596046L4.47016 3.80114C4.46704 3.80744 4.46405 3.8138 4.4612 3.82023C4.46049 3.82182 4.45937 3.8232 4.45796 3.82423C4.45655 3.82526 4.4549 3.82592 4.45316 3.82611C4.44707 3.82678 4.44099 3.82756 4.43493 3.82846L0.939348 4.34632C0.746144 4.36511 0.561904 4.43762 0.407589 4.55582C0.247917 4.67813 0.127135 4.84411 0.0598753 5.03366C-0.00738488 5.22321 -0.018238 5.4282 0.0286311 5.6238C0.0753187 5.81863 0.177287 5.99582 0.322253 6.13407L2.88103 8.60288L2.88686 8.60842C2.89051 8.61184 2.89326 8.61611 2.89484 8.62086C2.89642 8.6256 2.89679 8.63067 2.89591 8.63559L2.89535 8.63885L2.28561 12.2072C2.25211 12.4006 2.27332 12.6004 2.34713 12.7822C2.42104 12.9644 2.5446 13.1221 2.70373 13.2375C2.86287 13.3528 3.05119 13.4212 3.24727 13.4348C3.44296 13.4484 3.63854 13.4069 3.81184 13.3151L3.81289 13.3145L6.96237 11.65C6.97366 11.6451 6.98587 11.6425 6.99822 11.6425C7.01057 11.6425 7.02277 11.6451 7.03407 11.65L10.1835 13.3145C10.3569 13.4066 10.5533 13.4485 10.7491 13.4348C10.9452 13.4212 11.1335 13.3528 11.2927 13.2375C11.4518 13.1221 11.5754 12.9644 11.6493 12.7822C11.7231 12.6004 11.7444 12.4016 11.711 12.2083L11.7108 12.2072L11.1011 8.63885L11.1005 8.63559C11.0996 8.63067 11.1 8.6256 11.1016 8.62086C11.1031 8.61612 11.1059 8.61184 11.1095 8.60842L11.1154 8.60288L13.6742 6.13404C13.8191 5.99579 13.9211 5.81862 13.9678 5.6238C14.0146 5.4282 14.0038 5.22321 13.9365 5.03366C13.8693 4.84411 13.7485 4.67813 13.5888 4.55582C13.4345 4.43762 13.2503 4.36511 13.0571 4.34632L9.56148 3.82846C9.55542 3.82756 9.54934 3.82678 9.54325 3.82611C9.54151 3.82592 9.53985 3.82526 9.53844 3.82423C9.53703 3.8232 9.53592 3.82182 9.53521 3.82023C9.53236 3.8138 9.52937 3.80744 9.52625 3.80114L7.93868 0.596032C7.8551 0.418983 7.72321 0.26907 7.55814 0.163603C7.39092 0.056768 7.19663 0 6.9982 0Z"/>
                                 </svg>
                                 <p>Favourites</p>
                             </li>
-                            <li onClick={()=>{setSelector(3)}} className={selector == 3? styles.activeSelector : ''}>
+                            <li {...pressable(()=>{setSelector(3)})} className={selector == 3? styles.activeSelector : ''}>
                                 <svg width="30" height="30" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
                                     <path fillRule="evenodd" clipRule="evenodd" d="M0 0H10.57V2.24313H2.33687V10.5688H0V0ZM3.27437 3.18063H13.8431V13.75H3.275V3.18125L3.27437 3.18063ZM8.145 6.61812L8.68188 7.155L9.21875 6.6175C9.3598 6.47645 9.52725 6.36457 9.71153 6.28823C9.89582 6.2119 10.0933 6.17261 10.2928 6.17261C10.4923 6.17261 10.6898 6.2119 10.8741 6.28823C11.0584 6.36457 11.2258 6.47645 11.3669 6.6175C11.5079 6.75855 11.6198 6.926 11.6961 7.11028C11.7725 7.29457 11.8118 7.49209 11.8118 7.69156C11.8118 7.89103 11.7725 8.08855 11.6961 8.27284C11.6198 8.45713 11.5079 8.62458 11.3669 8.76562L8.68188 11.4506L5.99688 8.76562C5.71202 8.48077 5.55198 8.09441 5.55198 7.69156C5.55198 7.28871 5.71202 6.90236 5.99688 6.6175C6.28173 6.33264 6.66809 6.17261 7.07094 6.17261C7.47379 6.17261 7.86014 6.33327 8.145 6.61812Z"/>
                                 </svg>
@@ -245,6 +264,15 @@ export default function ProfileWeb() {
                             }
                         </div>
                     </div>
+
+                    {followList ?
+                        <FollowList
+                            username="me"
+                            initial={followList}
+                            counts={{ followers: Number(userData.followers ?? 0), following: Number(userData.following ?? 0) }}
+                            onClose={() => { setFollowList(null); refreshCounts() }}
+                        />
+                    : null}
 
                     <form>
                         <input type="file"

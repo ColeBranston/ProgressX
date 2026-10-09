@@ -1,30 +1,32 @@
 /* Video thumbnails on profile tabs (same tile size as the "Add new video" button) */
 
+/* same grid and tiles as the Progress Photos tab (profile/ProgressPhotos.module.css) */
 .grid {
-    width: 95%;
-    display: flex;
-    flex-wrap: wrap;
-    align-content: flex-start;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
     padding: 10px;
-    gap: 15px;
+    box-sizing: border-box;
 }
 
 .tile {
     position: relative;
-    width: 150px;
-    height: 200px;
+    aspect-ratio: 3 / 4;
     padding: 0;
-    border: 2px solid black;
-    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
     overflow: hidden;
     background-color: var(--secondary-background-color);
     color: white;
     cursor: pointer;
-    transition: border-color 100ms linear;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.tile:hover:not(:disabled) {
+.tile:hover:not(:disabled),
+.tile:focus-visible {
+    transform: translateY(-3px);
     border-color: rgba(var(--primary-color));
+    box-shadow: 0 10px 24px -10px rgba(var(--primary-color), 0.7);
 }
 
 .tile:disabled {
@@ -121,6 +123,7 @@
 }
 
 .inlineEmpty {
+    grid-column: span 2;
     display: flex;
     align-items: center;
     max-width: 320px;
@@ -154,16 +157,14 @@
 
 @media (max-width: 900px) {
     .grid {
-        width: 100%;
-        box-sizing: border-box;
-        gap: 8px;
-        display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        padding: 10px 0;
     }
+}
 
+@media (prefers-reduced-motion: reduce) {
     .tile {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 3 / 4;
+        transition: none;
     }
 }

@@ -45,7 +45,6 @@ body {
     font-size: 200% !important;
     position: relative !important;
     user-select: none !important;
-    font-family: var(--primary-font-family) !important;
 }
 
 .mainLogo .progress {

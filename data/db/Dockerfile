@@ -1,4 +1,4 @@
-from solr
+from solr:10.0.0
 
 workdir /opt/solr/
 

@@ -357,7 +357,8 @@ export const EXERCISES: Exercise[] = [
 export const EXERCISE_BY_ID: Record<string, Exercise> = Object.fromEntries(EXERCISES.map((exercise) => [exercise.id, exercise]))
 
 export function isExerciseId(id: unknown): id is string {
-    return typeof id === "string" && id in EXERCISE_BY_ID
+    // own keys only: `in` would also accept "__proto__", "constructor", "toString"...
+    return typeof id === "string" && Object.hasOwn(EXERCISE_BY_ID, id)
 }
 
 export function exerciseInGroup(exercise: Exercise, group: MuscleGroup): boolean {

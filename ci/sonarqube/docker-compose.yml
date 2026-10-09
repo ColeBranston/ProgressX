@@ -1,0 +1,55 @@
+# SonarQube for ProgressX code quality, run separately from the app stack (its own Compose project,
+# network and volumes). Only reachable from this machine: the CI runner on this Mac talks to it at
+# http://127.0.0.1:9000. Start / stop:
+#   docker compose -f ci/sonarqube/docker-compose.yml up -d
+#   docker compose -f ci/sonarqube/docker-compose.yml down        (data is kept in the volumes)
+# First-time setup (admin password, projects, quality gate, CI token): ci/sonarqube/setup.sh
+name: sonarqube
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  sonarqube:
+    image: sonarqube:26.9.0.129388-community # pinned; upgrade deliberately (it migrates its database)
+    container_name: sonarqube
+    logging: *logging
+    depends_on:
+      - sonarqube-db
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube-db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar # only reachable on the private Compose network
+      # Docker Desktop's VM doesn't allow raising vm.max_map_count, which the embedded search
+      # engine's production checks want; fine for a single-machine install
+      SONAR_SEARCH_JAVAADDITIONALOPTS: "-Dnode.store.allow_mmap=false"
+      SONAR_TELEMETRY_ENABLE: "false"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    ports:
+      - "127.0.0.1:9000:9000"
+    mem_limit: 3g
+    restart: unless-stopped
+
+  sonarqube-db:
+    image: postgres:17-alpine
+    container_name: sonarqube-db
+    logging: *logging
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - sonarqube_db:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sonarqube_db:

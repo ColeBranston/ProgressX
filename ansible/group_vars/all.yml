@@ -1,0 +1,38 @@
+# Where the deployed copy of the repository lives. Only Ansible writes here: it is checked out at the
+# exact commit being deployed (your own working copy is never touched).
+deploy_dir: "{{ lookup('env', 'HOME') }}/deploy/progressx"
+repo_url: https://github.com/ColeBranston/ProgressX.git
+
+# Secrets and machine-specific settings, outside any checkout (mode 600, see ansible/setup-secrets.yml):
+#   env                   -> .env                      (ports, URLs, Ollama model ...)
+#   progressx.env.local   -> progressx/.env.local      (Supabase, R2, ID encryption keys ...)
+#   solr-ingest.htpasswd  -> nginx/solr-ingest.htpasswd
+secrets_dir: "{{ lookup('env', 'HOME') }}/.progressx/app"
+secret_files:
+  - { src: env, dest: .env }
+  - { src: progressx.env.local, dest: progressx/.env.local }
+  - { src: solr-ingest.htpasswd, dest: nginx/solr-ingest.htpasswd }
+
+# The live Solr index stays where it is (it's rebuilt by ingestion, not shipped with the code)
+solr_data_dir: /Users/colebranston/repos/ProgressX/data/db/var/solr
+
+# The images CI built, tested and pushed for each commit; deploys pull them by commit sha (nothing is
+# built on the server). The other services use pinned or upstream images from docker-compose.yml.
+image_registry: ghcr.io/colebranston
+release_images:
+  - { env: PROGRESSX_APP_IMAGE, name: progressx-app, service: progressx }
+  - { env: PROGRESSX_SEARCH_BACKEND_IMAGE, name: progressx-search-backend, service: search_backend }
+# how many releases' images to keep on this machine (the newest ones), for quick rollbacks
+keep_releases: 3
+
+# Same project name as before, so the existing containers and the Ollama model volume carry over
+compose_project: progressx
+
+# What "healthy" means after a deploy (these ports are bound to 127.0.0.1 on this machine)
+health_checks:
+  - { name: app, url: "http://127.0.0.1:8080/login" }
+  - { name: search backend, url: "http://127.0.0.1:8000/health" }
+  - { name: solr, url: "http://127.0.0.1:8983/solr/foods/admin/ping?wt=json" }
+  - { name: nginx, url: "http://127.0.0.1:80/robots.txt" }
+health_retries: 40
+health_delay: 5

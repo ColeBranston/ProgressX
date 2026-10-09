@@ -3,6 +3,7 @@ import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
 import { createUploadUrl, storageConfigured, videoKey } from "../../libs/r2Videos";
 import { cleanCaption, overLimit } from "../../libs/videos";
+import { requireVerified } from "../../libs/requireVerified";
 import { MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, VIDEO_TYPES } from "@/app/internal_components/videos/videoTypes";
 
 const UPLOADS_PER_HOUR = 10
@@ -15,6 +16,9 @@ const MAX_IN_PROGRESS = 3 // unfinished uploads per user
 export async function POST(req: NextRequest) {
     const userId = await getUserIdFromRequest(req)
     if (!userId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+
+    const unverified = await requireVerified(userId, "post videos")
+    if (unverified) return unverified
 
     if (!storageConfigured()) {
         return NextResponse.json({ message: "Video uploads aren't set up yet" }, { status: 503 })

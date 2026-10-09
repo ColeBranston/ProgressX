@@ -45,16 +45,18 @@ def clean_migration_dag():
         try:
             solr_clean_core.add(articles)
         except Exception as e:
-            solr_clean_core = reignite_core("clean")
-            retry = 0
             print("Error thrown during SOLR chunk ingestion: ", e)
-            while retry < 3:
+            # reconnect and retry the chunk up to 3 times, stopping at the first success
+            for retry in range(1, 4):
+                solr_clean_core = reignite_core("clean")
                 print(f'Current Retry Count: {retry}/3')
-                solr_clean_core.add(articles)
-                retry += 1
-
-            if retry >= 3:
-                raise Exception(f'Retry Count Hit Maximum: {retry}/3')
+                try:
+                    solr_clean_core.add(articles)
+                    break
+                except Exception as retry_error:
+                    print("Retry failed: ", retry_error)
+            else:
+                raise Exception('Retry Count Hit Maximum: 3/3')
 
         start += chunk_size
         counter += 1

@@ -18,6 +18,37 @@ DELAY = 0.34            # NCBI rate limiting
 START_YEAR = 2000
 END_YEAR = datetime.now().year
 
+# ---------------- FUNCTION: ONE ARTICLE -> RAW SOLR DOCUMENT ----------------
+def parse_article(article, updated_at=None):
+    """
+    Turns one <PubmedArticle> into a raw-core document, or None when it can't be linked to (no PMC id
+    or DOI) or is missing its title, year or abstract.
+    """
+    pmid = article.findtext(".//PMID")
+    title = article.findtext(".//ArticleTitle")
+    journal = article.findtext(".//Journal/Title")
+    year_pub = article.findtext(".//PubDate/Year")
+    abstract = " ".join([a.text for a in article.findall(".//AbstractText") if a.text])
+    pmcid = article.findtext(".//ArticleId[@IdType='pmc']")
+    doi = article.findtext(".//ArticleId[@IdType='doi']")
+
+    if not pmcid and not doi:
+        return None
+    if not all([title, year_pub, abstract]):
+        return None
+
+    pmc_link = f"https://www.ncbi.nlm.nih.gov/pmc/articles/{pmcid}/" if pmcid else None
+    doi_link = f"https://doi.org/{doi}" if doi else None
+
+    return {
+        "id": pmc_link or doi_link,
+        "content": abstract,
+        "updated_at": updated_at or now,
+        "published": year_pub,
+        "type": "pubMed",
+        "additional": f"title:{title}||journal:{journal}||pmid:{pmid}"
+    }
+
 # ---------------- FUNCTION: FETCH AND LOAD CHUNK ----------------
 def fetch_and_load(query, year):
     """
@@ -76,46 +107,7 @@ def fetch_and_load(query, year):
         time.sleep(DELAY)
 
         # ---------------- PARSE AND PREPARE FOR SOLR ----------------
-        articles = []
-        for article in articles_xml:
-            pmid = article.findtext(".//PMID")
-            title = article.findtext(".//ArticleTitle")
-            journal = article.findtext(".//Journal/Title")
-            year_pub = article.findtext(".//PubDate/Year")
-            abstract = " ".join([a.text for a in article.findall(".//AbstractText") if a.text])
-            pmcid = article.findtext(".//ArticleId[@IdType='pmc']")
-            doi = article.findtext(".//ArticleId[@IdType='doi']")
-
-            if not pmcid and not doi:
-                continue
-            if not all([title, year_pub, abstract]):
-                continue
-
-            pmc_link = f"https://www.ncbi.nlm.nih.gov/pmc/articles/{pmcid}/" if pmcid else None
-            doi_link = f"https://doi.org/{doi}" if doi else None
-
-            # # Check if exists in Solr
-            # pmcCheck = solr_raw_core.search(f'id:"{pmc_link}"', fl="id", rows=1).hits
-            # doiCheck = solr_raw_core.search(f'id:"{doi_link}"', fl="id", rows=1).hits
-
-            # if pmcCheck >= 1 or doiCheck >= 1:
-            #     articles.append({
-            #         "id": pmc_link or doi_link,
-            #         "content": {"set": abstract},
-            #         "published": {"set": year_pub},
-            #         "updated_at": {"set": now},
-            #         "type": {"set": "pubMed"},
-            #         "additional": {"set": f"title:{title}|journal:{journal}|pmid:{pmid}"}
-            #     })
-            # else:
-            articles.append({
-                "id": pmc_link or doi_link,
-                "content": abstract,
-                "updated_at": now,
-                "published": year_pub,
-                "type": "pubMed",
-                "additional": f"title:{title}||journal:{journal}||pmid:{pmid}"
-            })
+        articles = [doc for doc in (parse_article(article) for article in articles_xml) if doc]
 
         # ---------------- LOAD TO SOLR ----------------
         print(f"Loading {len(articles)} articles into Solr")
@@ -134,20 +126,25 @@ def fetch_and_load(query, year):
         chunk_index += 1
 
 # ---------------- MAIN LOOP OVER YEARS ----------------
-for year in range(START_YEAR, END_YEAR + 1):
-    retryCount = 0
-    while retryCount < 3:
-        try:
-            for query in QUERIES:
-                fetch_and_load(query, year)
-            break
-        except Exception as e:
-            retryCount += 1
-            print(f'ERROR: {e}')
-            print(f'Retry: {retryCount}/3')
+def main():
+    for year in range(START_YEAR, END_YEAR + 1):
+        retryCount = 0
+        while retryCount < 3:
+            try:
+                for query in QUERIES:
+                    fetch_and_load(query, year)
+                break
+            except Exception as e:
+                retryCount += 1
+                print(f'ERROR: {e}')
+                print(f'Retry: {retryCount}/3')
 
-    if retryCount >= 3:
-        raise Exception(f'Retry Count Hit Maximum: {retryCount}/3')
+        if retryCount >= 3:
+            raise Exception(f'Retry Count Hit Maximum: {retryCount}/3')
         
 
-print("\nAll done! All years processed successfully.")
+    print("\nAll done! All years processed successfully.")
+
+
+if __name__ == "__main__":
+    main()

@@ -23,7 +23,7 @@ export type VideoCard = {
     liked: boolean,
     favourited: boolean,
     isOwner: boolean,
-    author: { username: string, name: string, pfp: string | null },
+    author: { username: string, name: string, pfp: string | null, following: boolean }, // following: the viewer follows them
     playback: Playback | null,
 }
 
@@ -42,6 +42,14 @@ export function formatDuration(seconds: number | null): string {
     if (!seconds) return ""
     const s = Math.round(seconds)
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`
+}
+
+// Follows / unfollows someone; resolves to whether you now follow them and their follower count
+export async function setFollow(username: string, on: boolean): Promise<{ following: boolean, followers: number }> {
+    const res = await fetch(`/api/profiles/${encodeURIComponent(username)}/follow`, { method: on ? "PUT" : "DELETE" })
+    const json = await res.json().catch(() => null)
+    if (!res.ok) throw new Error(json?.message ?? "Couldn't save that")
+    return json
 }
 
 // Likes / favourites a video (or undoes it); resolves to the video's new counts

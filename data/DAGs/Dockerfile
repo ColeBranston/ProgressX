@@ -1,5 +1,8 @@
-from apache/airflow:slim-2.11.1rc2
+FROM apache/airflow:slim-2.11.1rc2
 
-expose 8080
+# the image's own unprivileged user (stated explicitly so the container never runs as root)
+USER airflow
 
-cmd ["webserver"]
+EXPOSE 8080
+
+CMD ["webserver"]

@@ -1,6 +1,7 @@
 "use client";
 
 import styles from './FoodLogList.module.css'
+import { pressable } from "../a11y";
 
 export type FoodLogEntry = {
     id: string
@@ -40,7 +41,7 @@ export default function FoodLogList({ entries, onSelect, onToggleCatalog, saving
     return (
         <ul className={styles.list}>
             {entries.map((entry) => (
-                <li key={entry.id} className={styles.item} onClick={() => onSelect(entry)}>
+                <li key={entry.id} className={styles.item} {...pressable(() => onSelect(entry))}>
                     <div className={styles.itemMain}>
                         <p className={styles.itemName}>{entry.name}</p>
                         <p className={styles.itemServing}>{entry.serving_qty} {entry.serving_unit}</p>

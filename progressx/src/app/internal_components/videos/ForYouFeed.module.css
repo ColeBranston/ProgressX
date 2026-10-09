@@ -236,6 +236,41 @@
     fill: rgba(var(--primary-color));
 }
 
+.pfpItem {
+    position: relative;
+    margin-bottom: 8px;
+}
+
+/* the original design's "+" under the profile picture: follow the poster */
+.followBadge {
+    position: absolute;
+    left: 50%;
+    top: 34px;
+    width: 22px;
+    height: 22px;
+    margin-left: -11px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(var(--primary-color));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    stroke: white;
+    stroke-width: 1.6;
+    cursor: pointer;
+    transition: transform 0.1s ease-out;
+}
+
+.followBadge:hover {
+    transform: scale(1.12);
+}
+
+.followBadge:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
 .pfp {
     overflow: hidden;
     border: 2px solid rgba(var(--primary-color));

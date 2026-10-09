@@ -20,7 +20,7 @@ function safeDecode(value: string) {
     try { return decodeURIComponent(value) } catch { return value }
 }
 
-// GET /api/profiles/:username   -> { profile }
+// GET /api/profiles/:username   -> { profile }  (with whether you follow each other)
 // What anyone signed in can see about a profile: name, picture, bio and counts. Whether their videos
 // show is up to their privacy setting (see /api/videos). Nothing else (email, age, body stats) is sent.
 export async function GET(req: NextRequest, context: { params: Promise<{ username: string }> }) {
@@ -37,9 +37,13 @@ export async function GET(req: NextRequest, context: { params: Promise<{ usernam
 
         const isOwner = profile.id === viewerId
         const isPublic = profile.profile_privacy === "public"
-        const { count } = isOwner || isPublic
-            ? await supabase.from("videos").select("id", { count: "exact", head: true }).eq("user_id", profile.id).eq("status", "ready")
-            : { count: null }
+        const [ { count }, following, followsYou ] = await Promise.all([
+            isOwner || isPublic
+                ? supabase.from("videos").select("id", { count: "exact", head: true }).eq("user_id", profile.id).eq("status", "ready")
+                : Promise.resolve({ count: null }),
+            supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("follower_id", viewerId).eq("following_id", profile.id),
+            supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("follower_id", profile.id).eq("following_id", viewerId),
+        ])
 
         return NextResponse.json({
             profile: {
@@ -53,6 +57,9 @@ export async function GET(req: NextRequest, context: { params: Promise<{ usernam
                 likes: profile.likes_count ?? 0,
                 videos: count,
                 isOwner,
+                youFollow: (following.count ?? 0) > 0,
+                followsYou: (followsYou.count ?? 0) > 0,
+                listsVisible: isOwner || isPublic, // their followers / following lists
             },
         })
     } catch (e) {

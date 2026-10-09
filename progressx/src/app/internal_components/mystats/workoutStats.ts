@@ -94,16 +94,17 @@ export function personalRecords(sets: WorkoutSet[], exerciseId: string): Persona
     const mine = sets.filter((s) => s.exercise_id === exerciseId)
     if (mine.length === 0) return { heaviest: null, bestE1rm: null, mostReps: null, bestSession: null }
 
-    const heaviest = mine.reduce((best, s) => (s.weight_kg > best.weight_kg || (s.weight_kg === best.weight_kg && s.reps > best.reps) ? s : best))
+    const heaviest = mine.reduce((best, s) => (s.weight_kg > best.weight_kg || (s.weight_kg === best.weight_kg && s.reps > best.reps) ? s : best), mine[0])
     const bestE1rm = mine.reduce<{ set: WorkoutSet, e1rmKg: number } | null>((best, s) => {
         const e1rmKg = estimatedOneRepMax(s.weight_kg, s.reps)
         return !best || e1rmKg > best.e1rmKg ? { set: s, e1rmKg } : best
     }, null)
-    const mostReps = mine.reduce((best, s) => (s.reps > best.reps || (s.reps === best.reps && s.weight_kg > best.weight_kg) ? s : best))
+    const mostReps = mine.reduce((best, s) => (s.reps > best.reps || (s.reps === best.reps && s.weight_kg > best.weight_kg) ? s : best), mine[0])
 
     const sessions = new Map<string, number>()
     for (const s of mine) sessions.set(s.performed_on, (sessions.get(s.performed_on) ?? 0) + s.weight_kg * s.reps)
-    const [date, volumeKg] = Array.from(sessions.entries()).reduce((best, entry) => (entry[1] > best[1] ? entry : best))
+    const entries = Array.from(sessions.entries())
+    const [date, volumeKg] = entries.reduce((best, entry) => (entry[1] > best[1] ? entry : best), entries[0])
 
     return { heaviest, bestE1rm: bestE1rm && bestE1rm.e1rmKg > 0 ? bestE1rm : null, mostReps, bestSession: volumeKg > 0 ? { date, volumeKg } : null }
 }

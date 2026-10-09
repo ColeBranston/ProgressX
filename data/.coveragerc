@@ -1,0 +1,18 @@
+[run]
+relative_files = True
+branch = True
+# one source root, so report paths (search_backend/config.py, DAGs/config.py) stay unambiguous
+source = data
+omit =
+    data/db/*
+    data/testsupport.py
+    data/__init__.py
+    */tests/*
+    */conftest.py
+    data/DAGs/test.py
+    data/DAGs/PUBMED_QUERIES.py
+    data/DAGs/utils/reindex_clean.py
+    data/search_backend/test_encode_decode.py
+
+[report]
+show_missing = False

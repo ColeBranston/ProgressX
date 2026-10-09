@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import styles from "./onboarding.module.css";
 import {
     ACTIVITY_LEVELS,
@@ -29,7 +28,6 @@ const STEPS = [
 type UsernameCheck = { state: "idle" | "checking" | "available" | "taken" | "error", message?: string }
 
 export default function Onboarding() {
-    const router = useRouter()
     const [email, setEmail] = useState("")
     const [step, setStep] = useState(0)
     const [saving, setSaving] = useState(false)
@@ -145,7 +143,9 @@ export default function Onboarding() {
             })
             const json = await res.json().catch(() => ({}))
             if (res.ok) {
-                router.replace("/")
+                // a full page load, so the middleware sees the finished profile: the client router can
+                // reuse its earlier "/ -> /onboarding" redirect and leave the page stuck on "Saving..."
+                window.location.replace("/")
                 return
             }
             if (res.status === 401) {

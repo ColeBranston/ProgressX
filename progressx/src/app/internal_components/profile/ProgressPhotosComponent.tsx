@@ -7,6 +7,7 @@ import { cloudinaryBlurredFull, cloudinaryBlurredThumb, cloudinaryLoader, cloudi
 
 import dayjs from 'dayjs'
 import { useSearchParams, useRouter } from "next/navigation";
+import { backdrop } from "../a11y";
 
 export type ProgressPhoto = {
     id: string,
@@ -426,8 +427,8 @@ export default function ProgressPhotosComponent() {
             : null}
 
             {isFormVisible ?
-                <div className={styles.overlay} onClick={closeUpload}>
-                    <div className={styles.uploadModal} role="dialog" aria-modal="true" aria-label="Add progress photo" onClick={(e) => e.stopPropagation()}>
+                <div className={styles.overlay} {...backdrop(closeUpload)}>
+                    <div className={styles.uploadModal} role="dialog" aria-modal="true" aria-label="Add progress photo">
                         <div className={styles.modalHeader}>
                             <p className={styles.modalTitle}>Add progress photo</p>
                             <button type="button" className={styles.iconButton} onClick={closeUpload} aria-label="Close">
@@ -486,8 +487,8 @@ export default function ProgressPhotosComponent() {
             : null}
 
             {viewerPhoto && photos ?
-                <div className={styles.overlay} onClick={closeViewer}>
-                    <div className={styles.viewer} role="dialog" aria-modal="true" aria-label="Progress photo" onClick={(e) => e.stopPropagation()}>
+                <div className={styles.overlay} {...backdrop(closeViewer)}>
+                    <div className={styles.viewer} role="dialog" aria-modal="true" aria-label="Progress photo">
                         <div className={styles.modalHeader}>
                             <div>
                                 <p className={styles.modalTitle}>{dayjs(viewerPhoto.created_at).format("MMMM D, YYYY")}</p>

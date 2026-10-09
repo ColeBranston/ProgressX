@@ -1,12 +1,19 @@
-from python:3
+# The same Python the test suite runs on (ci/test/python-tests.Dockerfile)
+FROM python:3.12-slim
 
-workdir /usr/src/app
+WORKDIR /usr/src/app
 
-copy . .
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-run pip install --no-cache-dir -r requirements.txt
+# only the service's own modules (never certificates, keys or env files from this folder)
+COPY config.py main.py search_cache.py solr_instance.py ./
 
-env PORT=8000
-expose 8000
+# run as an unprivileged user
+RUN useradd --system --uid 10001 --no-create-home search
+USER search
 
-cmd python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+ENV PORT=8000
+EXPOSE 8000
+
+CMD ["sh", "-c", "exec python -m uvicorn main:app --host 0.0.0.0 --port $PORT"]

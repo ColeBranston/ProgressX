@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema name="clean_ingestion_data" version="1.7">
+
+  <!-- ===================== -->
+  <!-- Unique Key -->
+  <!-- ===================== -->
+
+  <uniqueKey>id</uniqueKey>
+
+  <!-- ===================== -->
+  <!-- Fields -->
+  <!-- ===================== -->
+
+  <field name="id"
+         type="string"
+         indexed="true"
+         stored="true"
+         required="true"
+         multiValued="false"/>
+
+<field name="title"
+       type="string"
+       indexed="true"
+       stored="true"
+       required="true"
+       multiValued="false"/>
+
+<field name="content"
+         type="text_en"
+         indexed="true"
+         required="true"
+         stored="true"
+         multiValued="false"/>
+
+  <field name="published"
+         type="string"
+         indexed="true"
+         stored="true"
+         required="true"
+         multiValued="false"/>
+
+<field name="journal"
+         type="string"
+         indexed="true"
+         required="true"
+         stored="true"
+         multiValued="false"/>
+
+  <field name="created_at"
+         type="pdate"
+         required="true"
+         indexed="true"
+         stored="true"
+         default="NOW"/>
+
+  <field name="updated_at"
+         type="pdate"
+         indexed="true"
+         required="true"
+         stored="true"/>
+
+  <!-- Required internal version field -->
+  <field name="_version_"
+         type="plong"
+         indexed="false"
+         stored="false"/>
+
+  <!-- ===================== -->
+  <!-- Field Types -->
+  <!-- ===================== -->
+
+  <!-- Exact string (IDs, identifiers) -->
+  <fieldType name="string"
+             class="solr.StrField"
+             sortMissingLast="true"
+             omitNorms="true"/>
+
+  <!-- Long primitive (required for _version_) -->
+  <fieldType name="plong"
+             class="solr.LongPointField"
+             docValues="true"/>
+
+  <!-- Date -->
+  <fieldType name="pdate"
+             class="solr.DatePointField"
+             docValues="true"/>
+
+  <!-- English full text (BM25 default) -->
+  <fieldType name="text_en"
+             class="solr.TextField"
+             positionIncrementGap="100">
+    <analyzer type="index">
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.StopFilterFactory"
+              ignoreCase="true"
+              words="lang/stopwords_en.txt"/>
+      <filter class="solr.PorterStemFilterFactory"/>
+    </analyzer>
+    <analyzer type="query">
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
+      <filter class="solr.StopFilterFactory"
+              ignoreCase="true"
+              words="lang/stopwords_en.txt"/>
+      <filter class="solr.PorterStemFilterFactory"/>
+    </analyzer>
+  </fieldType>
+
+</schema>

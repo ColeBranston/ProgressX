@@ -285,6 +285,24 @@ def ensure_schema():
     solr(f"/{CORE}/config", {"set-user-property": {"update.autoCreateFields": "false"}})
 
 
+def to_solr_doc(name, doc_id, food):
+    """One food as a `foods` core document, or None when it has no calories (useless without energy)."""
+    nutrients = finish_nutrients(food["nutrients"])
+    if "calories" not in nutrients:
+        return None
+    return {
+        "id": doc_id,
+        "name": food["name"],
+        "name_head": food["name"].split(",")[0],
+        "category": food["category"],
+        "source": SOURCE_NAMES[name],
+        "boost": SOURCE_BOOST[name] * (BRANDED_PENALTY if name != "cnf" and is_branded(food["name"]) else 1.0),
+        "name_length": len(food["name"]),
+        "nutrients": json.dumps(nutrients, separators=(",", ":")),
+        "portions": json.dumps(food["portions"][:12], separators=(",", ":")),
+    }
+
+
 def main():
     ensure_core()
     ensure_schema()
@@ -301,21 +319,11 @@ def main():
 
     batch, written, skipped = [], 0, 0
     for name, doc_id, food in docs:
-        nutrients = finish_nutrients(food["nutrients"])
-        if "calories" not in nutrients:  # useless without energy
+        doc = to_solr_doc(name, doc_id, food)
+        if doc is None:  # useless without energy
             skipped += 1
             continue
-        batch.append({
-            "id": doc_id,
-            "name": food["name"],
-            "name_head": food["name"].split(",")[0],
-            "category": food["category"],
-            "source": SOURCE_NAMES[name],
-            "boost": SOURCE_BOOST[name] * (BRANDED_PENALTY if name != "cnf" and is_branded(food["name"]) else 1.0),
-            "name_length": len(food["name"]),
-            "nutrients": json.dumps(nutrients, separators=(",", ":")),
-            "portions": json.dumps(food["portions"][:12], separators=(",", ":")),
-        })
+        batch.append(doc)
         if len(batch) == 1000:
             solr(f"/{CORE}/update", batch)
             written += len(batch)

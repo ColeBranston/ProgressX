@@ -32,6 +32,7 @@ import {
 } from "../../internal_components/index"
 import { userDataContext } from '@/app/contexts/userData';
 import WeightCheckIn from '@/app/internal_components/weight/WeightCheckIn';
+import { backdrop, pressable } from "@/app/internal_components/a11y";
 
 // Indexed by dayjs' date.day() (0 = Sunday .. 6 = Saturday), matching weekStart
 // below since dayjs' default start of week is Sunday.
@@ -380,7 +381,7 @@ export default function DietPage() {
     // Water is added optimistically so the droplet reacts instantly; the
     // temporary entry is swapped for the saved one, or removed if saving fails.
     async function addWater(amountMl: number) {
-        const tempId = `temp-${Date.now()}-${Math.random()}`
+        const tempId = `temp-${crypto.randomUUID()}`
         const optimistic: WaterLogEntry = {
             id: tempId,
             user_id: "",
@@ -734,10 +735,10 @@ export default function DietPage() {
 
                                     :
                                     <>
-                                        <div className={styles.addFoodItemButtons} onClick={()=>setAddItemType("manual")}>
+                                        <div className={styles.addFoodItemButtons} {...pressable(()=>setAddItemType("manual"))}>
                                             <p>Add Manually</p>
                                         </div>
-                                        <div className={styles.addFoodItemButtons} onClick={()=>setAddItemType("quick")}>
+                                        <div className={styles.addFoodItemButtons} {...pressable(()=>setAddItemType("quick"))}>
                                             <p>Quick Add</p>
                                         </div>
                                     </>
@@ -811,8 +812,8 @@ export default function DietPage() {
                 </div>
             </div>
             {showSettings?
-                <div className={styles.modalBackdrop} onClick={() => setShowSettings(false)}>
-                    <div onClick={(e) => e.stopPropagation()}>
+                <div className={styles.modalBackdrop} {...backdrop(() => setShowSettings(false))}>
+                    <div>
                         <MicronutrientSettings
                             selected={displayedMicronutrients}
                             onSave={savePreferences}
@@ -822,8 +823,8 @@ export default function DietPage() {
                 </div>
             : null}
             {showMonthCalendar?
-                <div className={styles.modalBackdrop} onClick={() => setShowMonthCalendar(false)}>
-                    <div onClick={(e) => e.stopPropagation()}>
+                <div className={styles.modalBackdrop} {...backdrop(() => setShowMonthCalendar(false))}>
+                    <div>
                         <MonthCalendar
                             visibleMonth={calendarMonth}
                             selectedDate={selectedDate}

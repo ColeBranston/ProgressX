@@ -59,6 +59,31 @@ export default function PrivacyPolicyPage() {
                 When you agree to our Terms of Service and this policy and confirm you are {LEGAL_MINIMUM_AGE} or older, we record which
                 version you agreed to, when, how (sign-up form, Google sign-in or a later update) and your browser type, as proof of consent.
             </p>
+            <h3>Government ID (only if you verify your identity)</h3>
+            <p>
+                To post videos, like, favourite and follow, you verify your identity with a passport, driver&apos;s licence or
+                provincial ID card. This keeps automated and fake accounts out. When you do, we collect photos of the document
+                (the passport photo page, or the front and back of the card), which show your name, photo, date of birth, document
+                number, expiry date and, for cards, your address. We only collect them with your express consent at that moment,
+                and you can use the rest of ProgressX without verifying.
+            </p>
+            <ul>
+                <li><strong>How it&apos;s checked:</strong> automatically, on our own server. We confirm it&apos;s a valid passport (its
+                    machine-readable code and check digits) or licence / ID card (its barcode matches the front), that it hasn&apos;t
+                    expired, that you&apos;re {LEGAL_MINIMUM_AGE} or older and match the age on your profile, and that it isn&apos;t
+                    already verifying another account. The photos aren&apos;t sent to any other company to be checked.</li>
+                <li><strong>What we keep:</strong> an encrypted copy of the photos (stored with Cloudflare R2 in the United States),
+                    whether you&apos;re verified, the document type, issuing country or province and expiry date, and a one-way
+                    code derived from the document number that tells us if the same document is used again, without revealing the
+                    number. We don&apos;t keep your name, date of birth or document number in readable form. Photos that don&apos;t
+                    pass the check are not kept.</li>
+                <li><strong>Who can see it:</strong> nobody through the app, not even you: it&apos;s never shown on the site. It can
+                    only be decrypted by our privacy officer, on our server, to respond to a legal or privacy request or to
+                    investigate fraud.</li>
+                <li><strong>How long:</strong> until you remove it (Settings &gt; Identity verification &gt; Remove) or delete
+                    your account; both delete it immediately.</li>
+            </ul>
+
             <h3>Research searches</h3>
             <p>
                 When you search the Research section, we process your search terms to return results.
@@ -78,6 +103,7 @@ export default function PrivacyPolicyPage() {
                 <li>To calculate estimates such as calorie expenditure and targets from the details you give us</li>
                 <li>To show your content to other users according to your privacy settings</li>
                 <li>To keep the Service running, fix problems, and protect against fraud, abuse and security incidents</li>
+                <li>If you verify your identity, to confirm you&apos;re a real adult person with one account, and for nothing else</li>
                 <li>To communicate with you about your account or changes to these policies</li>
                 <li>To comply with legal obligations</li>
             </ul>
@@ -98,14 +124,14 @@ export default function PrivacyPolicyPage() {
             <h2><span>05</span>How we share information</h2>
             <p>We share personal information only in these situations:</p>
             <ul>
-                <li><strong>With other users, as you choose.</strong> Other signed-in users can see your username, name, profile picture, bio and follower, following and like counts. Videos you post are shown to other users (including in the For You feed) only while your profile is public; when it is private, only you can see them. The videos you like or favourite are visible only to you.</li>
+                <li><strong>With other users, as you choose.</strong> Other signed-in users can see your username, name, profile picture, bio and follower, following and like counts, and, while your profile is public, the lists of who follows you and who you follow. Videos you post are shown to other users (including in the For You feed) only while your profile is public; when it is private, only you can see them. The videos you like or favourite are visible only to you.</li>
                 <li>
                     <strong>With service providers</strong> who help us run the Service and may only use your information to provide their services to us:
                     <ul>
                         <li>Supabase: authentication and database hosting</li>
                         <li>Cloudinary: storage and delivery of photos</li>
                         <li>Google: sign-in, if you choose to use it</li>
-                        <li>Cloudflare: network delivery and security, and storage and streaming of videos you post</li>
+                        <li>Cloudflare: network delivery and security, storage and streaming of videos you post, and encrypted storage of government ID photos (Cloudflare can&apos;t read them)</li>
                     </ul>
                 </li>
                 <li><strong>For legal reasons.</strong> If required by law, or to protect the rights, safety and property of our users, the public or ProgressX.</li>
@@ -131,7 +157,7 @@ export default function PrivacyPolicyPage() {
             <h2><span>08</span>How long we keep it</h2>
             <p>
                 We keep your information for as long as your account is active. When you delete your account, your profile, logs, consent
-                records and all of your photos are deleted immediately from our systems. Copies in our providers&apos; backups are removed
+                records, your government ID and all of your photos and videos are deleted immediately from our systems. Copies in our providers&apos; backups are removed
                 automatically as those backups expire, within 30 days. We may keep information longer only where the law requires it.
             </p>
 
@@ -139,7 +165,7 @@ export default function PrivacyPolicyPage() {
             <ul>
                 <li><strong>Access and portability:</strong> download a copy of all the personal information we hold about you at any time from Settings &gt; Your data &gt; Download my data.</li>
                 <li><strong>Correction:</strong> you can view and edit most of your information in the app, or ask us to correct it.</li>
-                <li><strong>Deletion:</strong> delete individual photos in the app, or permanently delete your whole account and all of its data from Settings &gt; Your data &gt; Delete account.</li>
+                <li><strong>Deletion:</strong> delete individual photos and videos in the app, remove your government ID from Settings &gt; Identity verification, or permanently delete your whole account and all of its data from Settings &gt; Your data &gt; Delete account.</li>
                 <li><strong>Privacy settings:</strong> you can change who can see your profile and blur your progress photos at any time.</li>
                 <li><strong>Withdrawing consent:</strong> you can withdraw your consent at any time by deleting your account. You can also contact us to withdraw consent to a particular use.</li>
             </ul>
@@ -152,6 +178,7 @@ export default function PrivacyPolicyPage() {
             <h2><span>10</span>Security</h2>
             <p>
                 We protect your information with safeguards suited to its sensitivity, including encrypted connections, hashed passwords,
+                separate application-level encryption (AES-256) and separately stored keys for government ID photos,
                 database access rules that keep each user&apos;s data separate, rate limits on sign-in and uploads, and checks on every
                 uploaded file. No system is perfectly secure, so we cannot guarantee absolute security. If a breach of security safeguards
                 creates a real risk of significant harm to you, we will notify you and report it to the Office of the Privacy

@@ -1,0 +1,50 @@
+[
+ {
+  "id": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC900001/",
+  "title": "Protein intake and muscle hypertrophy in resistance-trained adults",
+  "content": "Higher daily protein intake (1.6 g/kg) increased lean mass gains during twelve weeks of resistance training compared with the recommended dietary allowance.",
+  "journal": "Journal of Strength Research",
+  "published": "2021",
+  "updated_at": "2026-10-01T00:00:00Z"
+ },
+ {
+  "id": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC900002/",
+  "title": "Creatine supplementation and strength",
+  "content": "Creatine monohydrate supplementation improved one-repetition maximum strength in the bench press and squat in trained men and women.",
+  "journal": "Sports Nutrition Review",
+  "published": "2019",
+  "updated_at": "2026-10-01T00:00:00Z"
+ },
+ {
+  "id": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC900003/",
+  "title": "Sleep duration and recovery",
+  "content": "Athletes sleeping fewer than seven hours showed slower recovery of muscle strength and higher perceived soreness after eccentric exercise.",
+  "journal": "Sleep and Performance",
+  "published": "2022",
+  "updated_at": "2026-10-01T00:00:00Z"
+ },
+ {
+  "id": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC900004/",
+  "title": "Training volume dose response",
+  "content": "Weekly set volume showed a graded dose-response relationship with muscle hypertrophy, with protein intake held constant across groups.",
+  "journal": "Journal of Strength Research",
+  "published": "2020",
+  "updated_at": "2026-10-01T00:00:00Z"
+ },
+ {
+  "id": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC900005/",
+  "title": "Caffeine and endurance performance",
+  "content": "Caffeine ingestion one hour before exercise improved time-trial endurance performance in cyclists.",
+  "journal": "Endurance Science",
+  "published": "2018",
+  "updated_at": "2026-10-01T00:00:00Z"
+ },
+ {
+  "id": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC900006/",
+  "title": "Hydration status and cognitive function",
+  "content": "Mild dehydration of two percent body mass impaired attention and short-term memory in healthy adults.",
+  "journal": "Hydration Reports",
+  "published": "2017",
+  "updated_at": "2026-10-01T00:00:00Z"
+ }
+]

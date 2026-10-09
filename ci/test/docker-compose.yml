@@ -1,0 +1,76 @@
+# Throwaway services for the integration and end-to-end tests, isolated from the live stack: their own
+# Compose project, network and ports, empty Solr cores built from data/db/configsets, and nothing kept
+# afterwards (down -v). The live Solr, Redis and search backend are never touched by tests.
+#   up:    docker compose -f ci/test/docker-compose.yml up -d --wait solr-test redis-test search-backend-test
+#   down:  docker compose -f ci/test/docker-compose.yml down -v
+#   python tests: docker compose -f ci/test/docker-compose.yml run --rm python-tests
+name: progressx-test
+
+services:
+  solr-test:
+    image: solr:10.0.0 # same version as the live Solr
+    environment:
+      SOLR_JAVA_MEM: "-Xms256m -Xmx512m"
+    volumes:
+      - ../../data/db/configsets:/configsets:ro
+    # one core per configset (the live cores' conf, without their data), then Solr in the foreground
+    entrypoint: ["bash", "-c", "init-var-solr && for dir in /configsets/*/; do core=$$(basename $$dir); mkdir -p /var/solr/data/$$core && cp -R $$dir/conf /var/solr/data/$$core/ && echo name=$$core > /var/solr/data/$$core/core.properties; done && exec solr-foreground --user-managed"]
+    ports:
+      - "127.0.0.1:8984:8983"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8983/solr/foods/admin/ping && curl -fs http://localhost:8983/solr/clean_ingestion_data/admin/ping"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+
+  redis-test:
+    image: redis:8-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "127.0.0.1:6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      retries: 20
+
+  search-backend-test:
+    # CI sets this to the image it just built, so the tests exercise the image that gets deployed
+    image: ${SEARCH_BACKEND_TEST_IMAGE:-progressx-test-search-backend-test}
+    build: ../../data/search_backend
+    environment:
+      PORT: "8000"
+      python_backend_env: local
+      solr_local_url: http://solr-test:8983/solr/
+      REDIS_URL: redis://redis-test:6379/0
+    ports:
+      - "127.0.0.1:8001:8000"
+    depends_on:
+      solr-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      retries: 20
+
+  # Runs the Python suites (search backend, ingestion DAGs, food ingestion, Solr schema) with coverage
+  python-tests:
+    profiles: ["tools"]
+    build:
+      context: ../../data
+      dockerfile: ../ci/test/python-tests.Dockerfile
+    working_dir: /src
+    environment:
+      SOLR_TEST_URL: http://solr-test:8983/solr/
+      REDIS_TEST_URL: redis://redis-test:6379/0
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - ../../data:/src/data
+      - ./fixtures:/src/ci/test/fixtures:ro
+    depends_on:
+      solr-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    entrypoint: ["sh", "/src/data/run_tests.sh"]

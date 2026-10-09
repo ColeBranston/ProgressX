@@ -26,7 +26,10 @@ services:
       - solr
     restart: unless-stopped
 
+  # Built here for local changes; the CI deploy instead runs the exact image CI tested and published
+  # (ghcr.io/colebranston/progressx-app:<commit>), set through PROGRESSX_APP_IMAGE in .env
   progressx:
+    image: ${PROGRESSX_APP_IMAGE:-progressx-progressx}
     build: ./progressx
     container_name: progressx-app
     logging: *logging
@@ -48,6 +51,7 @@ services:
     restart: unless-stopped
 
   search_backend:
+    image: ${PROGRESSX_SEARCH_BACKEND_IMAGE:-progressx-search_backend}
     build: ./data/search_backend
     container_name: progressx-search-backend
     logging: *logging
@@ -95,14 +99,16 @@ services:
     restart: unless-stopped
 
   solr:
-    build: ./data/db
+    image: solr:10.0.0 # upstream image, pinned (data/db/Dockerfile adds nothing to it)
     container_name: progressx-solr
     logging: *logging
     command: ["-f", "--user-managed"]
     environment:
       SOLR_PORT: ${SOLR_PORT}
     volumes:
-      - ./data/db/var/solr:/var/solr
+      # the live index; the CI deploy (ansible/) points this at the existing data folder, since the
+      # deploy checkout starts empty and the index is far too big for git
+      - ${SOLR_DATA_DIR:-./data/db/var/solr}:/var/solr
     ports:
       - "127.0.0.1:${SOLR_PORT}:${SOLR_PORT}"
     restart: unless-stopped

@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useContext, useEffect, useState } from "react";
 import Link from "next/link";
+import IdVerification from "../../internal_components/verification/IdVerification";
 import styles from "./settings.module.css";
 import { userDataContext, UserData } from "@/app/contexts/userData";
 import { formatVolume, getWaterTargetMl } from "@/app/internal_components/index";
@@ -371,6 +372,8 @@ export default function SettingsPage() {
                                 </div>
                             </section>
 
+                            <IdVerification />
+
                             <section className={styles.card} aria-labelledby="data-heading">
                                 <div className={styles.cardHeader}>
                                     <h2 id="data-heading" className={styles.cardTitle}>Your data</h2>
@@ -390,7 +393,7 @@ export default function SettingsPage() {
                                 <div className={styles.row}>
                                     <div className={styles.rowText}>
                                         <p className={styles.rowLabel}>Delete account</p>
-                                        <p className={styles.rowDescription}>Permanently deletes your account, all of your photos and every log. This can&apos;t be undone.</p>
+                                        <p className={styles.rowDescription}>Permanently deletes your account, your ID, all of your photos and videos, and every log. This can&apos;t be undone.</p>
                                     </div>
                                     {!showDelete ?
                                         <button type="button" className={styles.dangerButton} onClick={() => setShowDelete(true)}>Delete account</button>

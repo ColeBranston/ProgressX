@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from './VideosComponent.module.css'
+import shared from './ProgressPhotos.module.css'
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import VideoGrid from "../videos/VideoGrid";
 import VideoUploadForm from "../videos/VideoUploadForm";
@@ -33,14 +34,13 @@ export default function VideosComponent() {
                 tab="videos"
                 refreshKey={refreshKey}
                 leading={
-                    <div className={styles.addVideoButtonContainer}>
-                        <button type="button" className={styles.addVideoButton} onClick={() => setIsFormVisible(true)} aria-label="Add new video">
-                            <svg width="40" height="40" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <path d="M8 3.3125V12.6875M12.6875 8H3.3125" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        </button>
-                        <p>Add New Video</p>
-                    </div>
+                    // same tile as "Add photo" on the Progress Photos tab
+                    <button type="button" className={shared.addTile} onClick={() => setIsFormVisible(true)}>
+                        <svg width="36" height="36" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M8 3.3125V12.6875M12.6875 8H3.3125" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span>Add video</span>
+                    </button>
                 }
                 empty={<>Your videos show up here. Public profiles also show them in For You.</>}
             />

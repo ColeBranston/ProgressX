@@ -306,7 +306,7 @@ export async function POST(req: NextRequest) {
                     // typed numbers with no amount and no "per serving": they're for everything they ate
                     const totals = !fromPhoto && !amount && !/\bper\b|serving size|\bservings?\b|\/\s*100\s*g|\bpour\b/i.test(message)
                     let name = String(meta.name ?? "").trim().slice(0, 80)
-                    if (!name || /not (visible|shown|given)|unknown|n\/a|\bproduct\b\s*$/i.test(name)) name = fromPhoto ? "Food from label" : "Food"
+                    if (!name || /(?:not (?:visible|shown|given)|unknown|n\/a)|(?:\bproduct\b\s*$)/i.test(name)) name = fromPhoto ? "Food from label" : "Food"
                     const food = { name, amount }
                     const built = await buildProposal(food, PASTED_FOOD_ID, history, userSaid, plainFoods, req.signal, fromPhoto, totals)
                     if (!("rejected" in built)) {

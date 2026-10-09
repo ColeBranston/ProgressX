@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useId, useRef, useState } from "react";
 import styles from "./workouts.module.css";
+import { backdrop } from "../a11y";
 
 type ModalProps = {
     title: string,
@@ -36,7 +37,7 @@ export default function Modal({ title, onClose, children, wide }: ModalProps) {
     }, [opener])
 
     return (
-        <div className={styles.backdrop} onClick={onClose}>
+        <div className={styles.backdrop} {...backdrop(onClose)}>
             <div
                 ref={dialogRef}
                 role="dialog"
@@ -44,7 +45,6 @@ export default function Modal({ title, onClose, children, wide }: ModalProps) {
                 aria-labelledby={titleId}
                 tabIndex={-1}
                 className={`${styles.dialog} ${wide ? styles.dialogWide : ""}`}
-                onClick={(e) => e.stopPropagation()}
             >
                 <header className={styles.dialogHeader}>
                     <h2 id={titleId} className={styles.dialogTitle}>{title}</h2>

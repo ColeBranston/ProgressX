@@ -1,0 +1,7 @@
+# ProgressX runs on this Mac (Docker Compose behind the Cloudflare tunnel). The GitHub Actions runner
+# is on the same machine, so Ansible manages it locally; to deploy to another host, add it here with
+# ansible_connection: ssh and point deploy_host at it.
+all:
+  hosts:
+    progressx-host:
+      ansible_connection: local

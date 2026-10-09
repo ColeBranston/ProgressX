@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import { IsLoadingContext } from '../../contexts/isLoading';
 import ConsentChecks, { ConsentState, consentPayload } from '@/app/internal_components/legal/ConsentChecks';
+import { pressable } from "@/app/internal_components/a11y";
 
 // shown when nginx rate-limits login / signup (429)
 const TOO_MANY_ATTEMPTS = "Too many attempts. Please wait a minute and try again."
@@ -63,7 +64,6 @@ export default function Login() {
 
         setIsLoading(true)
         console.log("token found")
-        try {
           async function tokenClean(googleToken: string){
             const res = await fetch("/api/auth/login/google", {
               method: "POST",
@@ -97,12 +97,13 @@ export default function Login() {
             router.push("/")
           }
           if (googleToken) {
-            tokenClean(googleToken)
+            tokenClean(googleToken).catch((e) => {
+              console.log("Error sending google token:", e)
+              alert("Network error while signing in with Google.")
+              setIsLoading(false)
+            })
           }
-          
-      }catch(e) {
-        console.log("Error sending google token:", e)
-      }}
+      }
     },[])
 
     // Google sign-up from the Sign Up tab: needs the boxes ticked first, and remembers the agreement
@@ -232,19 +233,21 @@ export default function Login() {
           <span className="progress">Progress</span>
           <span className="X">X</span>
         </div>
-          <form onSubmit={SignUpForm} className={styles.loginFormContainer}>
+          {/* keyed so React never reuses one form's inputs for the other's (the sign-up password box
+              would become the log-in email box, showing the password in plain text) */}
+          <form key="signup" onSubmit={SignUpForm} className={styles.loginFormContainer}>
               <div className={styles.formHeader}>
                 <p className={styles.signInHeader}>Sign Up</p>
-                <div className={styles.loginRedirectContainer} onClick={() => {setLoginActive(!loginActive)}}>
+                <div className={styles.loginRedirectContainer} {...pressable(() => {setLoginActive(!loginActive)})}>
                   <p className={styles.loginHeader}>Log In</p>
                   <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                       <polyline points="5,3 15,10 5,17" fill="none" stroke="rgba(var(--primary-color))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
               </div>
-              <input required className={styles.inputField} placeholder='Email' type="email" onChange={(e)=>{setEmail(e.target.value)}}/>
-              <input required className={styles.inputField} placeholder='Password' type="password" onChange={(e)=>{setPassword(e.target.value)}}/>
-              <input required className={styles.inputField} placeholder='Confirm Password' type="password" onChange={(e)=>{setTempPassword(e.target.value)}}/>
+              <input required className={styles.inputField} placeholder='Email' type="email" autoComplete="email" value={email} onChange={(e)=>{setEmail(e.target.value)}}/>
+              <input required className={styles.inputField} placeholder='Password' type="password" autoComplete="new-password" value={password} onChange={(e)=>{setPassword(e.target.value)}}/>
+              <input required className={styles.inputField} placeholder='Confirm Password' type="password" autoComplete="new-password" value={tempPassword} onChange={(e)=>{setTempPassword(e.target.value)}}/>
               <ConsentChecks value={consent} onChange={(next) => { setConsent(next); setConsentError(false) }} />
               <button className={styles.submitButton} type="submit">Sign Up</button>
               <p className={styles.orText}>Or</p>
@@ -267,10 +270,10 @@ export default function Login() {
           <span className="progress">Progress</span>
           <span className="X">X</span>
         </div>
-          <form onSubmit={LoginForm} className={styles.loginFormContainer}>
+          <form key="login" onSubmit={LoginForm} className={styles.loginFormContainer}>
               <div className={styles.formHeader}>
                 <p className={styles.signInHeader}>Log In</p>
-                <div className={styles.loginRedirectContainer} onClick={() => {setLoginActive(!loginActive)}}>
+                <div className={styles.loginRedirectContainer} {...pressable(() => {setLoginActive(!loginActive)})}>
                   <p className={styles.loginHeader}>Sign Up</p>
                   <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                       <polyline points="5,3 15,10 5,17" fill="none" stroke="rgba(var(--primary-color))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -280,8 +283,8 @@ export default function Login() {
               {sessionEnded ?
                 <p className={styles.sessionNotice} role="status">{sessionEnded}</p>
               : null}
-              <input required className={styles.inputField} placeholder='Email' type="email" onChange={(e)=>{setEmail(e.target.value)}}/>
-              <input required className={styles.inputField} placeholder='Password' type="password" onChange={(e)=>{setPassword(e.target.value)}}/>
+              <input required className={styles.inputField} placeholder='Email' type="email" autoComplete="email" value={email} onChange={(e)=>{setEmail(e.target.value)}}/>
+              <input required className={styles.inputField} placeholder='Password' type="password" autoComplete="current-password" value={password} onChange={(e)=>{setPassword(e.target.value)}}/>
               <button className={styles.submitButton} type="submit">Log In</button>
               <div className={styles.forgotPasswordContainer}>
                 <a href=''>Forgot Password?</a>

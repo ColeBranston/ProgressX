@@ -1,0 +1,209 @@
+# CI/CD for ProgressX. Everything runs on the self-hosted runner on the Mac that hosts the site (see
+# docs/ci.md): that's where SonarQube (127.0.0.1:9000), Docker and the deploy target are.
+#
+#   pull request -> Build images -> Tests -> SonarQube Quality Gate          (all three required on main)
+#   push to main -> Build images -> Tests -> SonarQube Quality Gate -> Publish images -> Deploy
+#
+# The images are built once per commit (ghcr.io/colebranston/progressx-*:<sha>), the tests run against
+# those exact images, and the same images are pushed to GitHub Container Registry and deployed.
+# Deploy only runs while the repository variable DEPLOY_ENABLED is true.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# one run at a time on the single runner; a newer push to a PR replaces its older run
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+  CI: "true"
+  APP_IMAGE: ghcr.io/colebranston/progressx-app:${{ github.sha }}
+  SEARCH_BACKEND_IMAGE: ghcr.io/colebranston/progressx-search-backend:${{ github.sha }}
+
+jobs:
+  images:
+    name: Build images
+    runs-on: [self-hosted, macOS, progressx]
+    timeout-minutes: 30
+    steps:
+      - name: Refuse pull requests from forks
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "::error::Pull requests from forks don't run on the self-hosted runner. A maintainer can push the branch to this repository instead."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      # built from the clean checkout (no env files), tagged with the commit; they stay in this
+      # machine's Docker for the next jobs, and are only pushed once everything has passed on main
+      - name: Build the app and search backend images
+        run: ci/images.sh build "${{ github.sha }}"
+
+  tests:
+    name: Tests
+    needs: images
+    runs-on: [self-hosted, macOS, progressx]
+    timeout-minutes: 60
+    steps:
+      # This runner is a private machine with production secrets on it: code from forks never runs here.
+      # (Repository setting: fork PR workflows need approval from a maintainer as well.)
+      - name: Refuse pull requests from forks
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "::error::Pull requests from forks don't run on the self-hosted runner. A maintainer can push the branch to this repository instead."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20 # same as the app's Docker image
+          cache: npm
+          cache-dependency-path: progressx/package-lock.json
+
+      - name: Install
+        working-directory: progressx
+        run: npm ci
+
+      - name: Lint and type check
+        working-directory: progressx
+        run: |
+          npm run lint
+          npm run typecheck
+
+      - name: Start the throwaway test services (Solr, Redis, and the search backend image)
+        env:
+          SEARCH_BACKEND_TEST_IMAGE: ${{ env.SEARCH_BACKEND_IMAGE }}
+        run: docker compose -f ci/test/docker-compose.yml up --detach --wait solr-test redis-test search-backend-test
+
+      - name: Unit, integration and regression tests (frontend + API) with coverage
+        working-directory: progressx
+        run: npm run test:coverage
+
+      - name: Python tests (search backend, ingestion DAGs, food import, Solr schema) with coverage
+        run: docker compose -f ci/test/docker-compose.yml run --rm --build python-tests
+
+      - name: End-to-end and visual regression tests (against the app image)
+        working-directory: progressx
+        env:
+          E2E_IMAGE: ${{ env.APP_IMAGE }}
+          # the signed-in journey makes a zz-e2e-*@example.com account in Supabase and deletes it again
+          E2E_AUTH: ${{ vars.E2E_AUTH || '1' }}
+        run: |
+          export E2E_ENV_FILE="$HOME/.progressx/app/progressx.env.local"
+          npx playwright install chromium
+          npm run test:e2e
+
+      - name: Keep the coverage reports for SonarQube
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            progressx/coverage/lcov.info
+            data/coverage-python.xml
+          retention-days: 3
+
+      - name: Keep the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            progressx/playwright-report
+            progressx/test-results
+          retention-days: 7
+
+      - name: Stop the test services
+        if: always()
+        run: docker compose -f ci/test/docker-compose.yml down --volumes --remove-orphans
+
+  sonarqube:
+    name: SonarQube Quality Gate
+    needs: tests
+    runs-on: [self-hosted, macOS, progressx]
+    timeout-minutes: 30
+    steps:
+      - name: Refuse pull requests from forks
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history, so SonarQube can attribute lines
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage
+
+      # main is analysed as "progressx"; pull requests as "progressx-pr", so they never rewrite main's
+      # history (the Community Build has no branch analysis). Both use the "ProgressX" quality gate, and
+      # the scan fails this job when the gate fails.
+      - name: Analyse and wait for the quality gate
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'http://127.0.0.1:9000' }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then KEY=progressx-pr; else KEY=progressx; fi
+          npx --yes @sonar/scan@4 \
+            -Dsonar.host.url="$SONAR_HOST_URL" \
+            -Dsonar.projectKey="$KEY" \
+            -Dsonar.projectVersion="${{ github.sha }}" \
+            -Dsonar.qualitygate.wait=true
+
+  publish:
+    name: Publish images
+    needs: [images, tests, sonarqube]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, macOS, progressx]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push the tested images to GitHub Container Registry
+        run: |
+          export DOCKER_CONFIG="$(ci/docker-config.sh)"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
+          ci/images.sh push "${{ github.sha }}"
+          docker logout ghcr.io
+
+  deploy:
+    name: Deploy
+    needs: publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: [self-hosted, macOS, progressx]
+    environment: production
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: read
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      # Ansible pulls ghcr.io/colebranston/progressx-*:<sha> (the images published above) and starts them
+      - name: Deploy with Ansible
+        working-directory: ansible
+        run: |
+          export DOCKER_CONFIG="$(../ci/docker-config.sh)"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io --username "${{ github.actor }}" --password-stdin
+          ansible-playbook -i inventory.yml deploy.yml -e git_sha=${{ github.sha }}
+          docker logout ghcr.io

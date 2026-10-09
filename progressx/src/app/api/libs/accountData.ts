@@ -4,6 +4,7 @@ import { fetchAllPages } from "./dateRange";
 import { getPublicIdFromCloudinaryUrl } from "./helpers";
 import { userImageTag } from "./imageUpload";
 import { deleteUserObjects, storageConfigured } from "./r2Videos";
+import { deleteUserDocuments, vaultConfigured } from "./idVault";
 
 // Everything ProgressX stores about one user, for the "download my data" export (right of access)
 // and for account deletion. Every table below is removed automatically when the account is deleted
@@ -23,6 +24,8 @@ const USER_TABLES: { table: string, key: string, label: string }[] = [
     { table: "videos", key: "user_id", label: "videos" },
     { table: "video_likes", key: "user_id", label: "likedVideos" },
     { table: "video_favourites", key: "user_id", label: "favouriteVideos" },
+    { table: "follows", key: "follower_id", label: "following" },
+    { table: "follows", key: "following_id", label: "followers" },
     { table: "consent_events", key: "user_id", label: "consentHistory" },
 ]
 
@@ -41,9 +44,11 @@ export async function collectUserData(userId: string) {
             "This file contains all personal information ProgressX stores about your account.",
             "Photo entries link to the image files; open a link to download that image.",
             "Videos are listed with their captions; the video files are stored with Cloudflare R2 and can be downloaded on request.",
+            "ID verification shows the outcome only. Your encrypted ID photos can be provided on request to the privacy officer.",
         ],
         profile,
         ...Object.fromEntries(sections),
+        idVerification: await verificationSummary(userId),
     }
 }
 
@@ -97,4 +102,24 @@ export async function deleteUserVideos(userId: string): Promise<number> {
         return 0
     }
     return deleteUserObjects(userId)
+}
+
+// Deletes the user's government ID files from the private ID bucket. Throws if R2 refuses, so account
+// deletion stops before anything else is removed. (The database record, which holds the only copy of
+// the files' encryption key, goes with the account.)
+export async function deleteUserIdDocuments(userId: string): Promise<number> {
+    if (!vaultConfigured()) {
+        const { count, error } = await supabase.from("id_verifications").select("user_id", { count: "exact", head: true }).eq("user_id", userId).eq("status", "verified")
+        if (error) throw error
+        if (count) throw new Error("ID storage isn't configured, so the user's ID can't be deleted")
+        return 0
+    }
+    return deleteUserDocuments(userId)
+}
+
+// What the export says about ID verification: the outcome only. The images and their keys are never
+// exported automatically (a copy can be requested from the privacy officer).
+export async function verificationSummary(userId: string) {
+    const { data } = await supabase.from("id_verifications").select("status, document_type, issuing_country, expires_on, verified_at, created_at, updated_at").eq("user_id", userId).maybeSingle()
+    return data
 }

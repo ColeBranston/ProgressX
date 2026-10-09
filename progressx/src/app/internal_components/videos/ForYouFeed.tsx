@@ -6,15 +6,17 @@ import { useSearchParams } from "next/navigation";
 import styles from "./ForYouFeed.module.css";
 import VideoPlayer from "./VideoPlayer";
 import { ArrowIcon, BookmarkIcon, CommentIcon, HeartIcon, MoreIcon, MutedIcon, ShareIcon, VolumeIcon } from "./icons";
-import { Reaction, VideoCard, formatCount, setReaction } from "./videoTypes";
+import { Reaction, VideoCard, formatCount, setFollow, setReaction } from "./videoTypes";
 
 const NAV_COOLDOWN_MS = 550
 const SWIPE_PX = 50
 
-// The For You feed: one video at a time, newest public videos first. Up / down arrows, the mouse
-// wheel, arrow keys or a swipe move between videos; tapping the video pauses it.
-export default function ForYouFeed() {
+// The For You feed (newest public videos) or the Following feed (videos from people you follow): one
+// video at a time. Up / down arrows, the mouse wheel, arrow keys or a swipe move between videos;
+// tapping the video pauses it.
+export default function ForYouFeed({ source = "for-you" }: { source?: "for-you" | "following" }) {
     const start = useSearchParams().get("v")
+    const [ followsAnyone, setFollowsAnyone ] = useState(true)
     const [ videos, setVideos ] = useState<VideoCard[]>([])
     const [ cursor, setCursor ] = useState<string | null>(null)
     const [ state, setState ] = useState<"loading" | "ready" | "error">("loading")
@@ -35,7 +37,7 @@ export default function ForYouFeed() {
         loadingMore.current = true
         try {
             const query = new URLSearchParams(next ? { cursor: next } : start ? { start } : {})
-            const res = await fetch(`/api/videos/feed?${query}`)
+            const res = await fetch(`${source === "following" ? "/api/videos/following" : "/api/videos/feed"}?${query}`)
             if (!res.ok) throw new Error(`status ${res.status}`)
             const json = await res.json()
             setVideos((prev) => {
@@ -43,6 +45,7 @@ export default function ForYouFeed() {
                 return [...prev, ...(json.videos as VideoCard[]).filter((v) => !seen.has(v.id))]
             })
             setCursor(json.nextCursor ?? null)
+            if (json.followsAnyone === false) setFollowsAnyone(false)
             setState("ready")
         } catch (e) {
             console.error("Failed to load the feed: ", e)
@@ -50,7 +53,7 @@ export default function ForYouFeed() {
         } finally {
             loadingMore.current = false
         }
-    }, [start])
+    }, [start, source])
 
     useEffect(() => { load(null) }, [load])
 
@@ -133,6 +136,20 @@ export default function ForYouFeed() {
         setPaused((p) => !p)
     }
 
+    // the "+" under the poster's picture: follow them (every video of theirs in the feed updates)
+    async function follow(video: VideoCard) {
+        const update = (following: boolean) => setVideos((prev) => prev.map((v) => (v.author.username === video.author.username ? { ...v, author: { ...v.author, following } } : v)))
+        update(true)
+        try {
+            const result = await setFollow(video.author.username, true)
+            update(result.following)
+            setToast(`Following @${video.author.username}`)
+        } catch (e) {
+            update(false)
+            setToast(e instanceof Error ? e.message : "Couldn't follow them")
+        }
+    }
+
     const markFailed = useCallback((id: string) => setFailed((prev) => new Set(prev).add(id)), [])
 
     if (state === "loading") {
@@ -150,9 +167,23 @@ export default function ForYouFeed() {
                         </>
                     :
                         <>
-                            <p className={styles.messageTitle}>No videos yet</p>
-                            <p className={styles.messageText}>Videos from public profiles show up here. Be the first to post one.</p>
-                            <Link href="/profile?videoSubmit=true" className={styles.messageButton}>Post a video</Link>
+                            {source === "following" ?
+                                <>
+                                    <p className={styles.messageTitle}>{followsAnyone ? "Nothing new yet" : "You're not following anyone"}</p>
+                                    <p className={styles.messageText}>
+                                        {followsAnyone
+                                            ? "Videos from the people you follow show up here. The people you follow haven't posted public videos yet."
+                                            : "Follow people from their profile or the For You feed, and their videos show up here."}
+                                    </p>
+                                    <Link href="/" className={styles.messageButton}>Go to For You</Link>
+                                </>
+                            :
+                                <>
+                                    <p className={styles.messageTitle}>No videos yet</p>
+                                    <p className={styles.messageText}>Videos from public profiles show up here. Be the first to post one.</p>
+                                    <Link href="/profile?videoSubmit=true" className={styles.messageButton}>Post a video</Link>
+                                </>
+                            }
                         </>
                     }
                 </div>
@@ -208,6 +239,18 @@ export default function ForYouFeed() {
                         <Link role="menuitem" href={current.isOwner ? "/profile" : `/profile/${encodeURIComponent(current.author.username)}`}>
                             {current.isOwner ? "Go to your profile" : `View @${current.author.username}`}
                         </Link>
+                        {!current.isOwner && current.author.following ?
+                            <button type="button" role="menuitem" onClick={async () => {
+                                setMenuOpen(false)
+                                try {
+                                    const result = await setFollow(current.author.username, false)
+                                    setVideos((prev) => prev.map((v) => (v.author.username === current.author.username ? { ...v, author: { ...v.author, following: result.following } } : v)))
+                                    setToast(`Unfollowed @${current.author.username}`)
+                                } catch {
+                                    setToast("Couldn't unfollow them")
+                                }
+                            }}>Unfollow @{current.author.username}</button>
+                        : null}
                     </div>
                 : null}
 
@@ -221,11 +264,16 @@ export default function ForYouFeed() {
             </div>
 
             <ul className={styles.engagementBar} aria-label="Video actions">
-                <li>
+                <li className={styles.pfpItem}>
                     <Link href={current.isOwner ? "/profile" : `/profile/${encodeURIComponent(current.author.username)}`} className={styles.pfp} aria-label={`@${current.author.username}'s profile`}>
                         {/* eslint-disable-next-line @next/next/no-img-element -- profile pictures can come from Cloudinary or Google */}
                         <img src={current.author.pfp ?? "/male_default.svg"} alt="" />
                     </Link>
+                    {!current.isOwner && !current.author.following ?
+                        <button type="button" className={styles.followBadge} onClick={() => follow(current)} aria-label={`Follow @${current.author.username}`}>
+                            <svg width="13" height="13" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.3125V10.6875M10.6875 6H1.3125" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </button>
+                    : null}
                 </li>
                 <li>
                     <button type="button" className={`${styles.action} ${current.liked ? styles.liked : ""}`} onClick={() => toggle(current, "like")} aria-pressed={current.liked} aria-label={current.liked ? "Unlike" : "Like"}>

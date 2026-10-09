@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../../libs/helpers";
 import { UUID, canView, overLimit, type Author, type VideoStatus } from "../../../libs/videos";
+import { requireVerified } from "../../../libs/requireVerified";
 
 const TABLES = { like: "video_likes", favourite: "video_favourites" } as const
 type Reaction = keyof typeof TABLES
@@ -20,6 +21,10 @@ async function react(req: NextRequest, context: Context, on: boolean) {
     const { id, reaction } = await context.params
     if (!(reaction in TABLES)) return NextResponse.json({ message: "Not found" }, { status: 404 })
     if (!UUID.test(id)) return NextResponse.json({ message: "Video not found" }, { status: 404 })
+    if (on) {
+        const unverified = await requireVerified(userId, reaction === "like" ? "like videos" : "save favourites")
+        if (unverified) return unverified
+    }
     if (overLimit(`react:${userId}`, 120, 60 * 1000)) {
         return NextResponse.json({ message: "Slow down a little" }, { status: 429 })
     }

@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit: AI review on every pull request (free for this public repository). It's advisory: the
+# merge gate is the required Build images / Tests / SonarQube Quality Gate checks (see docs/ci.md).
+language: en-CA
+tone_instructions: "Direct and specific. Lead with security, privacy and correctness problems; skip praise and style nits a linter would catch."
+
+reviews:
+  profile: assertive
+  request_changes_workflow: false
+  high_level_summary: true
+  review_status: true
+  collapse_walkthrough: true
+  sequence_diagrams: false
+  poem: false
+  in_progress_fortune: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches: ["main"]
+
+  # generated, vendored or test data: nothing to review
+  path_filters:
+    - "!**/package-lock.json"
+    - "!data/db/configsets/**"
+    - "!data/db/var/**"
+    - "!data/foods/raw/**"
+    - "!ci/test/fixtures/**"
+    - "!progressx/e2e/**/*-snapshots/**"
+    - "!progressx/src/app/data/**"
+    - "!mockupDesign/**"
+    - "!**/*.png"
+
+  path_instructions:
+    - path: "progressx/src/app/api/**"
+      instructions: |
+        API routes run with the Supabase service-role key, which bypasses row-level security. Check every
+        query that reads or writes user data is scoped to the signed-in user (getUserIdFromRequest), that
+        input is validated before use, that error responses don't leak internals, and that actions which
+        post or interact (uploads, likes, favourites, follows) still call requireVerified.
+    - path: "progressx/src/app/api/libs/id*.ts"
+      instructions: |
+        Government ID verification and its encrypted storage (AES-256-GCM envelope encryption, keys from
+        env). Treat as high risk: no plaintext image, document number or key may be logged, returned,
+        stored unencrypted or written outside the vault; associated data must keep binding user and object
+        key; failed attempts must not keep images. There must never be a web route that decrypts an ID.
+    - path: "progressx/src/app/api/verification/**"
+      instructions: "Same rules as the ID libraries: no document contents in logs or responses, consent recorded before processing, size and rate limits kept."
+    - path: "progressx/src/{middleware.ts,app/api/libs/session.ts,app/api/auth/**}"
+      instructions: "Sessions and sign-in: check token verification (issuer, audience, expiry), the idle and absolute timeouts, cookie flags, and that no token ends up in a URL or log."
+    - path: "progressx/src/app/**/*.tsx"
+      instructions: "UI: flag accessibility problems (clickable elements must be buttons or use the pressable helper in internal_components/a11y.ts; dialogs need a label and Escape to close), and personal data kept in localStorage."
+    - path: "data/**/*.py"
+      instructions: "Search backend and Solr ingestion: user input must not be able to inject Solr syntax or reach the raw cores; Redis failures must degrade to no cache, not errors."
+    - path: "{.github/workflows/**,ansible/**,ci/**}"
+      instructions: |
+        CI/CD runs on a self-hosted runner on the production machine of a public repository. Code from forks
+        must never run there; secrets must not be echoed or passed on command lines; actions and images
+        should be pinned; the deploy must stay pull-the-tested-image (no building on the server) with rollback.
+    - path: "**/{Dockerfile,dockerfile,docker-compose.yml}"
+      instructions: "Containers run as non-root, copy only what they need (never .env files or keys), pin base image versions, and publish ports on 127.0.0.1 unless nginx needs them."
+    - path: "{docs/privacy/**,progressx/src/app/(secondary)/privacy/**,progressx/src/app/(secondary)/terms/**}"
+      instructions: "Privacy policy and terms (PIPEDA, Ontario): flag statements that contradict what the code does with personal or health data."
+
+  tools:
+    eslint:
+      enabled: true
+    ruff:
+      enabled: true
+    shellcheck:
+      enabled: true
+    hadolint:
+      enabled: true
+    actionlint:
+      enabled: true
+    zizmor:
+      enabled: true
+    yamllint:
+      enabled: true
+    gitleaks:
+      enabled: true
+    trufflehog:
+      enabled: true
+    markdownlint:
+      enabled: false
+    languagetool:
+      enabled: false
+
+chat:
+  auto_reply: true

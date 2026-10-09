@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import styles from "./research.module.css"
 import { useParams, useRouter } from "next/dist/client/components/navigation";
 import { StudyCard } from "@/app/internal_components";
+import { pressable } from "@/app/internal_components/a11y";
 
 export type SolrResponse = {
     debug?: Record<string, string>,
@@ -190,7 +191,7 @@ const ResearchPage = () => {
                             </div>
                             <div className={styles.paginationContainer}>
                                 {pageButtons.map((pageNum) => {
-                                    return <i onClick={()=>{goToPage(pageNum, lastQuery ?? "")}} key={pageNum} style={{color: (currPage == pageNum? "red" : undefined)}}>{pageNum}</i>
+                                    return <i {...pressable(()=>{goToPage(pageNum, lastQuery ?? "")})} aria-label={`Page ${pageNum}`} aria-current={currPage == pageNum ? "page" : undefined} key={pageNum} style={{color: (currPage == pageNum? "red" : undefined)}}>{pageNum}</i>
                                 })}
                             </div>
                         </div>

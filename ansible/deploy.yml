@@ -1,0 +1,110 @@
+# Deploys one commit of ProgressX to this machine: its config files from git, and the images CI built,
+# tested and published for it (ghcr.io/colebranston/progressx-*:<sha>). Run by the Deploy job in
+# .github/workflows/ci.yml after everything passes on main; by hand (after `docker login ghcr.io` if the
+# packages are private):
+#   ansible-playbook -i ansible/inventory.yml ansible/deploy.yml -e git_sha=<full commit sha>
+# If the new version doesn't come up healthy, the previous commit is redeployed and the run fails.
+- name: Deploy ProgressX
+  hosts: all
+  gather_facts: false
+  vars:
+    compose: "docker compose --project-name {{ compose_project }} --project-directory {{ deploy_dir }}"
+    sha_file: "{{ deploy_dir }}/.deployed-sha"
+
+  tasks:
+    - name: Check the commit to deploy
+      ansible.builtin.assert:
+        that: git_sha is defined and git_sha is match('^[0-9a-f]{40}$')
+        fail_msg: "Pass the full commit sha: -e git_sha=<40 hex characters>"
+        quiet: true
+
+    - name: Check the secrets are in place
+      ansible.builtin.stat:
+        path: "{{ secrets_dir }}/{{ item.src }}"
+      loop: "{{ secret_files }}"
+      register: secret_stat
+
+    - name: Stop if a secret file is missing or readable by others
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.mode in ['0600', '0400']
+        fail_msg: "{{ item.item.src }} must exist in {{ secrets_dir }} with mode 600 (run ansible/setup-secrets.yml)"
+        quiet: true
+      loop: "{{ secret_stat.results }}"
+      loop_control:
+        label: "{{ item.item.src }}"
+
+    - name: Check the live Solr index folder exists
+      ansible.builtin.stat:
+        path: "{{ solr_data_dir }}"
+      register: solr_data
+      failed_when: not solr_data.stat.exists or not solr_data.stat.isdir
+
+    - name: Remember what's running now (to roll back to)
+      ansible.builtin.slurp:
+        src: "{{ sha_file }}"
+      register: previous
+      failed_when: false
+
+    - name: Set the previous commit
+      ansible.builtin.set_fact:
+        previous_sha: "{{ (previous.content | b64decode | trim) if previous.content is defined else '' }}"
+
+    - name: Deploy, and roll back if it doesn't come up
+      block:
+        - name: Check out {{ git_sha[:12] }}
+          ansible.builtin.git:
+            repo: "{{ repo_url }}"
+            dest: "{{ deploy_dir }}"
+            version: "{{ git_sha }}"
+            force: true          # the deploy copy only ever holds what Ansible put there
+            depth: 1
+            refspec: "{{ git_sha }}"
+
+        - ansible.builtin.include_tasks: tasks/release.yml
+          vars:
+            release_sha: "{{ git_sha }}"
+
+        - name: Record the deployed commit
+          ansible.builtin.copy:
+            content: "{{ git_sha }}\n"
+            dest: "{{ sha_file }}"
+            mode: "0644"
+
+      rescue:
+        - name: Roll back to {{ previous_sha[:12] if previous_sha else 'nothing (first deploy)' }}
+          when: previous_sha | length == 40
+          block:
+            - ansible.builtin.git:
+                repo: "{{ repo_url }}"
+                dest: "{{ deploy_dir }}"
+                version: "{{ previous_sha }}"
+                force: true
+                depth: 1
+                refspec: "{{ previous_sha }}"
+            - ansible.builtin.include_tasks: tasks/release.yml
+              vars:
+                release_sha: "{{ previous_sha }}"
+
+        - name: Fail the deploy
+          ansible.builtin.fail:
+            msg: >-
+              {{ git_sha[:12] }} didn't deploy cleanly{{ ' and ' ~ previous_sha[:12] ~ ' was restored' if previous_sha | length == 40 else '' }}.
+              See the task output above and `{{ compose }} logs`.
+
+    - name: List the release images on this machine, newest first
+      ansible.builtin.command:
+        argv: [docker, image, ls, --format, "{{ '{{.Repository}}:{{.Tag}}' }}", --filter, "reference={{ image_registry }}/progressx-*"]
+      register: release_image_list
+      changed_when: false
+
+    - name: Remove all but the newest {{ keep_releases }} releases' images (never the running one)
+      vars:
+        release_tags: "{{ release_image_list.stdout_lines | map('regex_replace', '^.*:', '') | select('match', '^[0-9a-f]{40}$') | unique | list }}"
+        old_tags: "{{ release_tags[keep_releases:] | difference([git_sha, previous_sha]) }}"
+      ansible.builtin.command:
+        argv: [docker, image, rm, "{{ item }}"]
+      loop: "{{ release_image_list.stdout_lines | select('search', ':(' ~ (old_tags | join('|') if old_tags else 'none-to-remove') ~ ')$') | list }}"
+      changed_when: true
+      failed_when: false

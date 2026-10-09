@@ -1,0 +1,52 @@
+# Puts the secrets into the checked-out copy, pulls the release's images, restarts the stack, and waits
+# for it to be healthy. release_sha: the commit whose images to run.
+- name: Install the secret files
+  ansible.builtin.copy:
+    src: "{{ secrets_dir }}/{{ item.src }}"
+    dest: "{{ deploy_dir }}/{{ item.dest }}"
+    mode: "0600"
+  loop: "{{ secret_files }}"
+  loop_control:
+    label: "{{ item.dest }}"
+  no_log: true
+
+- name: Point Solr at the live index
+  ansible.builtin.lineinfile:
+    path: "{{ deploy_dir }}/.env"
+    regexp: '^SOLR_DATA_DIR='
+    line: "SOLR_DATA_DIR={{ solr_data_dir }}"
+    mode: "0600"
+    create: true # already there from the copy above (only missing in --check runs)
+
+- name: Use the images published for {{ release_sha[:12] }}
+  ansible.builtin.lineinfile:
+    path: "{{ deploy_dir }}/.env"
+    regexp: "^{{ item.env }}="
+    line: "{{ item.env }}={{ image_registry }}/{{ item.name }}:{{ release_sha }}"
+    mode: "0600"
+    create: true
+  loop: "{{ release_images }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Pull them (already here if CI ran on this machine)
+  ansible.builtin.command:
+    argv: "{{ compose.split() + ['pull', '--quiet'] + (release_images | map(attribute='service') | list) }}"
+  changed_when: true
+
+- name: Start the new containers (never building on the server)
+  ansible.builtin.command: "{{ compose }} up --detach --no-build --remove-orphans"
+  changed_when: true
+
+- name: Wait until every service answers
+  ansible.builtin.uri:
+    url: "{{ item.url }}"
+    status_code: [200]
+    timeout: 10
+  register: health
+  until: health.status == 200
+  retries: "{{ health_retries }}"
+  delay: "{{ health_delay }}"
+  loop: "{{ health_checks }}"
+  loop_control:
+    label: "{{ item.name }}"

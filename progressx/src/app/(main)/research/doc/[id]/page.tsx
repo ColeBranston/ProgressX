@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { SolrResponse } from "../../[[...query]]/page";
 
 import styles from './doc.module.css'
+import { pressable } from "@/app/internal_components/a11y";
 
 export default function StudyPage() {
     const params = useParams()
@@ -79,7 +80,7 @@ export default function StudyPage() {
             <div className='mainWrapper'>
                 <div className={styles.docContainer}>
                     <div className={styles.extraInfoContainer}>
-                        <div className={styles.extraJournalContainer} onClick={()=>{router.back()}}>
+                        <div className={styles.extraJournalContainer} {...pressable(()=>{router.back()})}>
                             <div className={styles.extraBackButtonContainer}>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30">
                                     <path d="M8 4l8 8-8 8z" />

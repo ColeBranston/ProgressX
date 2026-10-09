@@ -6,8 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./SearchResults.module.css";
 import VideoGrid from "../videos/VideoGrid";
 import { formatCount } from "../videos/videoTypes";
+import FollowButton from "../follows/FollowButton";
 
-type ProfileResult = { username: string, name: string, pfp: string | null, privacy: "public" | "private", followers: number, isOwner: boolean }
+type ProfileResult = { username: string, name: string, pfp: string | null, privacy: "public" | "private", followers: number, isOwner: boolean, following: boolean }
 
 const TABS = [ { id: "videos", label: "Videos" }, { id: "profiles", label: "Profiles" } ] as const
 type Tab = typeof TABS[number]["id"]
@@ -128,7 +129,7 @@ function ProfileResults({ q }: { q: string }) {
         <>
             <ul className={styles.profiles}>
                 {profiles.map((p) => (
-                    <li key={p.username}>
+                    <li key={p.username} className={styles.profileRow}>
                         <Link href={p.isOwner ? "/profile" : `/profile/${encodeURIComponent(p.username)}`} className={styles.profile}>
                             {/* eslint-disable-next-line @next/next/no-img-element -- profile pictures can come from Cloudinary or Google */}
                             <img src={p.pfp ?? "/male_default.svg"} alt="" className={styles.avatar} />
@@ -141,6 +142,13 @@ function ProfileResults({ q }: { q: string }) {
                                 {p.privacy === "private" ? <span className={styles.badge}>Private</span> : null}
                             </span>
                         </Link>
+                        {p.isOwner ? null : (
+                            <FollowButton
+                                username={p.username}
+                                following={p.following}
+                                onChange={(following, followers) => setProfiles((prev) => (prev ?? []).map((x) => (x.username === p.username ? { ...x, following, followers } : x)))}
+                            />
+                        )}
                     </li>
                 ))}
             </ul>

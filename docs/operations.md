@@ -215,6 +215,49 @@ Set up (once):
    cd progressx && node --env-file=.env.local scripts/r2-setup.mjs
    ```
 
+## ID verification (government ID)
+
+Posting videos, likes, favourites and follows need a verified ID (`api/libs/requireVerified.ts`);
+browsing and private tracking don't. Users verify in Settings > Identity verification with a passport
+(photo page) or a driver's licence / provincial ID card (front and back).
+
+**Automated review** (`api/libs/idVerification.ts`, all on this Mac, nothing sent to another company):
+- Passport: the local model reads the machine-readable zone, which must pass every ICAO 9303 check digit
+  (`api/libs/idDocuments.ts`). A random image or an edited digit fails.
+- Licence / ID card: the PDF417 barcode on the back is decoded (zxing-wasm, from the installed package)
+  and must be a valid AAMVA record; the front's printed birth or expiry date must match it.
+- Then: not expired, 18+, within a year of the profile's age, and the document (keyed hash of its number)
+  isn't already verifying another account.
+- It can't detect a convincing forgery or someone else's real ID (that needs a live selfie matched to
+  the ID photo, i.e. a verification provider).
+
+**Storage** (`api/libs/idVault.ts`): envelope encryption.
+- Each verification gets a random 256-bit data key; each photo is encrypted with AES-256-GCM (user id
+  and file slot bound in, so files can't be swapped or altered) and stored in the private R2 bucket
+  `progressx-ids`, under `ids/<user id>/`.
+- The data key is encrypted with the master key `ID_ENCRYPTION_KEY` and stored in `id_verifications`
+  (server-only table: row level security with no policies and no grants for the public roles).
+- Reading an ID needs the database, the ID bucket's token **and** the master key. There is no web route
+  that decrypts or returns one. Rejected photos are never stored. No name, birth date or document number
+  is stored readable; `fingerprint` is an HMAC (`ID_FINGERPRINT_KEY`) of the document number.
+- "Remove" in Settings and account deletion delete the files first (account deletion stops if that fails).
+
+**Keys** (in `progressx/.env.local`, file mode 600):
+- `ID_ENCRYPTION_KEY`, `ID_FINGERPRINT_KEY`: 32 random bytes, base64. Back them up in a password manager
+  **separately** from database backups. Losing `ID_ENCRYPTION_KEY` makes every stored ID unreadable (users
+  would just verify again); leaking it together with the database and bucket exposes them.
+- Rotation: put the old key in `ID_ENCRYPTION_KEY_V<n>` (n = its version), set a new `ID_ENCRYPTION_KEY`
+  and bump `ID_ENCRYPTION_KEY_VERSION`; new verifications use the new key, old ones still open.
+- `R2_ID_ACCESS_KEY_ID`, `R2_ID_SECRET_ACCESS_KEY`: a separate R2 Account API token with **Object Read &
+  Write on `progressx-ids` only** (the video token can't reach this bucket, and this one can't reach
+  videos). Don't give the bucket public access, a custom domain or CORS rules: only the server uses it.
+
+**Reading one back** (a legal / privacy request, fraud investigation), on this Mac only:
+```bash
+cd progressx && node --env-file=.env.local scripts/id-decrypt.mjs <user id> <output folder>
+```
+Look, then delete the output (`rm -P`). Never email or upload it; note the access in the privacy request log.
+
 ## Docker Compose commands
 
 ### Start everything

@@ -45,6 +45,10 @@ Breach reporting and record-keeping: [breach-response-plan.md](breach-response-p
 | Consent records | `consent_events` | Cascade |
 | Profile picture and progress photo files | Cloudinary (tagged `user_<id>`) | `deleteUserImages` in `api/libs/accountData.ts`, run before the database delete |
 | Videos: captions, state, likes and favourites | `videos`, `video_likes`, `video_favourites` | Cascade |
+| Who follows whom | `follows` (lists visible to others only while the profile is public) | Cascade |
+| Government ID photos (encrypted, AES-256-GCM, per-document key) | R2 bucket `progressx-ids`, under `ids/<user id>/` | `deleteUserIdDocuments`, run first in account deletion; Settings > Identity verification > Remove |
+| ID verification outcome (status, document type, country, expiry, HMAC fingerprint, wrapped key) | `id_verifications` (server only) | Cascade (the wrapped key goes with it, so any stray copy of the files is unreadable) |
+| Consent to ID processing | `consent_events` (source `id_verification`) | Cascade |
 | Video files and thumbnails | Cloudflare R2 bucket, under `videos/<user id>/` | `deleteUserVideos` in `api/libs/accountData.ts`, run first |
 | Session cookies | User's browser | Log out / account deletion |
 | Cached profile copy | User's browser (localStorage) | Log out / account deletion |
@@ -57,7 +61,7 @@ When you add a new table or file store with user data, add it here, to `USER_TAB
 ## Retention
 
 - Active accounts: kept while the account exists.
-- Account deletion (Settings > Your data > Delete account): R2 video files, then Cloudinary
+- Account deletion (Settings > Your data > Delete account): government ID files, then R2 video files, then Cloudinary
   images (with CDN invalidation) are deleted first, then the auth user, which cascades to every table. Immediate.
 - Backups: Supabase and Cloudinary backups expire on their own schedule; the policy promises removal
   within 30 days. Check your Supabase plan's backup retention matches.
@@ -72,7 +76,8 @@ Most are self-serve in Settings. For emailed requests to the Privacy Officer:
 3. Access: have them use Download my data, or run the same export for them.
 4. Deletion: have them use Delete account. If they can't sign in, delete from the Supabase dashboard
    *after* removing their Cloudinary images (tag `user_<id>`) and their videos (everything under
-   `videos/<user id>/` in the R2 bucket).
+   `videos/<user id>/` in the R2 bucket) and their ID files (everything under `ids/<user id>/` in the
+   `progressx-ids` bucket).
 5. Keep a short note of the request, date received and date completed (no health details) for 24 months.
 
 ## Vendors (service providers)
@@ -98,4 +103,7 @@ These need the account owner's logins or signature, so they can't be done from t
 - [ ] **Lawyer review** of the privacy policy, terms and this folder before real users sign up
 - [x] Quebec: ProgressX isn't offered to Quebec residents (Terms of Service, section 01), so the Law 25 privacy impact assessment isn't needed. If that changes, finish and sign the draft in [quebec-pia.md](quebec-pia.md) **before** accepting Quebec users.
 - [ ] Consider signed (private) Cloudinary delivery for progress photos, so an image link alone can't be opened
+- [ ] **Government ID**: back up `ID_ENCRYPTION_KEY` and `ID_FINGERPRINT_KEY` in a password manager, separately from database backups; consider moving the master key to a key management service (e.g. AWS KMS) so the server never holds it in an env file
+- [ ] **Government ID**: have the lawyer review collecting ID for posting/interacting (PIPEDA: is it necessary and proportionate? consent wording, retention). Collecting it is optional for using the app, and rejected photos aren't kept
+- [ ] **Government ID**: if fraud with stolen or forged IDs becomes a problem, switch to a verification provider (document authenticity + live selfie match) instead of storing images here
 - [ ] Review this program once a year, and whenever a new kind of data is collected

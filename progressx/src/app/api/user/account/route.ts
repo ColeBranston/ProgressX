@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAuthClient, supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
 import { clearSessionCookies } from "../../libs/session";
-import { deleteUserImages, deleteUserVideos } from "../../libs/accountData";
+import { deleteUserIdDocuments, deleteUserImages, deleteUserVideos } from "../../libs/accountData";
 
 // DELETE /api/user/account  { confirmEmail }
 // Permanently deletes the signed-in user's account and everything stored about them:
-//   1. every image in Cloudinary (profile picture, progress photos, anything tagged with their id)
-//      and every video in Cloudflare R2
+//   1. their government ID files (private R2 bucket), every video in Cloudflare R2, and every image in
+//      Cloudinary (profile picture, progress photos, anything tagged with their id)
 //   2. the login (auth.users), which cascades to the profile and every table of their data
 // Files go first: if Cloudinary or Stream fails, nothing has been deleted yet and the user can simply try again.
 // The request must repeat the account's email address, so it can't be triggered by a stray click.
@@ -29,6 +29,14 @@ export async function DELETE(req: NextRequest) {
 
     if (!confirmEmail || confirmEmail !== String(profile?.email ?? "").trim().toLowerCase()) {
         return NextResponse.json({ message: "Type your account's email address to confirm" }, { status: 400 })
+    }
+
+    // the government ID goes first: it's the most sensitive thing stored
+    try {
+        await deleteUserIdDocuments(userId)
+    } catch (e) {
+        console.log("Account deletion stopped: couldn't delete ID documents: ", e instanceof Error ? e.message : e)
+        return NextResponse.json({ message: "Couldn't delete your ID documents right now, so your account wasn't deleted. Please try again." }, { status: 502 })
     }
 
     let videos

@@ -6,6 +6,7 @@ import styles from "./VideoViewer.module.css";
 import VideoPlayer from "./VideoPlayer";
 import { ArrowIcon, BookmarkIcon, HeartIcon, MutedIcon, ShareIcon, VolumeIcon } from "./icons";
 import { Reaction, VideoCard, formatCount, setReaction } from "./videoTypes";
+import { backdrop } from "../a11y";
 
 type VideoViewerProps = {
     videos: VideoCard[],
@@ -94,8 +95,8 @@ export default function VideoViewer({ videos, index, onIndex, onClose, onChange,
     const profileHref = video.isOwner ? "/profile" : `/profile/${encodeURIComponent(video.author.username)}`
 
     return (
-        <div className={styles.backdrop} onClick={onClose}>
-            <div className={styles.dialog} role="dialog" aria-modal="true" aria-label={video.caption || `Video by @${video.author.username}`} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.backdrop} {...backdrop(onClose)}>
+            <div className={styles.dialog} role="dialog" aria-modal="true" aria-label={video.caption || `Video by @${video.author.username}`}>
                 <div className={styles.stage}>
                     {video.playback && !failed ?
                         <VideoPlayer

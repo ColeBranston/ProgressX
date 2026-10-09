@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../libs/helpers";
+import { followingSet } from "../libs/follows";
 import { PAGE_SIZE, VIDEO_WITH_AUTHOR, VideoRowWithAuthor, canView, overLimit, toCards } from "../libs/videos";
 
 const MAX_QUERY = 80
@@ -76,6 +77,7 @@ async function findProfiles(q: string, offset: number, viewerId: string) {
     }
     rows.sort((a, b) => rank(a) - rank(b) || (b.followers_count ?? 0) - (a.followers_count ?? 0) || a.display_username.localeCompare(b.display_username))
     const page = rows.slice(offset, offset + PROFILE_PAGE)
+    const follows = await followingSet(viewerId, page.map((p) => p.id))
     return {
         profiles: page.map((p) => ({
             username: p.display_username,
@@ -84,6 +86,7 @@ async function findProfiles(q: string, offset: number, viewerId: string) {
             privacy: p.profile_privacy === "public" ? "public" : "private",
             followers: p.followers_count ?? 0,
             isOwner: p.id === viewerId,
+            following: follows.has(p.id),
         })),
         nextCursor: rows.length > offset + PROFILE_PAGE ? String(offset + PROFILE_PAGE) : null,
     }
