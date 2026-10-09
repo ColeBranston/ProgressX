@@ -67,7 +67,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20 # same as the app's Docker image
+          node-version: 24 # same as the app's Docker image (progressx/dockerfile)
           cache: npm
           cache-dependency-path: progressx/package-lock.json
 
@@ -143,11 +143,18 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - uses: actions/download-artifact@v4
         with:
           name: coverage
+
+      # SonarQube may be stopped to leave memory for Ollama (see docs/ci.md); start it if needed
+      - name: Start SonarQube
+        run: |
+          docker compose -f ci/sonarqube/docker-compose.yml up --detach
+          for i in $(seq 1 60); do curl -fs http://127.0.0.1:9000/api/system/status | grep -q '"status":"UP"' && exit 0; sleep 5; done
+          echo "::error::SonarQube didn't start"; exit 1
 
       # main is analysed as "progressx"; pull requests as "progressx-pr", so they never rewrite main's
       # history (the Community Build has no branch analysis). Both use the "ProgressX" quality gate, and

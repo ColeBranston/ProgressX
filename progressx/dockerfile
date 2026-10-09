@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # ---------- Base ----------
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 # libc6-compat helps some native deps (e.g. sharp) run on Alpine
 RUN apk add --no-cache libc6-compat
 WORKDIR /app

@@ -60,6 +60,11 @@ After an intended visual change to the login, terms or privacy pages, refresh th
 - Runs separately from the app: `docker compose -f ci/sonarqube/docker-compose.yml up -d`, at
   http://127.0.0.1:9000 (this machine only). Sign in as `admin` with the password in
   `~/.progressx/sonarqube-admin-password`.
+- Memory: Docker Desktop's VM has to hold the live site, Ollama's model (about 5 GB once loaded) and
+  SonarQube (about 2-3 GB). With Docker's default 7.75 GB limit they don't all fit and Ollama's model
+  gets killed (the diet assistant and ID verification then fail). Give Docker more memory (Docker
+  Desktop > Settings > Resources > Memory, e.g. 16 GB), or keep SonarQube stopped
+  (`docker compose -f ci/sonarqube/docker-compose.yml stop`): the CI job starts it when it needs it.
 - `bash ci/sonarqube/setup.sh` (re-runnable) sets the admin password, creates the projects, the
   quality gate and the CI token (`~/.progressx/sonar-token`, also the `SONAR_TOKEN` repository secret).
   `bash ci/sonarqube/api.sh GET <api path>` calls the API without putting the password on a command line.
