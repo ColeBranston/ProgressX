@@ -100,7 +100,9 @@ jobs:
           # the signed-in journey makes a zz-e2e-*@example.com account in Supabase and deletes it again
           E2E_AUTH: ${{ vars.E2E_AUTH || '1' }}
         run: |
-          export E2E_ENV_FILE="$HOME/.progressx/app/progressx.env.local"
+          # the app's settings for the signed-in journey, read from Vault (deleted with the job's temp folder)
+          export E2E_ENV_FILE="$RUNNER_TEMP/e2e.env"
+          python3 ../ci/vault-fetch.py env progressx/AppEnvLocal "$E2E_ENV_FILE"
           npx playwright install chromium
           npm run test:e2e
 
@@ -161,9 +163,13 @@ jobs:
       # the scan fails this job when the gate fails.
       - name: Analyse and wait for the quality gate
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'http://127.0.0.1:9000' }}
         run: |
+          # the SonarQube token comes from Vault (secret/progressx/CI), not from a GitHub secret
+          python3 ci/vault-fetch.py value progressx/CI SONAR_TOKEN "$RUNNER_TEMP/sonar-token"
+          SONAR_TOKEN="$(cat "$RUNNER_TEMP/sonar-token")"; rm -f "$RUNNER_TEMP/sonar-token"
+          echo "::add-mask::$SONAR_TOKEN"
+          export SONAR_TOKEN
           if [ "${{ github.event_name }}" = "pull_request" ]; then KEY=progressx-pr; else KEY=progressx; fi
           npx --yes @sonar/scan@4 \
             -Dsonar.host.url="$SONAR_HOST_URL" \

@@ -27,10 +27,11 @@ services:
       # engine's production checks want; fine for a single-machine install
       SONAR_SEARCH_JAVAADDITIONALOPTS: "-Dnode.store.allow_mmap=false"
       SONAR_TELEMETRY_ENABLE: "false"
+    # data lives in normal folders on the Mac (~/server-data/sonarqube), safe from Docker resets
     volumes:
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_extensions:/opt/sonarqube/extensions
-      - sonarqube_logs:/opt/sonarqube/logs
+      - ${HOME}/server-data/sonarqube/data:/opt/sonarqube/data
+      - ${HOME}/server-data/sonarqube/extensions:/opt/sonarqube/extensions
+      - ${HOME}/server-data/sonarqube/logs:/opt/sonarqube/logs
     ports:
       - "127.0.0.1:9000:9000"
     mem_limit: 3g
@@ -45,11 +46,5 @@ services:
       POSTGRES_PASSWORD: sonar
       POSTGRES_DB: sonar
     volumes:
-      - sonarqube_db:/var/lib/postgresql/data
+      - ${HOME}/server-data/sonarqube/db:/var/lib/postgresql/data
     restart: unless-stopped
-
-volumes:
-  sonarqube_data:
-  sonarqube_extensions:
-  sonarqube_logs:
-  sonarqube_db:

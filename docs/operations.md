@@ -108,13 +108,13 @@ Used by `data/search_backend` and `data/DAGs` when run outside Docker. In Docker
 |---|---|
 | `python_backend_env` | `local` uses `solr_local_url`; `prod` uses `solr_prod_url`. |
 | `solr_local_url` | Solr address for local runs, e.g. `http://localhost:8983/solr/`. |
-| `solr_prod_url` | Production Solr through nginx, with the ingest password: `https://github-actions:<password>@progressx.ca/solr-ingest/`. On GitHub it's the `SOLR_PROD_URL` secret. |
+| `solr_prod_url` | Production Solr through nginx, with the ingest password: `https://github-actions:<password>@progressx.ca/solr-ingest/`. The ETL workflow reads it from Vault (`secret/progressx/NginxFileConfig`, key `solr-ingest-url.txt`). |
 | `REDIS_URL`, `SEARCH_CACHE_TTL_SECONDS`, `DOC_CACHE_TTL_SECONDS` | Same as above. |
 
 ### Other secret files (gitignored)
 
 - `nginx/solr-ingest.htpasswd`: password for the `/solr-ingest/` route.
-- `nginx/solr-ingest-url.txt`: the full ingest URL including that password, for `gh secret set SOLR_PROD_URL`.
+- `nginx/solr-ingest-url.txt`: the full ingest URL including that password. Its copy in Vault (`secret/progressx/NginxFileConfig`) is what the ETL workflow uses; update both if the password changes.
 
 ### Login settings (in code, not env vars)
 

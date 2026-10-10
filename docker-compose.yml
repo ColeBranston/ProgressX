@@ -106,8 +106,8 @@ services:
     environment:
       SOLR_PORT: ${SOLR_PORT}
     volumes:
-      # the live index; the CI deploy (ansible/) points this at the existing data folder, since the
-      # deploy checkout starts empty and the index is far too big for git
+      # the index: the CI deploy (ansible/) points this at ~/server-data/progressx/solr on the Mac; a
+      # working copy without SOLR_DATA_DIR uses ./data/db/var/solr
       - ${SOLR_DATA_DIR:-./data/db/var/solr}:/var/solr
     ports:
       - "127.0.0.1:${SOLR_PORT}:${SOLR_PORT}"

@@ -66,7 +66,8 @@ After an intended visual change to the login, terms or privacy pages, refresh th
   Desktop > Settings > Resources > Memory, e.g. 16 GB), or keep SonarQube stopped
   (`docker compose -f ci/sonarqube/docker-compose.yml stop`): the CI job starts it when it needs it.
 - `bash ci/sonarqube/setup.sh` (re-runnable) sets the admin password, creates the projects, the
-  quality gate and the CI token (`~/.progressx/sonar-token`, also the `SONAR_TOKEN` repository secret).
+  quality gate and the CI token (`~/.progressx/sonar-token`). CI reads that token from Vault
+  (`secret/progressx/CI`, key `SONAR_TOKEN`); after recreating it, update it there.
   `bash ci/sonarqube/api.sh GET <api path>` calls the API without putting the password on a command line.
 - Projects: `progressx` (main) and `progressx-pr` (pull requests). The free Community Build can't
   analyse branches or PRs separately, so PRs get their own project instead of rewriting main's history.
@@ -78,7 +79,10 @@ After an intended visual change to the login, terms or privacy pages, refresh th
 ## GitHub Actions (`.github/workflows/ci.yml`)
 
 - Runs on the self-hosted runner (labels `self-hosted, macOS, progressx`), installed as a launchd
-  service by `ansible/runner.yml` in `~/actions-runner/progressx`.
+  service by `ansible/runner.yml` in `~/actions-runner/progressx`. A second runner (`progressx-etl`, in
+  `~/actions-runner/progressx-etl`) only runs the weekly Solr ingestion, so a long run never blocks CI.
+- No GitHub secrets: every credential comes from Vault through the read-only `progressx-deploy`
+  AppRole (`ci/vault-fetch.py`). The only token from GitHub is each job's own `GITHUB_TOKEN`, for GHCR.
 - The repository is public, so code from forks must never run on this machine: fork PRs need a
   maintainer's approval to run any workflow (repository setting: all outside contributors), and the
   jobs refuse to run for them anyway. To take a fork's change, push it to a branch here.
@@ -87,17 +91,21 @@ After an intended visual change to the login, terms or privacy pages, refresh th
 
 ## Deploying (`ansible/`)
 
-- `ansible/deploy.yml` checks out the commit's config (compose file, nginx template) into
-  `~/deploy/progressx` (never your working copy), installs the secrets from `~/.progressx/app` (mode
-  600), points Solr at the live index in `data/db/var/solr` of the main checkout, pulls that commit's
+- `ansible/deploy.yml` reads the secrets from Vault first (a Vault problem stops it before anything
+  changes), checks out the commit's config (compose file, nginx template) into `~/deploy/progressx`
+  (never your working copy), installs the secrets (mode 600), points Solr at the live index in `data/db/var/solr` of the main checkout, pulls that commit's
   images from GHCR, restarts the Compose project `progressx` with them, and waits for the app, search
   backend, Solr and nginx to answer. If they don't, it switches back to the previous commit's images
   and fails.
 - The Deploy job runs it after both checks pass on `main`, only while the repository variable
   `DEPLOY_ENABLED` is `true`: `gh variable set DEPLOY_ENABLED --body true`.
-- Secrets: `ansible-playbook -i ansible/inventory.yml ansible/setup-secrets.yml -e source_dir=<checkout>`
-  copies `.env`, `progressx/.env.local` and `nginx/solr-ingest.htpasswd` into `~/.progressx/app`.
-  After changing a secret, update the copy there (`-e overwrite=true`), or the next deploy uses the old one.
+- Secrets come from Vault (`~/repos/vault`, http://127.0.0.1:8200): `secret/progressx/RootEnv` becomes
+  `.env`, `secret/progressx/AppEnvLocal` becomes `progressx/.env.local`, and each key of
+  `secret/progressx/NginxFileConfig` becomes a file in `nginx/`. `ci/vault-fetch.py` writes them (mode 600),
+  signed in with the read-only `progressx-deploy` AppRole (`~/.progressx/vault-approle.json`); CI's
+  signed-in end-to-end test reads `AppEnvLocal` the same way. To change a secret, change it in Vault: the
+  next deploy picks it up. To set up a local copy: `python3 ci/vault-fetch.py env progressx/AppEnvLocal progressx/.env.local`
+  (and the same for `RootEnv` -> `.env`, `files NginxFileConfig` -> `nginx`).
 - By hand: `cd ansible && ansible-playbook deploy.yml -e git_sha=$(git rev-parse origin/main)`; add
   `--check` for a dry run.
 
@@ -110,3 +118,17 @@ ID verification and its encryption, sessions, accessibility, Solr input, and the
 It's advisory, not a required check: the merge gate stays Build images / Tests / SonarQube. Talk to
 it in a PR comment with `@coderabbitai` (e.g. `@coderabbitai review`, or ask why it flagged something).
 It runs on CodeRabbit's servers, never on the self-hosted runner, so fork PRs get reviewed safely too.
+
+## Data on the Mac mini
+
+Everything that can't simply be recreated lives in normal folders under `~/server-data`, mounted into
+the containers (so it's visible in Finder, backed up with the Mac, and survives a Docker Desktop reset):
+
+| Folder | Service |
+| --- | --- |
+| `~/server-data/progressx/solr` | Solr index (the research studies and the food database) |
+| `~/server-data/vault/file`, `~/server-data/vault/logs` | Vault's data and audit log (`~/repos/vault`); useless without the unseal keys in `~/.vault` |
+| `~/server-data/sonarqube/{data,extensions,logs,db}` | SonarQube and its Postgres database |
+
+Ollama's model stays in a Docker volume (`progressx_ollama`): it re-downloads by itself if lost. Redis
+keeps nothing on purpose (a cache). The app, search backend and nginx hold no data of their own.
