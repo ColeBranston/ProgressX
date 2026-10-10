@@ -90,8 +90,8 @@ export async function POST(req: NextRequest) {
                 const outcome = await verifyDocument(userId, kind, { front: front!, back }, req.signal, (text) => send({ type: "status", text }))
                 send({ type: "result", ...outcome })
             } catch (e) {
-                // details stay out of the logs: no document contents are ever logged
-                console.log("ID verification failed to run: ", e instanceof Error ? e.name : "error")
+                // the error's own message (e.g. "The document reader is unavailable (500)"), never document contents
+                console.log("ID verification failed to run: ", e instanceof Error ? `${e.name}: ${e.message.slice(0, 200)}` : "error")
                 send({ type: "result", ok: false, reason: "We couldn't check your document right now. Try again in a few minutes." })
             } finally {
                 clearInterval(heartbeat)
