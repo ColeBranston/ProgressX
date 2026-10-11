@@ -46,3 +46,7 @@ data/.coverage
 data/coverage-python.xml
 data/test-results/
 .scannerwork/
+
+# media Worker (workers/media): local state and secrets of `wrangler dev`
+workers/media/.wrangler/
+workers/media/.dev.vars

@@ -93,6 +93,8 @@ To rotate one, change it in the provider's dashboard, update this file, then reb
 | `R2_ACCOUNT_ID` | No | Cloudflare account that holds the video bucket (R2's S3 endpoint is `https://<id>.r2.cloudflarestorage.com`). Empty = video uploads are off (the feed still loads). | Cloudflare dashboard > R2 > Overview (Account ID) |
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | **Yes** | Keys of an R2 API token with **Object Read & Write** on the video bucket only. Signs upload and playback links, checks uploads, deletes videos (including on account deletion). | R2 > Manage API tokens > Create API token |
 | `R2_VIDEO_BUCKET` | No | The bucket's name (default `progressx-videos`). | n/a |
+| `MEDIA_BASE_URL` | No | `https://media.progressx.ca` to play videos through the media Worker (Cloudflare's cache); empty = signed links straight to R2. Set it only once the Worker is deployed (`workers/media/README.md`). | n/a |
+| `MEDIA_SIGNING_KEY` | **Yes** | Signs the media Worker's links; the Worker has the same value as its secret (CI sets it from Vault). Random 32 bytes, base64url. | `openssl rand -base64 32 \| tr '+/' '-_' \| tr -d '='` |
 | `SERPAPI_API_KEY` | Yes | Optional. Leave empty normally. If set, the assistant can also read Google's AI Overview (through SerpApi) for foods the database doesn't have, like restaurant items; each uncached lookup uses one search from the plan's quota. Add SerpApi to the privacy policy first (see docs/privacy/README.md). | serpapi.com > Dashboard > API Key |
 
 Set automatically, not in any file:
@@ -190,17 +192,22 @@ captions, and the like / favourite counts (kept in step by triggers).
 - **No transcoding**: videos play exactly as uploaded. H.264 MP4 plays everywhere; HEVC (iPhone's
   "High Efficiency" setting) plays in Safari and in Chrome / Edge on hardware that decodes HEVC, but not
   in Firefox. There's one quality, so large files start slower on weak connections.
-- **Playback** uses signed `GET` links valid for up to 3 hours, handed out only to people allowed to see
-  the video: the poster, or anyone if the poster's profile is **public**. Making a profile private hides
+- **Playback** uses signed links valid for up to 3 hours, handed out only to people allowed to see
+  the video: the poster, or anyone if the poster's profile is **public**. With `MEDIA_BASE_URL` set they
+  point at the media Worker (`workers/media`, https://media.progressx.ca), which checks the signature
+  and serves the file from Cloudflare's cache near the viewer; without it, they're signed links to R2's
+  own address (no CDN cache, only the browser's). Making a profile private hides
   its videos from the feed, its profile page and everyone else's Liked / Favourites lists straight away
   (links already handed out keep working until they expire).
 - **Liked and Favourites** lists are only ever shown to their owner.
 - **Deleting** a video removes its file and thumbnail from R2 first, then the database. Account deletion
   deletes everything under `videos/<user id>/` in the bucket before anything else.
-- **Cloudflare's terms**: videos are served from R2's own storage address, never through progressx.ca or
-  the tunnel (serving video through the proxy on a Free / Pro / Business plan isn't allowed). Don't put
-  the bucket behind a custom domain on the progressx.ca zone. Cloudflare's own recommendation for video
-  is Stream; R2 was chosen for cost.
+  A copy may stay in the media Worker's cache for up to a day, reachable only with a link signed before
+  the deletion (valid a few hours at most).
+- **Cloudflare's terms**: video may go through Cloudflare's CDN when a Cloudflare service hosts it (R2
+  here, via the media Worker; [updated terms, 2023](https://blog.cloudflare.com/updated-tos/)). It must
+  never be served from this Mac through progressx.ca or the tunnel, and the bucket itself stays private
+  (no public access, no custom domain on the bucket).
 
 Set up (once):
 
@@ -214,6 +221,8 @@ Set up (once):
    ```bash
    cd progressx && node --env-file=.env.local scripts/r2-setup.mjs
    ```
+5. Optional, for Cloudflare's cache: deploy the media Worker and set `MEDIA_BASE_URL`
+   (`workers/media/README.md`).
 
 ## ID verification (government ID)
 

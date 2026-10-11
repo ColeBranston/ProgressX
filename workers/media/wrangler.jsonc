@@ -1,0 +1,14 @@
+// The media Worker (src/index.ts): https://media.progressx.ca, in front of the private progressx-videos
+// bucket. Deployed by CI on main (.github/workflows/ci.yml, "Deploy media Worker"); see README.md.
+{
+  "$schema": "https://unpkg.com/wrangler@4.141.0/config-schema.json",
+  "name": "progressx-media",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  // its own hostname on the progressx.ca zone; Cloudflare creates the DNS record and certificate
+  "routes": [{ "pattern": "media.progressx.ca", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": false,
+  "r2_buckets": [{ "binding": "VIDEOS", "bucket_name": "progressx-videos" }],
+  "observability": { "enabled": true }
+}
