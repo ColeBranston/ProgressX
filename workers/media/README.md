@@ -29,8 +29,9 @@ Cloudflare API token in Vault:
 
 1. Cloudflare dashboard > My Profile > API Tokens > Create Token > "Edit Cloudflare Workers" template.
    Account resources: your account. Zone resources: `progressx.ca` only.
-2. In Vault, create `secret/progressx/Cloudflare` with `CLOUDFLARE_API_TOKEN` (that token) and
-   `CLOUDFLARE_ACCOUNT_ID` (the account ID, as in `R2_ACCOUNT_ID`).
+2. On the Mac mini, run `bash ~/server-data/vault/scripts/set-cloudflare-token.sh` and paste the token
+   (not echoed). It saves `secret/progressx/Cloudflare` with `CLOUDFLARE_API_TOKEN` and
+   `CLOUDFLARE_ACCOUNT_ID` (copied from `R2_ACCOUNT_ID`) and checks the token with Cloudflare.
 3. Push to `main` (or re-run the Deploy job). Check: a link from the app
    (`curl -I "<video src>"`) answers `200`, and an unsigned one `403`.
 4. Switch the app over: add `MEDIA_BASE_URL=https://media.progressx.ca` to
