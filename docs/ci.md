@@ -97,6 +97,17 @@ After an intended visual change to the login, terms or privacy pages, refresh th
   images from GHCR, restarts the Compose project `progressx` with them, and waits for the app, search
   backend, Solr and nginx to answer. If they don't, it switches back to the previous commit's images
   and fails.
+- Then it applies the Solr core settings in `data/db/configsets/<core>/conf` (schema, `solrconfig.xml`,
+  synonyms, stopwords) to the live cores (`ansible/tasks/solr_cores.yml`), so the repo is the source of
+  truth for them. Only a core whose settings changed is touched: its live `conf/` is backed up to
+  `~/server-data/progressx/solr-conf-backups/<core>/`, replaced with the repo's and the core reloaded.
+  If Solr refuses the new settings, the old core keeps serving, its settings are put back and the deploy
+  fails and rolls back. A configset with no live core yet is created as a new core. The index itself is
+  never changed: after changing fields or analysis, reindex that core (the ETL for the study cores,
+  `python3 data/foods/ingest_foods.py` for `foods`); the deploy log says when that's needed.
+  `data/foods/ingest_foods.py` also edits the `foods` schema through Solr's API, so if it adds or changes
+  fields, copy `~/server-data/progressx/solr/data/foods/conf/` into `data/db/configsets/foods/conf/` and
+  commit it, or the next deploy puts the old schema back.
 - The Deploy job runs it after both checks pass on `main`, only while the repository variable
   `DEPLOY_ENABLED` is `true`: `gh variable set DEPLOY_ENABLED --body true`.
 - Secrets come from Vault (`~/repos/vault`, http://127.0.0.1:8200): `secret/progressx/RootEnv` becomes

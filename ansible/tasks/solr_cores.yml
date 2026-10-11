@@ -1,0 +1,18 @@
+# Applies the Solr core settings in data/db/configsets (schema, solrconfig, synonyms, ...) to the live
+# cores, so a change merged to main reaches the live site; the repo is the source of truth. For each
+# core whose live conf/ differs, the live copy is backed up, the repo's copied over, and the core
+# reloaded. A failed reload leaves Solr serving the old core and fails the deploy, and the rollback
+# then puts the previous commit's settings back. A core that's in the repo but not live is created.
+# The index itself is never touched or rebuilt: after changing fields or analysis, reindex that core
+# (the ETL for the study cores, data/foods/ingest_foods.py for foods).
+- name: Find the Solr cores defined in the repo
+  ansible.builtin.find:
+    paths: "{{ deploy_dir }}/data/db/configsets"
+    file_type: directory
+  register: configsets
+
+- name: Apply each core's settings
+  ansible.builtin.include_tasks: solr_core.yml
+  loop: "{{ configsets.files | map(attribute='path') | map('basename') | sort }}"
+  loop_control:
+    loop_var: solr_core

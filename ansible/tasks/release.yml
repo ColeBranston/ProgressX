@@ -1,5 +1,6 @@
-# Puts the secrets into the checked-out copy, pulls the release's images, restarts the stack, and waits
-# for it to be healthy. release_sha: the commit whose images to run.
+# Puts the secrets into the checked-out copy, pulls the release's images, restarts the stack, waits
+# for it to be healthy, then applies the repo's Solr core settings. release_sha: the commit whose
+# images to run.
 - name: Install the secrets read from Vault
   ansible.builtin.copy:
     src: "{{ staging.path }}/{{ item.dest }}{{ '/' if item.kind == 'files' else '' }}"
@@ -50,3 +51,6 @@
   loop: "{{ health_checks }}"
   loop_control:
     label: "{{ item.name }}"
+
+- name: Apply the Solr core settings from the repo
+  ansible.builtin.include_tasks: solr_cores.yml
