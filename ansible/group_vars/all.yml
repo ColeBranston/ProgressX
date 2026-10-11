@@ -3,18 +3,19 @@
 deploy_dir: "{{ lookup('env', 'HOME') }}/deploy/progressx"
 repo_url: https://github.com/ColeBranston/ProgressX.git
 
-# Secrets and machine-specific settings, outside any checkout (mode 600, see ansible/setup-secrets.yml):
-#   env                   -> .env                      (ports, URLs, Ollama model ...)
-#   progressx.env.local   -> progressx/.env.local      (Supabase, R2, ID encryption keys ...)
-#   solr-ingest.htpasswd  -> nginx/solr-ingest.htpasswd
-secrets_dir: "{{ lookup('env', 'HOME') }}/.progressx/app"
-secret_files:
-  - { src: env, dest: .env }
-  - { src: progressx.env.local, dest: progressx/.env.local }
-  - { src: solr-ingest.htpasswd, dest: nginx/solr-ingest.htpasswd }
+# Secrets and settings come from Vault (~/repos/vault, http://127.0.0.1:8200), read with the read-only
+# "progressx-deploy" AppRole whose credentials are in ~/.progressx/vault-approle.json (mode 600).
+#   env:   the secret's keys become KEY=value lines of the file
+#   files: each key is a file name in the folder, its value the file's contents
+vault_fetch: "{{ playbook_dir }}/../ci/vault-fetch.py"
+vault_secrets:
+  - { kind: env, path: progressx/RootEnv, dest: .env }
+  - { kind: env, path: progressx/AppEnvLocal, dest: progressx/.env.local }
+  - { kind: files, path: progressx/NginxFileConfig, dest: nginx }
 
-# The live Solr index stays where it is (it's rebuilt by ingestion, not shipped with the code)
-solr_data_dir: /Users/colebranston/repos/ProgressX/data/db/var/solr
+# The live Solr index: a normal folder on the Mac, outside every checkout (it's rebuilt by ingestion,
+# not shipped with the code). See docs/ci.md for the other data folders under ~/server-data.
+solr_data_dir: "{{ lookup('env', 'HOME') }}/server-data/progressx/solr"
 
 # The images CI built, tested and pushed for each commit; deploys pull them by commit sha (nothing is
 # built on the server). The other services use pinned or upstream images from docker-compose.yml.

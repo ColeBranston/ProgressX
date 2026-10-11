@@ -42,7 +42,7 @@ jobs:
           echo "::error::Pull requests from forks don't run on the self-hosted runner. A maintainer can push the branch to this repository instead."
           exit 1
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       # built from the clean checkout (no env files), tagged with the commit; they stay in this
       # machine's Docker for the next jobs, and are only pushed once everything has passed on main
@@ -63,9 +63,9 @@ jobs:
           echo "::error::Pull requests from forks don't run on the self-hosted runner. A maintainer can push the branch to this repository instead."
           exit 1
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24 # same as the app's Docker image (progressx/dockerfile)
           cache: npm
@@ -100,12 +100,14 @@ jobs:
           # the signed-in journey makes a zz-e2e-*@example.com account in Supabase and deletes it again
           E2E_AUTH: ${{ vars.E2E_AUTH || '1' }}
         run: |
-          export E2E_ENV_FILE="$HOME/.progressx/app/progressx.env.local"
+          # the app's settings for the signed-in journey, read from Vault (deleted with the job's temp folder)
+          export E2E_ENV_FILE="$RUNNER_TEMP/e2e.env"
+          python3 ../ci/vault-fetch.py env progressx/AppEnvLocal "$E2E_ENV_FILE"
           npx playwright install chromium
           npm run test:e2e
 
       - name: Keep the coverage reports for SonarQube
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: coverage
           path: |
@@ -115,7 +117,7 @@ jobs:
 
       - name: Keep the Playwright report
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report
           path: |
@@ -137,15 +139,15 @@ jobs:
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
         run: exit 1
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0 # full history, so SonarQube can attribute lines
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: coverage
 
@@ -161,9 +163,13 @@ jobs:
       # the scan fails this job when the gate fails.
       - name: Analyse and wait for the quality gate
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'http://127.0.0.1:9000' }}
         run: |
+          # the SonarQube token comes from Vault (secret/progressx/CI), not from a GitHub secret
+          python3 ci/vault-fetch.py value progressx/CI SONAR_TOKEN "$RUNNER_TEMP/sonar-token"
+          SONAR_TOKEN="$(cat "$RUNNER_TEMP/sonar-token")"; rm -f "$RUNNER_TEMP/sonar-token"
+          echo "::add-mask::$SONAR_TOKEN"
+          export SONAR_TOKEN
           if [ "${{ github.event_name }}" = "pull_request" ]; then KEY=progressx-pr; else KEY=progressx; fi
           npx --yes @sonar/scan@4 \
             -Dsonar.host.url="$SONAR_HOST_URL" \
@@ -181,7 +187,7 @@ jobs:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Push the tested images to GitHub Container Registry
         env:
@@ -205,7 +211,7 @@ jobs:
       group: deploy-production
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       # Ansible pulls ghcr.io/colebranston/progressx-*:<sha> (the images published above) and starts them
       - name: Deploy with Ansible

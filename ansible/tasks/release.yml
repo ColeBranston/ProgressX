@@ -1,11 +1,11 @@
 # Puts the secrets into the checked-out copy, pulls the release's images, restarts the stack, and waits
 # for it to be healthy. release_sha: the commit whose images to run.
-- name: Install the secret files
+- name: Install the secrets read from Vault
   ansible.builtin.copy:
-    src: "{{ secrets_dir }}/{{ item.src }}"
-    dest: "{{ deploy_dir }}/{{ item.dest }}"
+    src: "{{ staging.path }}/{{ item.dest }}{{ '/' if item.kind == 'files' else '' }}"
+    dest: "{{ deploy_dir }}/{{ item.dest }}{{ '/' if item.kind == 'files' else '' }}"
     mode: "0600"
-  loop: "{{ secret_files }}"
+  loop: "{{ vault_secrets }}"
   loop_control:
     label: "{{ item.dest }}"
   no_log: true

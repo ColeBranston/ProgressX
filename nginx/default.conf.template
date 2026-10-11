@@ -108,7 +108,7 @@ server {
     }
 
     # ---------- Solr ingestion for the GitHub Actions ETL (.github/workflows/schedule.yml) ----------
-    # Point the SOLR_PROD_URL secret at https://github-actions:<password>@progressx.ca/solr-ingest/
+    # The ETL workflow reads https://github-actions:<password>@progressx.ca/solr-ingest/ from Vault (secret/progressx/NginxFileConfig)
     # (the full value is in nginx/solr-ingest-url.txt, which is gitignored). pysolr/requests send the
     # user:password from the URL as HTTP Basic auth, so the workflow code doesn't change.
     # Only the two ingestion cores' select + update handlers are reachable; everything else in Solr

@@ -1,5 +1,8 @@
-# Installs the GitHub Actions self-hosted runner on this Mac as a launchd service, registered to
-# ColeBranston/ProgressX with the labels the workflow targets (self-hosted, macOS, progressx).
+# Installs a GitHub Actions self-hosted runner on this Mac as a launchd service, registered to
+# ColeBranston/ProgressX. Two run here, each with its own label so one never waits on the other:
+#   progressx      (default) CI: builds, tests, SonarQube, publishing and deploys (.github/workflows/ci.yml)
+#   progressx-etl  the weekly Solr ingestion, which can run for hours (.github/workflows/schedule.yml)
+# Add -e runner_label=progressx-etl for the second one.
 # The registration token is short-lived; it is read from the environment, never the command line:
 #   RUNNER_TOKEN=$(gh api -X POST repos/ColeBranston/ProgressX/actions/runners/registration-token --jq .token) \
 #     ansible-playbook -i ansible/inventory.yml ansible/runner.yml
@@ -8,8 +11,9 @@
   gather_facts: true
   vars:
     runner_version: "2.338.0"
-    runner_dir: "{{ lookup('env', 'HOME') }}/actions-runner/progressx"
-    runner_name: "{{ ansible_hostname }}-progressx"
+    runner_label: progressx
+    runner_dir: "{{ lookup('env', 'HOME') }}/actions-runner/{{ runner_label }}"
+    runner_name: "{{ ansible_hostname }}-{{ runner_label }}"
     repo: ColeBranston/ProgressX
     arch: "{{ 'arm64' if ansible_architecture in ['arm64', 'aarch64'] else 'x64' }}"
   tasks:
@@ -52,7 +56,7 @@
       when: not configured.stat.exists
       ansible.builtin.command:
         argv: [./config.sh, --unattended, --url, "https://github.com/{{ repo }}", --name, "{{ runner_name }}",
-               --labels, "progressx", --work, _work, --replace, --token, "{{ lookup('env', 'RUNNER_TOKEN') }}"]
+               --labels, "{{ runner_label }}", --work, _work, --replace, --token, "{{ lookup('env', 'RUNNER_TOKEN') }}"]
         chdir: "{{ runner_dir }}"
       no_log: true
 
