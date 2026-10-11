@@ -3,7 +3,7 @@
 Writes ProgressX's env files from Vault (secret/progressx/*). Used by the Ansible deploy and by CI, and
 handy for setting up a local copy. Values are never printed.
 
-  vault-fetch.py env   <secret path> <output file>   e.g. env progressx/AppEnvLocal progressx/.env.local
+  vault-fetch.py env   <secret path> <output file>   KEY='value' lines, e.g. env progressx/AppEnvLocal progressx/.env.local
   vault-fetch.py files <secret path> <output dir>    each key is a file name, its value the file's contents
   vault-fetch.py value <secret path> <key> <output file>   one key's value on its own (trailing newline removed)
 
@@ -83,15 +83,17 @@ def main():
         write_private(out, str(data[key]).rstrip("\n"))
         print(f"wrote {key} from secret/{secret} to {out}")
     elif kind == "env":
-        bad = [k for k, v in data.items() if not ENV_KEY.match(k) or not isinstance(v, str) or "\n" in v]
+        # single-quoted, so Docker Compose and dotenv both take the value literally (no $VAR expansion,
+        # no " #" comments); a value that itself contains ' or a new line can't be written that way
+        bad = [k for k, v in data.items() if not ENV_KEY.match(k) or not isinstance(v, str) or "\n" in v or "'" in v]
         if bad:
-            fail(f"can't write as an env file: {', '.join(bad)}")
-        write_private(out, "".join(f"{k}={v}\n" for k, v in data.items()))
+            fail(f"can't write as an env file (a value contains ' or a new line, or isn't text): {', '.join(bad)}")
+        write_private(out, "".join(f"{k}='{v}'\n" for k, v in data.items()))
         print(f"wrote {len(data)} keys from secret/{secret} to {out}")
     else:
-        bad = [k for k in data if not FILE_NAME.match(k)]
+        bad = [k for k, v in data.items() if not FILE_NAME.match(k) or not isinstance(v, str)]
         if bad:
-            fail(f"not usable as file names: {', '.join(bad)}")
+            fail(f"not usable as files (bad name, or the value isn't text): {', '.join(bad)}")
         for name, contents in data.items():
             write_private(os.path.join(out, name), contents)
         print(f"wrote {len(data)} files from secret/{secret} to {out}/")

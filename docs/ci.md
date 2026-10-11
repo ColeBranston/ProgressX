@@ -93,7 +93,7 @@ After an intended visual change to the login, terms or privacy pages, refresh th
 
 - `ansible/deploy.yml` reads the secrets from Vault first (a Vault problem stops it before anything
   changes), checks out the commit's config (compose file, nginx template) into `~/deploy/progressx`
-  (never your working copy), installs the secrets (mode 600), points Solr at the live index in `data/db/var/solr` of the main checkout, pulls that commit's
+  (never your working copy), installs the secrets (mode 600), points Solr at the live index in `~/server-data/progressx/solr`, pulls that commit's
   images from GHCR, restarts the Compose project `progressx` with them, and waits for the app, search
   backend, Solr and nginx to answer. If they don't, it switches back to the previous commit's images
   and fails.
