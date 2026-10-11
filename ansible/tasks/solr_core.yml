@@ -1,97 +1,126 @@
 # One core, for solr_cores.yml: solr_core is its name (the configset folder's name).
+- name: "{{ solr_core }}: look at the live core"
+  ansible.builtin.stat:
+    path: "{{ solr_data_dir }}/data/{{ solr_core }}/{{ item }}"
+  loop: [conf, core.properties]
+  register: live
+
 - name: "{{ solr_core }}: compare the repo's settings with the live core"
-  vars:
-    core_dir: "{{ solr_data_dir }}/data/{{ solr_core }}"
+  when: live.results[0].stat.exists
   ansible.builtin.command:
     argv: [rsync, --recursive, --checksum, --delete, --dry-run, --itemize-changes,
-           "{{ deploy_dir }}/data/db/configsets/{{ solr_core }}/conf/", "{{ core_dir }}/conf/"]
+           "{{ deploy_dir }}/data/db/configsets/{{ solr_core }}/conf/", "{{ solr_data_dir }}/data/{{ solr_core }}/conf/"]
   register: conf_diff
   changed_when: false
   check_mode: false # read-only, so --check runs report what would change
+
+# a new core has no live conf/ to compare with (and rsync won't create its missing parent folder):
+# every file in the repo's is a change
+- name: "{{ solr_core }}: list the settings of a new core"
+  when: not live.results[0].stat.exists
+  ansible.builtin.command:
+    argv: [find, ".", -type, f]
+    chdir: "{{ deploy_dir }}/data/db/configsets/{{ solr_core }}/conf"
+  register: conf_new
+  changed_when: false
+  check_mode: false
 
 # rsync also lists files whose contents match but whose modification time differs (".f..T...."); a
 # fresh checkout always has new times, so only content differences count
 - name: "{{ solr_core }}: keep only the files whose contents differ"
   ansible.builtin.set_fact:
-    conf_changes: "{{ conf_diff.stdout_lines | reject('match', '^\\.[a-zA-Z]\\.\\.[tT]\\.*\\s') | list }}"
+    core_exists: "{{ live.results[1].stat.exists }}"
+    conf_changes: >-
+      {{ (conf_diff.stdout_lines | reject('match', '^\.[a-zA-Z]\.\.[tT]\.*\s') | list)
+         if live.results[0].stat.exists else conf_new.stdout_lines }}
 
 - name: "{{ solr_core }}: update the live core"
   when: conf_changes | length > 0
   vars:
     core_dir: "{{ solr_data_dir }}/data/{{ solr_core }}"
-    backup: "{{ solr_conf_backups }}/{{ solr_core }}/{{ now(fmt='%Y%m%d-%H%M%S') }}-{{ release_sha[:12] }}"
   block:
-    - name: "{{ solr_core }}: check whether the core exists"
-      ansible.builtin.stat:
-        path: "{{ core_dir }}/core.properties"
-      register: core_props
-
     - name: "{{ solr_core }}: settings that differ"
       ansible.builtin.debug:
-        msg: "{{ conf_changes if core_props.stat.exists else 'new core: ' ~ (conf_changes | length) ~ ' files' }}"
-
-    - name: "{{ solr_core }}: make the backup folder"
-      when: core_props.stat.exists
-      ansible.builtin.file:
-        path: "{{ backup | dirname }}"
-        state: directory
-        mode: "0755"
-
-    - name: "{{ solr_core }}: back up the live settings"
-      when: core_props.stat.exists
-      ansible.builtin.command:
-        argv: [cp, -Rp, "{{ core_dir }}/conf", "{{ backup }}"]
-      changed_when: true
-
-    - name: "{{ solr_core }}: apply the new settings, or put the old ones back"
-      block:
-        - name: "{{ solr_core }}: copy the repo's settings in"
-          ansible.builtin.command:
-            argv: [rsync, --recursive, --checksum, --delete,
-                   "{{ deploy_dir }}/data/db/configsets/{{ solr_core }}/conf/", "{{ core_dir }}/conf/"]
-          changed_when: true
-
-        # Solr builds the new core before swapping it in, so a bad setting fails here with the old
-        # core still serving searches
-        - name: "{{ solr_core }}: {{ 'reload' if core_props.stat.exists else 'create' }} the core"
-          ansible.builtin.uri:
-            url: >-
-              {{ solr_url }}/admin/cores?wt=json&{{ ('action=RELOAD&core=' ~ solr_core) if core_props.stat.exists
-              else ('action=CREATE&name=' ~ solr_core ~ '&instanceDir=' ~ solr_core) }}
-            timeout: 60
-          register: core_admin
-          failed_when: false # reported below without Solr's Java stack trace
-
-        - name: "{{ solr_core }}: check Solr accepted the settings"
-          ansible.builtin.assert:
-            that: core_admin.status == 200
-            fail_msg: >-
-              Solr refused the new settings ({{ core_admin.json.error.msg | default(core_admin.msg) }}):
-              {{ core_admin.json.error.trace.causedBy.msg | default('') }}
-            quiet: true
-
-      rescue:
-        # leave the live folder as Solr is still running it, so a Solr restart doesn't trip over the
-        # settings it just refused (a rollback then reapplies the previous commit's anyway)
-        - name: "{{ solr_core }}: put the previous settings back"
-          when: core_props.stat.exists
-          ansible.builtin.command:
-            argv: [rsync, --recursive, --checksum, --delete, "{{ backup }}/", "{{ core_dir }}/conf/"]
-          changed_when: true
-
-        - name: "{{ solr_core }}: remove the settings of the core that couldn't be created"
-          when: not core_props.stat.exists
-          ansible.builtin.file:
-            path: "{{ core_dir }}/conf"
-            state: absent
-
-        - name: "{{ solr_core }}: fail the deploy"
-          ansible.builtin.fail:
-            msg: "{{ ansible_failed_result.msg }} The previous settings are back in place."
+        msg: "{{ conf_changes if core_exists else 'new core: ' ~ (conf_changes | length) ~ ' files' }}"
 
     - name: "{{ solr_core }}: reindex if fields or analysis changed"
-      when: core_props.stat.exists and conf_changes | select('search', 'managed-schema') | list | length > 0
+      when: core_exists and conf_changes | select('search', 'managed-schema') | list | length > 0
       ansible.builtin.debug:
         msg: >-
           The schema of {{ solr_core }} changed. Documents already in the index keep their old form until
           the core is rebuilt ({{ 'data/foods/ingest_foods.py' if solr_core == 'foods' else 'the ETL' }}).
+
+    # --check stops at reporting: the copy and the Solr API call can't be simulated, so nothing below
+    # would have a result to check
+    - name: "{{ solr_core }}: apply the new settings"
+      when: not ansible_check_mode
+      block:
+        # fixed once: a template using now() would give a new name every time it's read
+        - name: "{{ solr_core }}: name the backup"
+          ansible.builtin.set_fact:
+            backup: "{{ solr_conf_backups }}/{{ solr_core }}/{{ now(fmt='%Y%m%d-%H%M%S') }}-{{ release_sha[:12] }}"
+
+        - name: "{{ solr_core }}: make the backup folder"
+          when: core_exists
+          ansible.builtin.file:
+            path: "{{ backup | dirname }}"
+            state: directory
+            mode: "0755"
+
+        - name: "{{ solr_core }}: back up the live settings"
+          when: core_exists
+          ansible.builtin.command:
+            argv: [cp, -Rp, "{{ core_dir }}/conf", "{{ backup }}"]
+          changed_when: true
+
+        - name: "{{ solr_core }}: make the core's folder"
+          ansible.builtin.file:
+            path: "{{ core_dir }}/conf"
+            state: directory
+            mode: "0755"
+
+        - name: "{{ solr_core }}: copy in the settings, or put the old ones back"
+          block:
+            - name: "{{ solr_core }}: copy the repo's settings in"
+              ansible.builtin.command:
+                argv: [rsync, --recursive, --checksum, --delete,
+                       "{{ deploy_dir }}/data/db/configsets/{{ solr_core }}/conf/", "{{ core_dir }}/conf/"]
+              changed_when: true
+
+            # Solr builds the new core before swapping it in, so a bad setting fails here with the old
+            # core still serving searches
+            - name: "{{ solr_core }}: {{ 'reload' if core_exists else 'create' }} the core"
+              ansible.builtin.uri:
+                url: >-
+                  {{ solr_url }}/admin/cores?wt=json&{{ ('action=RELOAD&core=' ~ solr_core) if core_exists
+                  else ('action=CREATE&name=' ~ solr_core ~ '&instanceDir=' ~ solr_core) }}
+                timeout: 60
+              register: core_admin
+              failed_when: false # reported below without Solr's Java stack trace
+
+            - name: "{{ solr_core }}: check Solr accepted the settings"
+              ansible.builtin.assert:
+                that: core_admin.status == 200
+                fail_msg: >-
+                  Solr refused the new settings ({{ core_admin.json.error.msg | default(core_admin.msg) }}):
+                  {{ core_admin.json.error.trace.causedBy.msg | default('') }}
+                quiet: true
+
+          rescue:
+            # leave the live folder as Solr is still running it, so a Solr restart doesn't trip over the
+            # settings it just refused (a rollback then reapplies the previous commit's anyway)
+            - name: "{{ solr_core }}: put the previous settings back"
+              when: core_exists
+              ansible.builtin.command:
+                argv: [rsync, --recursive, --checksum, --delete, "{{ backup }}/", "{{ core_dir }}/conf/"]
+              changed_when: true
+
+            - name: "{{ solr_core }}: remove the settings of the core that couldn't be created"
+              when: not core_exists
+              ansible.builtin.file:
+                path: "{{ core_dir }}/conf"
+                state: absent
+
+            - name: "{{ solr_core }}: fail the deploy"
+              ansible.builtin.fail:
+                msg: "{{ ansible_failed_result.msg }} The previous settings are back in place."
