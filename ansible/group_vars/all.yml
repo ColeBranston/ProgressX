@@ -16,6 +16,10 @@ vault_secrets:
 # The live Solr index: a normal folder on the Mac, outside every checkout (it's rebuilt by ingestion,
 # not shipped with the code). See docs/ci.md for the other data folders under ~/server-data.
 solr_data_dir: "{{ lookup('env', 'HOME') }}/server-data/progressx/solr"
+# Solr's API on this machine, and where a deploy keeps each core's settings before replacing them with
+# the repo's data/db/configsets (tasks/solr_cores.yml)
+solr_url: http://127.0.0.1:8983/solr
+solr_conf_backups: "{{ lookup('env', 'HOME') }}/server-data/progressx/solr-conf-backups"
 
 # The images CI built, tested and pushed for each commit; deploys pull them by commit sha (nothing is
 # built on the server). The other services use pinned or upstream images from docker-compose.yml.
