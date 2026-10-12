@@ -67,14 +67,14 @@ After an intended visual change to the login, terms or privacy pages, refresh th
   (`docker compose -f ci/sonarqube/docker-compose.yml stop`): the CI job starts it when it needs it.
 - `bash ci/sonarqube/setup.sh` (re-runnable) sets the admin password, creates the projects, the
   quality gate and the CI token (`~/server-data/secrets/progressx/sonar-token`). CI reads that token from Vault
-  (`secret/progressx/CI`, key `SONAR_TOKEN`); after recreating it, update it there.
+  (`secret/progressx/CI/SonarQube`, key `SONAR_TOKEN`); after recreating it, update it there.
   `bash ci/sonarqube/api.sh GET <api path>` calls the API without putting the password on a command line.
 - Projects: `progressx` (main) and `progressx-pr` (pull requests). The free Community Build can't
   analyse branches or PRs separately, so PRs get their own project instead of rewriting main's history.
 - Quality gate "ProgressX", on the whole code base: security, reliability and maintainability ratings A
   (no vulnerabilities, no bugs), every security hotspot reviewed, at most 5% duplication, and coverage
   at least 20% (today's level). Raise the floor as tests are added: `COVERAGE_MIN=25 bash ci/sonarqube/setup.sh`.
-- Scan locally after the tests: `python3 ci/vault-fetch.py value progressx/CI SONAR_TOKEN /tmp/sonar-token && SONAR_TOKEN=$(cat /tmp/sonar-token) npx @sonar/scan; rm -f /tmp/sonar-token`.
+- Scan locally after the tests: `python3 ci/vault-fetch.py value progressx/CI/SonarQube SONAR_TOKEN /tmp/sonar-token && SONAR_TOKEN=$(cat /tmp/sonar-token) npx @sonar/scan; rm -f /tmp/sonar-token`.
 
 ## GitHub Actions (`.github/workflows/ci.yml`)
 
@@ -117,6 +117,11 @@ After an intended visual change to the login, terms or privacy pages, refresh th
   signed-in end-to-end test reads `AppEnvLocal` the same way. To change a secret, change it in Vault: the
   next deploy picks it up. To set up a local copy: `python3 ci/vault-fetch.py env progressx/AppEnvLocal progressx/.env.local`
   (and the same for `RootEnv` -> `.env`, `files NginxFileConfig` -> `nginx`).
+- Vault layout under `secret/progressx/`: one secret per file the deploy writes (`RootEnv`, `AppEnvLocal`,
+  `NginxFileConfig`; key names are the env var or file names), and `CI/` for credentials only the
+  pipeline uses, never written to a file: `CI/SonarQube` (`SONAR_TOKEN`) and `CI/Cloudflare`
+  (`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, for the media Worker deploy). Each key's
+  description is in its secret's custom metadata.
 - By hand: `cd ansible && ansible-playbook deploy.yml -e git_sha=$(git rev-parse origin/main)`; add
   `--check` for a dry run.
 
