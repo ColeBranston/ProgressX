@@ -1,16 +1,16 @@
 #!/bin/bash
 # One-time (and re-runnable) setup of the local SonarQube for ProgressX:
-#   - replaces the default admin/admin password with a random one kept in ~/.progressx (mode 600)
+#   - replaces the default admin/admin password with a random one kept in ~/server-data/secrets/progressx (mode 600)
 #   - creates the "progressx" project (main branch) and "progressx-pr" (pull requests; the free
 #     Community Build has no branch / PR analysis, so PRs get their own project instead of
 #     overwriting main's history)
 #   - creates the "ProgressX" quality gate and makes both projects use it
-#   - makes an analysis token for CI and stores it in ~/.progressx/sonar-token (mode 600)
+#   - makes an analysis token for CI and stores it in ~/server-data/secrets/progressx/sonar-token (mode 600)
 # Nothing secret is printed. Usage: bash ci/sonarqube/setup.sh
 set -euo pipefail
 
 SONAR=${SONAR_HOST_URL:-http://127.0.0.1:9000}
-SECRETS=${PROGRESSX_SECRETS:-$HOME/.progressx}
+SECRETS=${PROGRESSX_SECRETS:-$HOME/server-data/secrets/progressx}
 mkdir -p "$SECRETS" && chmod 700 "$SECRETS"
 PASSWORD_FILE="$SECRETS/sonarqube-admin-password"
 TOKEN_FILE="$SECRETS/sonar-token"

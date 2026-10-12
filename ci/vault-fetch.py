@@ -9,7 +9,7 @@ handy for setting up a local copy. Values are never printed.
 
 Login, in this order:
   - VAULT_TOKEN (+ VAULT_ADDR): e.g. after `vault login -method=userpass` on another computer
-  - the read-only "progressx-deploy" AppRole in ~/.progressx/vault-approle.json (or $VAULT_APPROLE_FILE)
+  - the read-only "progressx-deploy" AppRole in ~/server-data/secrets/progressx/vault-approle.json (or $VAULT_APPROLE_FILE)
 Output files are created with mode 600. Standard library only.
 """
 import json
@@ -44,7 +44,7 @@ def request(addr, path, token=None, body=None):
 def login():
     if os.environ.get("VAULT_TOKEN"):
         return os.environ.get("VAULT_ADDR", "http://127.0.0.1:8200"), os.environ["VAULT_TOKEN"]
-    path = os.environ.get("VAULT_APPROLE_FILE", os.path.expanduser("~/.progressx/vault-approle.json"))
+    path = os.environ.get("VAULT_APPROLE_FILE", os.path.expanduser("~/server-data/secrets/progressx/vault-approle.json"))
     try:
         creds = json.load(open(path))
     except OSError:

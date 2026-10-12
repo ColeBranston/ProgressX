@@ -3,8 +3,8 @@
 deploy_dir: "{{ lookup('env', 'HOME') }}/deploy/progressx"
 repo_url: https://github.com/ColeBranston/ProgressX.git
 
-# Secrets and settings come from Vault (~/repos/vault, http://127.0.0.1:8200), read with the read-only
-# "progressx-deploy" AppRole whose credentials are in ~/.progressx/vault-approle.json (mode 600).
+# Secrets and settings come from Vault (~/server-data/vault, http://127.0.0.1:8200), read with the read-only
+# "progressx-deploy" AppRole whose credentials are in ~/server-data/secrets/progressx/vault-approle.json (mode 600).
 #   env:   the secret's keys become KEY=value lines of the file
 #   files: each key is a file name in the folder, its value the file's contents
 vault_fetch: "{{ playbook_dir }}/../ci/vault-fetch.py"

@@ -59,14 +59,14 @@ After an intended visual change to the login, terms or privacy pages, refresh th
 
 - Runs separately from the app: `docker compose -f ci/sonarqube/docker-compose.yml up -d`, at
   http://127.0.0.1:9000 (this machine only). Sign in as `admin` with the password in
-  `~/.progressx/sonarqube-admin-password`.
+  `~/server-data/secrets/progressx/sonarqube-admin-password`.
 - Memory: Docker Desktop's VM has to hold the live site, Ollama's model (about 5 GB once loaded) and
   SonarQube (about 2-3 GB). With Docker's default 7.75 GB limit they don't all fit and Ollama's model
   gets killed (the diet assistant and ID verification then fail). Give Docker more memory (Docker
   Desktop > Settings > Resources > Memory, e.g. 16 GB), or keep SonarQube stopped
   (`docker compose -f ci/sonarqube/docker-compose.yml stop`): the CI job starts it when it needs it.
 - `bash ci/sonarqube/setup.sh` (re-runnable) sets the admin password, creates the projects, the
-  quality gate and the CI token (`~/.progressx/sonar-token`). CI reads that token from Vault
+  quality gate and the CI token (`~/server-data/secrets/progressx/sonar-token`). CI reads that token from Vault
   (`secret/progressx/CI`, key `SONAR_TOKEN`); after recreating it, update it there.
   `bash ci/sonarqube/api.sh GET <api path>` calls the API without putting the password on a command line.
 - Projects: `progressx` (main) and `progressx-pr` (pull requests). The free Community Build can't
@@ -74,7 +74,7 @@ After an intended visual change to the login, terms or privacy pages, refresh th
 - Quality gate "ProgressX", on the whole code base: security, reliability and maintainability ratings A
   (no vulnerabilities, no bugs), every security hotspot reviewed, at most 5% duplication, and coverage
   at least 20% (today's level). Raise the floor as tests are added: `COVERAGE_MIN=25 bash ci/sonarqube/setup.sh`.
-- Scan locally after the tests: `SONAR_TOKEN=$(cat ~/.progressx/sonar-token) npx @sonar/scan`.
+- Scan locally after the tests: `python3 ci/vault-fetch.py value progressx/CI SONAR_TOKEN /tmp/sonar-token && SONAR_TOKEN=$(cat /tmp/sonar-token) npx @sonar/scan; rm -f /tmp/sonar-token`.
 
 ## GitHub Actions (`.github/workflows/ci.yml`)
 
@@ -110,10 +110,10 @@ After an intended visual change to the login, terms or privacy pages, refresh th
   commit it, or the next deploy puts the old schema back.
 - The Deploy job runs it after both checks pass on `main`, only while the repository variable
   `DEPLOY_ENABLED` is `true`: `gh variable set DEPLOY_ENABLED --body true`.
-- Secrets come from Vault (`~/repos/vault`, http://127.0.0.1:8200): `secret/progressx/RootEnv` becomes
+- Secrets come from Vault (`~/server-data/vault`, http://127.0.0.1:8200): `secret/progressx/RootEnv` becomes
   `.env`, `secret/progressx/AppEnvLocal` becomes `progressx/.env.local`, and each key of
   `secret/progressx/NginxFileConfig` becomes a file in `nginx/`. `ci/vault-fetch.py` writes them (mode 600),
-  signed in with the read-only `progressx-deploy` AppRole (`~/.progressx/vault-approle.json`); CI's
+  signed in with the read-only `progressx-deploy` AppRole (`~/server-data/secrets/progressx/vault-approle.json`); CI's
   signed-in end-to-end test reads `AppEnvLocal` the same way. To change a secret, change it in Vault: the
   next deploy picks it up. To set up a local copy: `python3 ci/vault-fetch.py env progressx/AppEnvLocal progressx/.env.local`
   (and the same for `RootEnv` -> `.env`, `files NginxFileConfig` -> `nginx`).
@@ -138,8 +138,9 @@ the containers (so it's visible in Finder, backed up with the Mac, and survives 
 | Folder | Service |
 | --- | --- |
 | `~/server-data/progressx/solr` | Solr index (the research studies and the food database) |
-| `~/server-data/vault/file`, `~/server-data/vault/logs` | Vault's data and audit log (`~/repos/vault`); useless without the unseal keys in `~/.vault` |
+| `~/server-data/vault` | Vault: its setup (compose file, config, scripts, README), data (`file/`) and audit log (`logs/`); the data is useless without the unseal keys in `~/server-data/secrets/vault` |
 | `~/server-data/sonarqube/{data,extensions,logs,db}` | SonarQube and its Postgres database |
+| `~/server-data/secrets` | Mode 700: `vault/` (Vault's unseal keys and root token) and `progressx/` (the deploy's read-only AppRole login, the SonarQube admin password). A backup that includes it can open Vault, so exclude it or keep the backup encrypted |
 
 Ollama's model stays in a Docker volume (`progressx_ollama`): it re-downloads by itself if lost. Redis
 keeps nothing on purpose (a cache). The app, search backend and nginx hold no data of their own.
