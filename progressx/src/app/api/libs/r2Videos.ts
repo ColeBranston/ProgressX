@@ -1,5 +1,6 @@
 import { DeleteObjectsCommand, GetObjectCommand, HeadObjectCommand, ListObjectsV2Command, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { createHmac } from "node:crypto";
 import { MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, type Playback } from "@/app/internal_components/videos/videoTypes";
 
 // Videos live in a private Cloudflare R2 bucket. The browser uploads straight to R2 with a one-time
@@ -8,7 +9,9 @@ import { MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, type Playback } from "@/app/interna
 // as uploaded, so uploads are checked here to be real MP4 / MOV files within the length limit.
 //
 // Env: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY (an R2 API token with Object Read & Write
-// on the bucket), R2_VIDEO_BUCKET (default "progressx-videos")
+// on the bucket), R2_VIDEO_BUCKET (default "progressx-videos"). With MEDIA_BASE_URL and
+// MEDIA_SIGNING_KEY set, playback links go through the media Worker (workers/media), which serves the
+// files from Cloudflare's cache; without them, they're signed links to R2's own address.
 
 const UPLOAD_LINK_SECONDS = 30 * 60
 const PLAYBACK_SECONDS = 3 * 60 * 60
@@ -150,11 +153,21 @@ export async function putPoster(key: string, jpeg: Buffer) {
     await r2().send(new PutObjectCommand({ Bucket: bucket(), Key: key, Body: jpeg, ContentType: "image/jpeg", CacheControl: "private, max-age=86400" }))
 }
 
+// A link to the media Worker (workers/media/src/index.ts checks it): the object key, when the link
+// expires, and an HMAC-SHA256 of both with MEDIA_SIGNING_KEY
+export function mediaUrl(baseUrl: string, secret: string, key: string, exp: number): string {
+    const sig = createHmac("sha256", secret).update(`${key}\n${exp}`).digest("base64url")
+    return `${baseUrl.replace(/\/+$/, "")}/${key}?exp=${exp}&sig=${sig}`
+}
+
 // Signed links to watch a video. They're signed for the current hour, so everyone loading the feed in
 // the same hour gets the same URL and the browser can reuse what it already downloaded.
 export async function playbackFor(videoKeyName: string, posterKeyName: string | null): Promise<Playback> {
     const hour = new Date(Math.floor(Date.now() / 3_600_000) * 3_600_000)
-    const sign = (key: string) => getSignedUrl(r2(), new GetObjectCommand({ Bucket: bucket(), Key: key }), { expiresIn: PLAYBACK_SECONDS, signingDate: hour })
+    const base = process.env.MEDIA_BASE_URL, secret = process.env.MEDIA_SIGNING_KEY
+    const sign = base && secret
+        ? async (key: string) => mediaUrl(base, secret, key, hour.getTime() / 1000 + PLAYBACK_SECONDS)
+        : (key: string) => getSignedUrl(r2(), new GetObjectCommand({ Bucket: bucket(), Key: key }), { expiresIn: PLAYBACK_SECONDS, signingDate: hour })
     const [ src, poster ] = await Promise.all([ sign(videoKeyName), posterKeyName ? sign(posterKeyName) : Promise.resolve(null) ])
     return { src, poster }
 }

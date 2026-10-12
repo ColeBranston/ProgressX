@@ -56,6 +56,12 @@ reviews:
         CI/CD runs on a self-hosted runner on the production machine of a public repository. Code from forks
         must never run there; secrets must not be echoed or passed on command lines; actions and images
         should be pinned; the deploy must stay pull-the-tested-image (no building on the server) with rollback.
+    - path: "workers/media/**"
+      instructions: |
+        Cloudflare Worker serving private videos from R2 through the edge cache. Every request must pass
+        the HMAC link check (constant-time, expiry bounded) before any cache or R2 read; only
+        videos/<user>/<video>.(mp4|mov|jpg) keys may be served; the cache key must not include the
+        signature; a Worker-returned 206 isn't cached, so the cache must hold the full 200 response.
     - path: "**/{Dockerfile,dockerfile,docker-compose.yml}"
       instructions: "Containers run as non-root, copy only what they need (never .env files or keys), pin base image versions, and publish ports on 127.0.0.1 unless nginx needs them."
     - path: "{docs/privacy/**,progressx/src/app/(secondary)/privacy/**,progressx/src/app/(secondary)/terms/**}"
