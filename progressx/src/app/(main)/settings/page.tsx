@@ -7,12 +7,14 @@ import styles from "./settings.module.css";
 import { userDataContext, UserData } from "@/app/contexts/userData";
 import { formatVolume, getWaterTargetMl } from "@/app/internal_components/index";
 import { clearLocalAccountData } from "@/app/internal_components/SessionWatch";
+import { ACTIVITY_LEVELS } from "@/app/internal_components/profile/profileRules";
 
 type Settings = {
     blurProgressPhotos: boolean,
     waterGoalMl: number | null, // null = recommended
     profilePrivacy: "public" | "private",
     weightUnit: "lb" | "kg",
+    activityLevel: number | null,
 }
 
 type Section = "privacy" | "diet" | "workouts"
@@ -138,6 +140,13 @@ export default function SettingsPage() {
         const saved = await save("privacy", { profilePrivacy: value })
         // keep the profile page's lock icon in sync
         if (saved) setUserData((prev: UserData) => ({ ...prev, privacy: value }))
+    }
+
+    async function changeActivity(value: number) {
+        if (!settings || value === settings.activityLevel) return
+        const saved = await save("diet", { activityLevel: value })
+        // the calorie and water targets everywhere are worked out from this
+        if (saved) setUserData((prev: UserData) => ({ ...prev, activity: value }))
     }
 
     function changeWaterMode(mode: "recommended" | "custom") {
@@ -284,6 +293,26 @@ export default function SettingsPage() {
                                 <div className={styles.cardHeader}>
                                     <h2 id="diet-heading" className={styles.cardTitle}>Diet</h2>
                                     {statusText("diet")}
+                                </div>
+
+                                <div className={styles.row}>
+                                    <div className={styles.rowText}>
+                                        <p className={styles.rowLabel}>Activity level</p>
+                                        <p className={styles.rowDescription}>
+                                            {ACTIVITY_LEVELS.find((level) => level.value === settings.activityLevel)?.detail ?? "How active you are."} Sets your recommended calories and water.
+                                        </p>
+                                    </div>
+                                    <select
+                                        className={styles.select}
+                                        value={settings.activityLevel ?? ""}
+                                        onChange={(e) => changeActivity(Number(e.target.value))}
+                                        aria-label="Activity level"
+                                    >
+                                        {settings.activityLevel === null ? <option value="" disabled>Choose one</option> : null}
+                                        {ACTIVITY_LEVELS.map((level) => (
+                                            <option key={level.value} value={level.value}>{level.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
 
                                 <div className={styles.row}>

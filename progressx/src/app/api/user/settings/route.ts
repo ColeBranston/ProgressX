@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
 import { loadUserSettings, WATER_GOAL_MAX_ML, WATER_GOAL_MIN_ML } from "../../libs/userSettings";
+import { ACTIVITY_LEVELS } from "@/app/internal_components/profile/profileRules";
 
 // GET /api/user/settings
 export async function GET(req: NextRequest) {
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// PATCH /api/user/settings  { blurProgressPhotos?, waterGoalMl?, profilePrivacy?, weightUnit? }
+// PATCH /api/user/settings  { blurProgressPhotos?, waterGoalMl?, profilePrivacy?, weightUnit?, activityLevel? }
 // Only the fields sent are changed. Returns the full, saved settings.
 export async function PATCH(req: NextRequest) {
     const userId = await getUserIdFromRequest(req)
@@ -58,12 +59,21 @@ export async function PATCH(req: NextRequest) {
         settingsUpdate.weight_unit = body.weightUnit
     }
 
-    let privacyUpdate: "public" | "private" | null = null
+    // these live on the profile rather than in user_settings
+    const profileUpdate: Record<string, unknown> = {}
+
     if ("profilePrivacy" in body) {
         if (body.profilePrivacy !== "public" && body.profilePrivacy !== "private") {
             return NextResponse.json({ message: "profilePrivacy must be \"public\" or \"private\"" }, { status: 400 })
         }
-        privacyUpdate = body.profilePrivacy
+        profileUpdate.profile_privacy = body.profilePrivacy
+    }
+
+    if ("activityLevel" in body) {
+        if (!ACTIVITY_LEVELS.some((level) => level.value === body.activityLevel)) {
+            return NextResponse.json({ message: "activityLevel must be a whole number from 1 to 5" }, { status: 400 })
+        }
+        profileUpdate.activity_level = body.activityLevel
     }
 
     try {
@@ -74,8 +84,8 @@ export async function PATCH(req: NextRequest) {
             if (error) throw error
         }
 
-        if (privacyUpdate) {
-            const { error } = await supabase.from("profiles").update({ profile_privacy: privacyUpdate }).eq("id", userId)
+        if (Object.keys(profileUpdate).length > 0) {
+            const { error } = await supabase.from("profiles").update(profileUpdate).eq("id", userId)
             if (error) throw error
         }
 

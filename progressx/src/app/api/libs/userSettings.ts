@@ -8,6 +8,7 @@ export type UserSettings = {
     waterGoalMl: number | null, // null = recommended goal
     profilePrivacy: "public" | "private",
     weightUnit: "lb" | "kg", // how workout weights are shown and entered (stored in kg)
+    activityLevel: number | null, // profiles.activity_level 1..5, drives the calorie and water targets
 }
 
 // Reads the user's settings; a missing user_settings row means all defaults
@@ -17,7 +18,7 @@ export async function loadUserSettings(userId: string): Promise<{ settings: User
         { data: profile, error: profileError },
     ] = await Promise.all([
         supabase.from("user_settings").select("blur_progress_photos, water_goal_ml, weight_unit").eq("user_id", userId).maybeSingle(),
-        supabase.from("profiles").select("profile_privacy, email").eq("id", userId).single(),
+        supabase.from("profiles").select("profile_privacy, email, activity_level").eq("id", userId).single(),
     ])
 
     if (settingsError) throw settingsError
@@ -29,6 +30,7 @@ export async function loadUserSettings(userId: string): Promise<{ settings: User
             waterGoalMl: row?.water_goal_ml ?? null,
             profilePrivacy: profile?.profile_privacy === "public" ? "public" : "private",
             weightUnit: row?.weight_unit === "kg" ? "kg" : "lb",
+            activityLevel: profile?.activity_level ?? null,
         },
         email: profile?.email ?? null,
     }
