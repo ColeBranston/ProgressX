@@ -165,8 +165,8 @@ jobs:
         env:
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'http://127.0.0.1:9000' }}
         run: |
-          # the SonarQube token comes from Vault (secret/progressx/CI/SonarQube), not from a GitHub secret
-          python3 ci/vault-fetch.py value progressx/CI/SonarQube SONAR_TOKEN "$RUNNER_TEMP/sonar-token"
+          # the SonarQube token comes from Vault (secret/progressx/Actions-Secrets/SonarQube), not from a GitHub secret
+          python3 ci/vault-fetch.py value progressx/Actions-Secrets/SonarQube SONAR_TOKEN "$RUNNER_TEMP/sonar-token"
           SONAR_TOKEN="$(cat "$RUNNER_TEMP/sonar-token")"; rm -f "$RUNNER_TEMP/sonar-token"
           echo "::add-mask::$SONAR_TOKEN"
           export SONAR_TOKEN
@@ -219,7 +219,7 @@ jobs:
 
       # The media Worker (workers/media) that serves videos at media.progressx.ca, deployed before the
       # app so it already accepts the links a new app version hands out. Its Cloudflare API token is in
-      # Vault (secret/progressx/CI/Cloudflare); until that secret exists, this step only leaves a notice.
+      # Vault (secret/progressx/Actions-Secrets/Cloudflare); until that secret exists, this step only leaves a notice.
       - name: Deploy media Worker
         working-directory: workers/media
         env:
@@ -227,9 +227,9 @@ jobs:
         run: |
           umask 077
           trap 'rm -f "$RUNNER_TEMP/cloudflare.env" "$RUNNER_TEMP/media-key"' EXIT
-          if ! out=$(python3 ../../ci/vault-fetch.py env progressx/CI/Cloudflare "$RUNNER_TEMP/cloudflare.env" 2>&1); then
+          if ! out=$(python3 ../../ci/vault-fetch.py env progressx/Actions-Secrets/Cloudflare "$RUNNER_TEMP/cloudflare.env" 2>&1); then
             case "$out" in
-              *"(404)"*) echo "::notice::No secret/progressx/CI/Cloudflare in Vault yet, so the media Worker wasn't deployed (see workers/media/README.md)"; exit 0 ;;
+              *"(404)"*) echo "::notice::No secret/progressx/Actions-Secrets/Cloudflare in Vault yet, so the media Worker wasn't deployed (see workers/media/README.md)"; exit 0 ;;
               *) echo "$out" >&2; exit 1 ;;
             esac
           fi
