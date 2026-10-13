@@ -246,6 +246,29 @@
     color: white;
 }
 
+.select {
+    flex-shrink: 0;
+    height: 40px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 10px;
+    background: var(--primary-input-background-color);
+    color: white;
+    font-family: var(--primary-font-family);
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.select option {
+    background: #1c1c1e;
+    color: white;
+}
+
+.select:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
 .inlineForm {
     display: flex;
     flex-wrap: wrap;

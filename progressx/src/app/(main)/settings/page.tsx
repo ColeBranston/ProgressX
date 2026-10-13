@@ -1,18 +1,20 @@
 "use client";
 
-import { FormEvent, useCallback, useContext, useEffect, useState } from "react";
+import { FormEvent, useCallback, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import IdVerification from "../../internal_components/verification/IdVerification";
 import styles from "./settings.module.css";
 import { userDataContext, UserData } from "@/app/contexts/userData";
 import { formatVolume, getWaterTargetMl } from "@/app/internal_components/index";
 import { clearLocalAccountData } from "@/app/internal_components/SessionWatch";
+import { ACTIVITY_LEVELS } from "@/app/internal_components/profile/profileRules";
 
 type Settings = {
     blurProgressPhotos: boolean,
     waterGoalMl: number | null, // null = recommended
     profilePrivacy: "public" | "private",
     weightUnit: "lb" | "kg",
+    activityLevel: number | null,
 }
 
 type Section = "privacy" | "diet" | "workouts"
@@ -65,6 +67,16 @@ export default function SettingsPage() {
     const [ loadError, setLoadError ] = useState(false)
     const [ status, setStatus ] = useState<SaveStatus>(null)
 
+    // the latest settings, for saves that finish after newer changes were made (always set through commitSettings)
+    const settingsRef = useRef<Settings | null>(null)
+    // which save last changed each field; a save's response only sets the fields no newer save has changed since
+    const fieldOwner = useRef(new Map<keyof Settings, number>())
+    const saveCount = useRef(0)
+
+    // activity saves run one at a time; a level picked while one is saving waits here (only the latest is kept)
+    const activitySaving = useRef(false)
+    const queuedActivity = useRef<number | null>(null)
+
     const [ waterMode, setWaterMode ] = useState<"recommended" | "custom">("recommended")
     const [ waterInput, setWaterInput ] = useState("")
     const [ waterError, setWaterError ] = useState<string | null>(null)
@@ -86,7 +98,7 @@ export default function SettingsPage() {
             const res = await fetch("/api/user/settings")
             if (!res.ok) throw new Error(`status ${res.status}`)
             const json = await res.json()
-            setSettings(json.settings)
+            commitSettings(json.settings)
             setEmail(json.email)
             setWaterMode(json.settings.waterGoalMl ? "custom" : "recommended")
             if (json.settings.waterGoalMl) setWaterInput(String(json.settings.waterGoalMl))
@@ -107,12 +119,35 @@ export default function SettingsPage() {
         return () => clearTimeout(timer)
     }, [status])
 
-    // Applies the change right away, saves it, and puts the old value back if saving fails
+    function commitSettings(next: Settings | null) {
+        settingsRef.current = next
+        setSettings(next)
+    }
+
+    // Applies the change right away, saves it, and puts the old value back if saving fails. Saves can
+    // overlap, so a save only touches the fields it still owns: a newer save's change is never undone.
     async function save(section: Section, patch: Partial<Settings>) {
-        if (!settings) return
-        const previous = settings
-        setSettings({ ...settings, ...patch })
+        const current = settingsRef.current
+        if (!current) return false
+        const id = ++saveCount.current
+        const keys = Object.keys(patch) as (keyof Settings)[]
+        const previous = Object.fromEntries(keys.map((key) => [key, current[key]])) as Partial<Settings>
+        keys.forEach((key) => fieldOwner.current.set(key, id))
+        commitSettings({ ...current, ...patch })
         setStatus({ section, state: "saving" })
+
+        // sets only the fields this save changed and still owns; the rest of a response may be out of date
+        const settle = (values: Partial<Settings>) => {
+            const latest = settingsRef.current
+            if (!latest) return
+            const next = { ...latest }
+            for (const key of keys) {
+                if (fieldOwner.current.get(key) !== id) continue
+                fieldOwner.current.delete(key)
+                if (key in values) Object.assign(next, { [key]: values[key] })
+            }
+            commitSettings(next)
+        }
 
         try {
             const res = await fetch("/api/user/settings", {
@@ -122,12 +157,12 @@ export default function SettingsPage() {
             })
             if (!res.ok) throw new Error(`status ${res.status}`)
             const json = await res.json()
-            setSettings(json.settings)
+            settle(json.settings)
             setStatus({ section, state: "saved" })
             return true
         } catch (err) {
             console.error("Failed to save settings: ", err)
-            setSettings(previous)
+            settle(previous)
             setStatus({ section, state: "error" })
             return false
         }
@@ -138,6 +173,29 @@ export default function SettingsPage() {
         const saved = await save("privacy", { profilePrivacy: value })
         // keep the profile page's lock icon in sync
         if (saved) setUserData((prev: UserData) => ({ ...prev, privacy: value }))
+    }
+
+    // Saves activity levels in the order they were picked, so the last one picked is what ends up saved
+    async function changeActivity(value: number) {
+        if (activitySaving.current) {
+            queuedActivity.current = value
+            if (settingsRef.current) commitSettings({ ...settingsRef.current, activityLevel: value })
+            return
+        }
+        if (!settingsRef.current || value === settingsRef.current.activityLevel) return
+
+        activitySaving.current = true
+        let next: number | null = value
+        while (next !== null) {
+            const level: number = next
+            const saved = await save("diet", { activityLevel: level })
+            // the calorie and water targets everywhere are worked out from this
+            if (saved) setUserData((prev: UserData) => ({ ...prev, activity: level }))
+            next = queuedActivity.current
+            queuedActivity.current = null
+            if (next === settingsRef.current?.activityLevel) next = null
+        }
+        activitySaving.current = false
     }
 
     function changeWaterMode(mode: "recommended" | "custom") {
@@ -284,6 +342,26 @@ export default function SettingsPage() {
                                 <div className={styles.cardHeader}>
                                     <h2 id="diet-heading" className={styles.cardTitle}>Diet</h2>
                                     {statusText("diet")}
+                                </div>
+
+                                <div className={styles.row}>
+                                    <div className={styles.rowText}>
+                                        <p className={styles.rowLabel}>Activity level</p>
+                                        <p className={styles.rowDescription}>
+                                            {ACTIVITY_LEVELS.find((level) => level.value === settings.activityLevel)?.detail ?? "How active you are."} Sets your recommended calories and water.
+                                        </p>
+                                    </div>
+                                    <select
+                                        className={styles.select}
+                                        value={settings.activityLevel ?? ""}
+                                        onChange={(e) => changeActivity(Number(e.target.value))}
+                                        aria-label="Activity level"
+                                    >
+                                        {settings.activityLevel === null ? <option value="" disabled>Choose one</option> : null}
+                                        {ACTIVITY_LEVELS.map((level) => (
+                                            <option key={level.value} value={level.value}>{level.label}</option>
+                                        ))}
+                                    </select>
                                 </div>
 
                                 <div className={styles.row}>
