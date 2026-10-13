@@ -67,9 +67,11 @@ export default function SettingsPage() {
     const [ loadError, setLoadError ] = useState(false)
     const [ status, setStatus ] = useState<SaveStatus>(null)
 
-    // the latest settings, for saves that finish after newer changes were made
+    // the latest settings, for saves that finish after newer changes were made (always set through commitSettings)
     const settingsRef = useRef<Settings | null>(null)
-    useEffect(() => { settingsRef.current = settings }, [settings])
+    // which save last changed each field; a save's response only sets the fields no newer save has changed since
+    const fieldOwner = useRef(new Map<keyof Settings, number>())
+    const saveCount = useRef(0)
 
     // activity saves run one at a time; a level picked while one is saving waits here (only the latest is kept)
     const activitySaving = useRef(false)
@@ -96,7 +98,7 @@ export default function SettingsPage() {
             const res = await fetch("/api/user/settings")
             if (!res.ok) throw new Error(`status ${res.status}`)
             const json = await res.json()
-            setSettings(json.settings)
+            commitSettings(json.settings)
             setEmail(json.email)
             setWaterMode(json.settings.waterGoalMl ? "custom" : "recommended")
             if (json.settings.waterGoalMl) setWaterInput(String(json.settings.waterGoalMl))
@@ -117,19 +119,35 @@ export default function SettingsPage() {
         return () => clearTimeout(timer)
     }, [status])
 
-    // Applies the change right away, saves it, and puts the old value back if saving fails
+    function commitSettings(next: Settings | null) {
+        settingsRef.current = next
+        setSettings(next)
+    }
+
+    // Applies the change right away, saves it, and puts the old value back if saving fails. Saves can
+    // overlap, so a save only touches the fields it still owns: a newer save's change is never undone.
     async function save(section: Section, patch: Partial<Settings>) {
         const current = settingsRef.current
         if (!current) return false
-        // only the fields being changed are put back on failure, so other changes made meanwhile survive
-        const previous = Object.fromEntries(Object.keys(patch).map((key) => [key, current[key as keyof Settings]])) as Partial<Settings>
-        const applyPatch = (update: Partial<Settings>) => setSettings((prev) => {
-            const next = prev ? { ...prev, ...update } : prev
-            settingsRef.current = next
-            return next
-        })
-        applyPatch(patch)
+        const id = ++saveCount.current
+        const keys = Object.keys(patch) as (keyof Settings)[]
+        const previous = Object.fromEntries(keys.map((key) => [key, current[key]])) as Partial<Settings>
+        keys.forEach((key) => fieldOwner.current.set(key, id))
+        commitSettings({ ...current, ...patch })
         setStatus({ section, state: "saving" })
+
+        // sets only the fields this save changed and still owns; the rest of a response may be out of date
+        const settle = (values: Partial<Settings>) => {
+            const latest = settingsRef.current
+            if (!latest) return
+            const next = { ...latest }
+            for (const key of keys) {
+                if (fieldOwner.current.get(key) !== id) continue
+                fieldOwner.current.delete(key)
+                if (key in values) Object.assign(next, { [key]: values[key] })
+            }
+            commitSettings(next)
+        }
 
         try {
             const res = await fetch("/api/user/settings", {
@@ -139,13 +157,12 @@ export default function SettingsPage() {
             })
             if (!res.ok) throw new Error(`status ${res.status}`)
             const json = await res.json()
-            setSettings(json.settings)
-            settingsRef.current = json.settings
+            settle(json.settings)
             setStatus({ section, state: "saved" })
             return true
         } catch (err) {
             console.error("Failed to save settings: ", err)
-            applyPatch(previous)
+            settle(previous)
             setStatus({ section, state: "error" })
             return false
         }
@@ -162,7 +179,7 @@ export default function SettingsPage() {
     async function changeActivity(value: number) {
         if (activitySaving.current) {
             queuedActivity.current = value
-            setSettings((prev) => prev ? { ...prev, activityLevel: value } : prev)
+            if (settingsRef.current) commitSettings({ ...settingsRef.current, activityLevel: value })
             return
         }
         if (!settingsRef.current || value === settingsRef.current.activityLevel) return

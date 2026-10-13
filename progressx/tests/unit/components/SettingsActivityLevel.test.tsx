@@ -11,17 +11,19 @@ vi.mock("@/app/internal_components/verification/IdVerification", () => ({ defaul
 const settings = { blurProgressPhotos: false, waterGoalMl: null, profilePrivacy: "private", weightUnit: "lb", activityLevel: 1 }
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } })
 
-// Each PATCH waits until the test resolves it, so saves can be made to overlap
+// Like the real server, each PATCH is saved as soon as it arrives and answered with the settings as they
+// were then, but the answer is held back until the test resolves it, so saves can overlap
 function stubSettingsApi() {
-    const patches: { level: number, resolve: () => void }[] = []
+    const patches: { level: number, body: Record<string, unknown>, resolve: () => void }[] = []
     let saved = { ...settings }
     vi.stubGlobal("fetch", vi.fn(async (url: string, init?: RequestInit) => {
         if (url !== "/api/user/settings") return json({})
         if (init?.method !== "PATCH") return json({ settings: saved, email: "me@example.com" })
-        const { activityLevel } = JSON.parse(String(init.body))
-        await new Promise<void>((resolve) => patches.push({ level: activityLevel, resolve }))
-        saved = { ...saved, activityLevel }
-        return json({ settings: saved, email: "me@example.com" })
+        const body = JSON.parse(String(init.body))
+        saved = { ...saved, ...body }
+        const answer = { settings: saved, email: "me@example.com" }
+        await new Promise<void>((resolve) => patches.push({ level: body.activityLevel, body, resolve }))
+        return json(answer)
     }))
     return { patches, saved: () => saved }
 }
@@ -74,5 +76,28 @@ describe("Settings activity level", () => {
         await waitFor(() => expect(screen.getByTestId("activity")).toHaveTextContent("3"))
         expect(api.patches).toHaveLength(1)
         expect(select).toHaveValue("3")
+    })
+
+    it("keeps a newer activity level when an older water goal save answers last", async () => {
+        const api = stubSettingsApi()
+        render(<Page />)
+        const select = await screen.findByRole("combobox", { name: "Activity level" })
+
+        await userEvent.click(screen.getByRole("radio", { name: "Custom" }))
+        const water = screen.getByRole("spinbutton", { name: "Custom daily water goal in millilitres" })
+        await userEvent.clear(water)
+        await userEvent.type(water, "2500")
+        await userEvent.click(screen.getByRole("button", { name: "Save goal" }))
+        await waitFor(() => expect(api.patches).toHaveLength(1)) // its answer still says activity level 1
+
+        await userEvent.selectOptions(select, "4")
+        await waitFor(() => expect(api.patches).toHaveLength(2))
+        api.patches[1].resolve()
+        await waitFor(() => expect(screen.getByTestId("activity")).toHaveTextContent("4"))
+
+        api.patches[0].resolve() // the older answer arrives last
+        await waitFor(() => expect(screen.getByRole("button", { name: "Saved" })).toBeInTheDocument())
+        expect(select).toHaveValue("4")
+        expect(api.saved()).toMatchObject({ activityLevel: 4, waterGoalMl: 2500 })
     })
 })
