@@ -1,0 +1,4 @@
+# Secrets for `wrangler dev` (local only). Copy to workers/media/.dev.vars. Any value works locally; links
+# must be signed with the same one. In production the Worker's MEDIA_SIGNING_KEY is set by CI from Vault
+# (secret/progressx/AppEnvLocal) - never put the production key here.
+MEDIA_SIGNING_KEY=local-dev-signing-key
