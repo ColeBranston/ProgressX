@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useContext, useEffect, useState } from "react";
+import { FormEvent, useCallback, useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import IdVerification from "../../internal_components/verification/IdVerification";
 import styles from "./settings.module.css";
@@ -67,6 +67,14 @@ export default function SettingsPage() {
     const [ loadError, setLoadError ] = useState(false)
     const [ status, setStatus ] = useState<SaveStatus>(null)
 
+    // the latest settings, for saves that finish after newer changes were made
+    const settingsRef = useRef<Settings | null>(null)
+    useEffect(() => { settingsRef.current = settings }, [settings])
+
+    // activity saves run one at a time; a level picked while one is saving waits here (only the latest is kept)
+    const activitySaving = useRef(false)
+    const queuedActivity = useRef<number | null>(null)
+
     const [ waterMode, setWaterMode ] = useState<"recommended" | "custom">("recommended")
     const [ waterInput, setWaterInput ] = useState("")
     const [ waterError, setWaterError ] = useState<string | null>(null)
@@ -111,9 +119,16 @@ export default function SettingsPage() {
 
     // Applies the change right away, saves it, and puts the old value back if saving fails
     async function save(section: Section, patch: Partial<Settings>) {
-        if (!settings) return
-        const previous = settings
-        setSettings({ ...settings, ...patch })
+        const current = settingsRef.current
+        if (!current) return false
+        // only the fields being changed are put back on failure, so other changes made meanwhile survive
+        const previous = Object.fromEntries(Object.keys(patch).map((key) => [key, current[key as keyof Settings]])) as Partial<Settings>
+        const applyPatch = (update: Partial<Settings>) => setSettings((prev) => {
+            const next = prev ? { ...prev, ...update } : prev
+            settingsRef.current = next
+            return next
+        })
+        applyPatch(patch)
         setStatus({ section, state: "saving" })
 
         try {
@@ -125,11 +140,12 @@ export default function SettingsPage() {
             if (!res.ok) throw new Error(`status ${res.status}`)
             const json = await res.json()
             setSettings(json.settings)
+            settingsRef.current = json.settings
             setStatus({ section, state: "saved" })
             return true
         } catch (err) {
             console.error("Failed to save settings: ", err)
-            setSettings(previous)
+            applyPatch(previous)
             setStatus({ section, state: "error" })
             return false
         }
@@ -142,11 +158,27 @@ export default function SettingsPage() {
         if (saved) setUserData((prev: UserData) => ({ ...prev, privacy: value }))
     }
 
+    // Saves activity levels in the order they were picked, so the last one picked is what ends up saved
     async function changeActivity(value: number) {
-        if (!settings || value === settings.activityLevel) return
-        const saved = await save("diet", { activityLevel: value })
-        // the calorie and water targets everywhere are worked out from this
-        if (saved) setUserData((prev: UserData) => ({ ...prev, activity: value }))
+        if (activitySaving.current) {
+            queuedActivity.current = value
+            setSettings((prev) => prev ? { ...prev, activityLevel: value } : prev)
+            return
+        }
+        if (!settingsRef.current || value === settingsRef.current.activityLevel) return
+
+        activitySaving.current = true
+        let next: number | null = value
+        while (next !== null) {
+            const level: number = next
+            const saved = await save("diet", { activityLevel: level })
+            // the calorie and water targets everywhere are worked out from this
+            if (saved) setUserData((prev: UserData) => ({ ...prev, activity: level }))
+            next = queuedActivity.current
+            queuedActivity.current = null
+            if (next === settingsRef.current?.activityLevel) next = null
+        }
+        activitySaving.current = false
     }
 
     function changeWaterMode(mode: "recommended" | "custom") {
