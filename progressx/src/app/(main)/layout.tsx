@@ -1,5 +1,6 @@
 import Navbar from "../internal_components/Navbar"
 import SessionWatch from "../internal_components/SessionWatch"
+import ReleaseNotes from "../internal_components/releases/ReleaseNotes"
 
 export default function RootLayout({
   children,
@@ -10,6 +11,7 @@ export default function RootLayout({
     <>
         < Navbar />
         <SessionWatch />
+        <ReleaseNotes />
         {children}
     </>
   );

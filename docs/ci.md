@@ -125,6 +125,13 @@ After an intended visual change to the login, terms or privacy pages, refresh th
   description is in its secret's custom metadata.
 - By hand: `cd ansible && ansible-playbook deploy.yml -e git_sha=$(git rev-parse origin/main)`; add
   `--check` for a dry run.
+- Release notes: after a successful deploy, `ci/record-release.py` saves the pull request that was merged
+  (its title and description) as a row in Supabase's `releases` table. Each user sees the newest one once,
+  as a "New update" popup the next time they open the app; dismissing it sets their
+  `user_settings.last_seen_release_id`. So write PR titles and descriptions for users. CodeRabbit's
+  summary, HTML comments and tool attribution lines are left out, and links show as plain text. A
+  commit pushed straight to `main` (no pull request) gets no popup, and a release from before someone
+  signed up isn't shown to them.
 
 ## CodeRabbit (AI review)
 

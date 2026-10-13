@@ -207,6 +207,7 @@ jobs:
     permissions:
       contents: read
       packages: read
+      pull-requests: read # to record the merged pull request's title and description as release notes
     concurrency:
       group: deploy-production
       cancel-in-progress: false
@@ -248,3 +249,17 @@ jobs:
         run: |
           export DOCKER_CONFIG="$(../ci/docker-config.sh)"
           ansible-playbook -i inventory.yml deploy.yml -e git_sha=${{ github.sha }}
+
+      # The merged pull request's title and description become the release notes users see once, in a
+      # "New update" popup the next time they open the app. Not recorded if the deploy failed above; a
+      # failure here leaves the deploy in place and only skips the popup.
+      - name: Record the release notes
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          umask 077
+          trap 'rm -f "$RUNNER_TEMP/supabase-url" "$RUNNER_TEMP/supabase-key"' EXIT
+          python3 ci/vault-fetch.py value progressx/AppEnvLocal SUPABASE_URL "$RUNNER_TEMP/supabase-url"
+          python3 ci/vault-fetch.py value progressx/AppEnvLocal SUPABASE_SERVICE_ROLE_KEY "$RUNNER_TEMP/supabase-key"
+          python3 ci/record-release.py "${{ github.sha }}" "$RUNNER_TEMP/supabase-url" "$RUNNER_TEMP/supabase-key"
