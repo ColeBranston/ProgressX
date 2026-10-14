@@ -149,6 +149,11 @@
     overflow-wrap: anywhere;
 }
 
+.rowDescription a {
+    color: inherit;
+    text-decoration: underline;
+}
+
 .linkRow {
     display: flex;
     justify-content: space-between;

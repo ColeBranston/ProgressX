@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
 import { followedIds } from "../../libs/follows";
-import { adConfig } from "../../libs/ads";
+import { adConfigFor } from "../../libs/ads";
 import { VIDEO_WITH_AUTHOR, VideoRowWithAuthor, decodeCursor, encodeCursor, olderThan, toCards } from "../../libs/videos";
 
 const FEED_PAGE = 8
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
             videos: await toCards(rows.slice(0, FEED_PAGE), viewerId),
             nextCursor: rows.length > FEED_PAGE ? encodeCursor(rows[FEED_PAGE - 1]) : null,
             followsAnyone: true,
-            ads: adConfig(),
+            ads: await adConfigFor(viewerId),
         })
     } catch (e) {
         console.log("Error loading the following feed: ", e instanceof Error ? e.message : e)

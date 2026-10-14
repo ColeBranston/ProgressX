@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./ForYouFeed.module.css";
 import { ArrowIcon } from "./icons";
-import { AdPost, adPost, adTagFor, Ima, ImaAdDisplayContainer, ImaAdsLoader, ImaAdsManager, loadIma } from "./ima";
+import { AdContext, AdPost, adPost, adTagFor, Ima, ImaAdDisplayContainer, ImaAdsLoader, ImaAdsManager, loadIma } from "./ima";
 
 // How long a reached slot waits for its ad before it's skipped (no ad available, slow network)
 const FILL_TIMEOUT_MS = 4000
@@ -13,6 +13,7 @@ export type AdOutcome = "completed" | "unfilled"
 
 type AdSlotProps = {
     tagUrl: string,
+    context: AdContext,   // personalized or not, and the fitness topics around the slot
     active: boolean,   // the slot is on screen: play the ad
     muted: boolean,
     onStarted: () => void,
@@ -23,7 +24,7 @@ type AdSlotProps = {
 // name, a "Sponsored" tag, its caption and a "Learn more" button, instead of Google's standard player
 // controls. Mounted a few slots early so its ad is requested and ready by the time it's reached (it only
 // plays while active). When it finishes, is skipped, or no ad comes, onDone.
-export default function AdSlot({ tagUrl, active, muted, onStarted, onDone }: AdSlotProps) {
+export default function AdSlot({ tagUrl, context, active, muted, onStarted, onDone }: AdSlotProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const videoRef = useRef<HTMLVideoElement>(null)
     const ctaRef = useRef<HTMLButtonElement>(null)
@@ -37,8 +38,8 @@ export default function AdSlot({ tagUrl, active, muted, onStarted, onDone }: AdS
     const [ progress, setProgress ] = useState(0)
     const [ pausedByClick, setPausedByClick ] = useState(false)
     // latest props for the SDK's callbacks
-    const latest = useRef({ active, muted, onStarted, onDone })
-    useEffect(() => { latest.current = { active, muted, onStarted, onDone } })
+    const latest = useRef({ context, active, muted, onStarted, onDone })
+    useEffect(() => { latest.current = { context, active, muted, onStarted, onDone } })
 
     const finish = (outcome: AdOutcome) => {
         if (finished.current) return
@@ -87,7 +88,7 @@ export default function AdSlot({ tagUrl, active, muted, onStarted, onDone }: AdS
             loader.addEventListener(sdk.AdErrorEvent.Type.AD_ERROR, () => finish("unfilled"))
 
             const request = new sdk.AdsRequest()
-            request.adTagUrl = adTagFor(tagUrl, `${window.location.origin}/`)
+            request.adTagUrl = adTagFor(tagUrl, `${window.location.origin}/`, latest.current.context)
             request.linearAdSlotWidth = container.clientWidth
             request.linearAdSlotHeight = container.clientHeight
             request.nonLinearAdSlotWidth = container.clientWidth

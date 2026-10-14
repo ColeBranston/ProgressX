@@ -50,6 +50,8 @@ function fakeIma(ad = { advertiser: "Acme Protein", title: "Acme Whey", descript
     }
 }
 
+const context = { personalized: false, topics: ["strength"] }
+
 beforeEach(() => { delete window.google })
 afterEach(() => { delete window.google })
 
@@ -57,7 +59,7 @@ describe("AdSlot", () => {
     it("shows the ad as a post, with Learn more as Google's click target and no standard controls", async () => {
         const sdk = fakeIma()
         const onStarted = vi.fn(), onDone = vi.fn()
-        render(<AdSlot tagUrl="https://ads.example/tag" active muted onStarted={onStarted} onDone={onDone} />)
+        render(<AdSlot tagUrl="https://ads.example/tag" context={context} active muted onStarted={onStarted} onDone={onDone} />)
         await waitFor(() => expect(sdk.calls).toContain("request"))
 
         sdk.fill()
@@ -77,7 +79,7 @@ describe("AdSlot", () => {
 
     it("waits to play until it's on screen, and pauses when scrolled away", async () => {
         const sdk = fakeIma()
-        const props = { tagUrl: "https://ads.example/tag", muted: true, onStarted: () => {}, onDone: () => {} }
+        const props = { tagUrl: "https://ads.example/tag", context, muted: true, onStarted: () => {}, onDone: () => {} }
         const { rerender } = render(<AdSlot {...props} active={false} />)
         await waitFor(() => expect(sdk.calls).toContain("request"))
         sdk.fill()
@@ -93,7 +95,7 @@ describe("AdSlot", () => {
     it("gives up when Google has no ad", async () => {
         const sdk = fakeIma()
         const onDone = vi.fn()
-        render(<AdSlot tagUrl="https://ads.example/tag" active muted onStarted={() => {}} onDone={onDone} />)
+        render(<AdSlot tagUrl="https://ads.example/tag" context={context} active muted onStarted={() => {}} onDone={onDone} />)
         await waitFor(() => expect(sdk.calls).toContain("request"))
         sdk.noAd()
         expect(onDone).toHaveBeenCalledWith("unfilled")
@@ -105,7 +107,7 @@ describe("AdSlot", () => {
             return node
         })
         const onDone = vi.fn()
-        render(<AdSlot tagUrl="https://ads.example/tag" active={false} muted onStarted={() => {}} onDone={onDone} />)
+        render(<AdSlot tagUrl="https://ads.example/tag" context={context} active={false} muted onStarted={() => {}} onDone={onDone} />)
         await waitFor(() => expect(onDone).toHaveBeenCalledWith("unfilled"))
         append.mockRestore()
     })

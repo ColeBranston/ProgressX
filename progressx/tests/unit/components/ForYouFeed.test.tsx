@@ -28,7 +28,7 @@ const card = (): VideoCard => {
     }
 }
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } })
-const adSettings = { tagUrl: "https://ads.example/tag", firstAfter: 4, every: 6, minGapSeconds: 45 }
+const adSettings = { tagUrl: "https://ads.example/tag", firstAfter: 4, every: 6, minGapSeconds: 45, personalized: false }
 
 function stubFeed(ads: typeof adSettings | null = null) {
     const fetch = vi.fn<(url: string) => Promise<Response>>(async () => json({ videos: Array.from({ length: 5 }, card), ads }))

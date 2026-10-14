@@ -88,14 +88,23 @@ export function loadIma(): Promise<Ima> {
     return loading
 }
 
+export type AdContext = {
+    personalized: boolean,  // the user opted in to personalized ads (Settings); otherwise npa=1
+    topics: string[],       // fitness topics of the videos around the ad (contextual, not about the user)
+}
+
 // The ad tag with what Google needs per request: a fresh correlator (one value per page view and ad),
-// non-personalized ads only (npa=1: no ad profiling, as the privacy policy says), and the page it's on
-export function adTagFor(tagUrl: string, pageUrl: string, now = Date.now()): string {
+// non-personalized ads (npa=1) unless the user opted in, the page it's on, and contextual key-values
+// (category=fitness and the topics nearby) so fitness advertisers can bid on the slot
+export function adTagFor(tagUrl: string, pageUrl: string, context: AdContext, now = Date.now()): string {
     const url = new URL(tagUrl)
     url.searchParams.set("correlator", String(now))
-    url.searchParams.set("npa", "1")
+    if (context.personalized) url.searchParams.delete("npa")
+    else url.searchParams.set("npa", "1")
     if (!url.searchParams.has("description_url")) url.searchParams.set("description_url", pageUrl)
     if (!url.searchParams.has("url")) url.searchParams.set("url", pageUrl)
+    const values = [url.searchParams.get("cust_params"), "category=fitness", context.topics.length ? `topic=${context.topics.join(",")}` : ""]
+    url.searchParams.set("cust_params", values.filter(Boolean).join("&"))
     return url.toString()
 }
 

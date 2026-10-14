@@ -8,7 +8,7 @@ import VideoPlayer from "./VideoPlayer";
 import AdSlot from "./AdSlot";
 import { ArrowIcon, BookmarkIcon, CommentIcon, HeartIcon, MoreIcon, MutedIcon, ShareIcon, VolumeIcon } from "./icons";
 import { Reaction, VideoCard, formatCount, setFollow, setReaction } from "./videoTypes";
-import { AdConfig, FeedItem, adAllowedNow, appendWithAds, loadedRange, needsMore } from "./feedPlan";
+import { AdConfig, FeedItem, adAllowedNow, adTopics, appendWithAds, captionsBefore, loadedRange, needsMore } from "./feedPlan";
 
 const NAV_COOLDOWN_MS = 550
 const SWIPE_PX = 50
@@ -285,6 +285,7 @@ export default function ForYouFeed({ source = "for-you" }: { source?: "for-you" 
                                 ads && ahead <= AD_REQUEST_AHEAD ?
                                     <AdSlot
                                         tagUrl={ads.tagUrl}
+                                        context={{ personalized: ads.personalized, topics: adTopics(captionsBefore(items, i)) }}
                                         active={i === index}
                                         muted={muted}
                                         onStarted={adStarted}

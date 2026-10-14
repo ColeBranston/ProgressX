@@ -58,6 +58,7 @@ export type AdConfig = {
     firstAfter: number,     // organic videos before the first ad
     every: number,          // organic videos between ads after that
     minGapSeconds: number,  // never two ads closer together than this
+    personalized: boolean,  // this viewer opted in to personalized ads (Settings)
 }
 
 export type FeedItem =
@@ -92,4 +93,37 @@ function organicSinceLastAd(items: FeedItem[]): number {
 // An ad slot reached sooner than minGapSeconds after the last ad was shown is skipped
 export function adAllowedNow(ads: AdConfig, lastAdShownAt: number | null, now = Date.now()): boolean {
     return lastAdShownAt === null || now - lastAdShownAt >= ads.minGapSeconds * 1000
+}
+
+// ---------- contextual targeting ----------
+
+// Fitness topics an ad slot is sold against, worked out from the captions of the videos just before it
+// (public content, nothing about the viewer). Health topics such as weight loss are left out on purpose:
+// ads mustn't be matched to health conditions.
+const TOPIC_WORDS: Record<string, string[]> = {
+    strength: ["strength", "lift", "lifting", "squat", "squats", "deadlift", "deadlifts", "bench", "powerlifting", "pr"],
+    bodybuilding: ["bodybuilding", "hypertrophy", "physique", "pump", "bulk", "bulking", "gains"],
+    running: ["run", "running", "runner", "marathon", "5k", "10k", "sprint", "sprints", "jog"],
+    cycling: ["bike", "cycling", "cyclist", "ride", "spin"],
+    yoga: ["yoga", "stretch", "stretching", "mobility", "flexibility", "pilates"],
+    calisthenics: ["calisthenics", "pullup", "pullups", "pushup", "pushups", "handstand", "dips"],
+    hiit: ["hiit", "crossfit", "wod", "circuit", "cardio"],
+    nutrition: ["protein", "meal", "meals", "recipe", "macros", "nutrition", "preworkout"],
+}
+const WORD_TO_TOPIC = new Map(Object.entries(TOPIC_WORDS).flatMap(([topic, words]) => words.map((word) => [word, topic] as const)))
+export const MAX_AD_TOPICS = 3
+
+export function adTopics(captions: string[]): string[] {
+    const counts = new Map<string, number>()
+    for (const caption of captions) {
+        const words = new Set(caption.toLowerCase().replace(/[-#]/g, "").split(/[^a-z0-9]+/))
+        const topics = new Set([...words].flatMap((word) => WORD_TO_TOPIC.get(word) ?? []))
+        for (const topic of topics) counts.set(topic, (counts.get(topic) ?? 0) + 1)
+    }
+    return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, MAX_AD_TOPICS).map(([topic]) => topic)
+}
+
+// The captions of the few videos right before position `at` (what the viewer was just watching)
+export function captionsBefore(items: FeedItem[], at: number, count = 3): string[] {
+    return items.slice(Math.max(0, at - count), at).flatMap((item) => item.kind === "video" ? [item.video.caption] : [])
 }

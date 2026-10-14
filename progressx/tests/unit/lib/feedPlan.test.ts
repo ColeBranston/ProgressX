@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest"
-import { AdConfig, FeedItem, adAllowedNow, appendWithAds, loadedRange, needsMore, pickRandom } from "@/app/internal_components/videos/feedPlan"
+import { AdConfig, FeedItem, adAllowedNow, adTopics, appendWithAds, captionsBefore, loadedRange, needsMore, pickRandom } from "@/app/internal_components/videos/feedPlan"
 import type { VideoCard } from "@/app/internal_components/videos/videoTypes"
 import { adConfig, adsTxt } from "@/app/api/libs/ads"
 import { adTagFor } from "@/app/internal_components/videos/ima"
 
 const video = (id: string) => ({ id }) as VideoCard
-const ads: AdConfig = { tagUrl: "https://ads.example/tag", firstAfter: 4, every: 6, minGapSeconds: 45 }
+const ads: AdConfig = { tagUrl: "https://ads.example/tag", firstAfter: 4, every: 6, minGapSeconds: 45, personalized: false }
 const keys = () => { let n = 0; return () => `k${n++}` }
 const kinds = (items: FeedItem[]) => items.map((item) => item.kind === "ad" ? "AD" : item.video.id).join(" ")
 
@@ -86,7 +86,7 @@ describe("ad settings from the environment", () => {
     it("uses the defaults, or valid overrides", () => {
         expect(adConfig({ AD_VIDEO_TAG_URL: "https://ads.example/tag" })).toEqual(ads)
         expect(adConfig({ AD_VIDEO_TAG_URL: "https://ads.example/tag", AD_FIRST_AFTER: "3", AD_EVERY: "8", AD_MIN_GAP_SECONDS: "60" }))
-            .toEqual({ tagUrl: "https://ads.example/tag", firstAfter: 3, every: 8, minGapSeconds: 60 })
+            .toEqual({ tagUrl: "https://ads.example/tag", firstAfter: 3, every: 8, minGapSeconds: 60, personalized: false })
         expect(adConfig({ AD_VIDEO_TAG_URL: "https://ads.example/tag", AD_EVERY: "1", AD_FIRST_AFTER: "abc" })).toEqual(ads)
     })
 
@@ -96,11 +96,37 @@ describe("ad settings from the environment", () => {
             .toBe("google.com, pub-123, DIRECT, f08c47fec0942fa0\nother.com, 9, RESELLER\n")
     })
 
-    it("asks for non-personalized ads with a fresh correlator and the page", () => {
-        const tag = new URL(adTagFor("https://pubads.g.doubleclick.net/gampad/ads?iu=/1/feed&npa=0", "https://progressx.ca/", 42))
+    it("asks for non-personalized ads with a fresh correlator, the page and fitness context", () => {
+        const tag = new URL(adTagFor("https://pubads.g.doubleclick.net/gampad/ads?iu=/1/feed&npa=0", "https://progressx.ca/", { personalized: false, topics: ["strength", "running"] }, 42))
         expect(tag.searchParams.get("npa")).toBe("1")
         expect(tag.searchParams.get("correlator")).toBe("42")
         expect(tag.searchParams.get("description_url")).toBe("https://progressx.ca/")
         expect(tag.searchParams.get("iu")).toBe("/1/feed")
+        expect(tag.searchParams.get("cust_params")).toBe("category=fitness&topic=strength,running")
+    })
+
+    it("allows personalized ads only for viewers who opted in, keeping the tag's own key-values", () => {
+        const tag = new URL(adTagFor("https://ads.example/tag?npa=1&cust_params=site%3Dpx", "https://progressx.ca/", { personalized: true, topics: [] }))
+        expect(tag.searchParams.has("npa")).toBe(false)
+        expect(tag.searchParams.get("cust_params")).toBe("site=px&category=fitness")
+    })
+})
+
+describe("contextual topics", () => {
+    it("finds the fitness topics in nearby captions, most common first", () => {
+        expect(adTopics(["Heavy squat day #legday", "New deadlift PR!", "Morning 5k run"])).toEqual(["strength", "running"])
+        expect(adTopics(["yoga flow", "Pull-ups and push-ups", "post-run stretching", "protein pancakes recipe"]))
+            .toEqual(["yoga", "calisthenics", "nutrition"])
+    })
+
+    it("ignores captions with no fitness words, and never infers health topics", () => {
+        expect(adTopics(["hello", "", "my cat"])).toEqual([])
+        expect(adTopics(["lost 20 lbs, weight loss journey, diabetic friendly"])).toEqual([])
+    })
+
+    it("reads the captions of the videos just before a slot", () => {
+        const items = appendWithAds([], ["a", "b", "c", "d"].map((id) => ({ id, caption: `cap ${id}` }) as VideoCard), null, keys())
+        expect(captionsBefore(items, 4)).toEqual(["cap b", "cap c", "cap d"])
+        expect(captionsBefore(items, 1)).toEqual(["cap a"])
     })
 })

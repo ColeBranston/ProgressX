@@ -109,7 +109,8 @@ export default function PrivacyPolicyPage() {
             </ul>
             <p>
                 We do <strong>not</strong> sell your personal information. The video feed shows ads (see section 06); they are
-                non-personalized, and we never use your profile, health or activity information to choose them.
+                non-personalized unless you turn on personalized ads, and we never use your profile, health or activity information
+                to choose them.
             </p>
 
             <h2><span>04</span>Health and body information</h2>
@@ -150,10 +151,21 @@ export default function PrivacyPolicyPage() {
                 clearing your browser data removes it.
             </p>
             <p>
-                <strong>Ads.</strong> The video feed shows video ads from Google between videos. We ask Google for
-                <strong> non-personalized ads only</strong>: ads aren&apos;t based on a profile of your interests or what you do on other
-                sites, and nothing about your health or fitness is used. Google may still use cookies or similar technologies on your device
-                to show the ad, limit how often you see it, measure it and prevent fraud. You can learn how Google uses this information at{" "}
+                <strong>Ads.</strong> The video feed shows video ads from Google between videos. By default they are
+                <strong> non-personalized</strong>: they aren&apos;t based on a profile of your interests or what you do on other sites. We
+                tell Google only that ProgressX is a fitness app and the fitness topics of the public videos around the ad (for example,
+                strength or running) so related advertisers can bid; this is about the videos, not about you. Nothing about your profile,
+                health, diet, body or workouts is ever used for ads or shared with advertisers.
+            </p>
+            <p>
+                <strong>Personalized ads are your choice.</strong> If you turn on &quot;Personalized ads&quot; in Settings, we stop asking
+                Google for non-personalized ads, and Google may choose ads using the interests it has associated with your browser from
+                other sites and apps. It stays off unless you turn it on, you can turn it off at any time, and we keep a record of each
+                change. Even then, we don&apos;t give Google any of your ProgressX information.
+            </p>
+            <p>
+                Either way, Google may use cookies or similar technologies on your device to show the ad, limit how often you see it,
+                measure it and prevent fraud. You can learn how Google uses this information at{" "}
                 <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">policies.google.com/technologies/partner-sites</a>,
                 and manage Google ad settings at{" "}
                 <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer">adssettings.google.com</a>.

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
-import { adConfig } from "../../libs/ads";
+import { adConfigFor } from "../../libs/ads";
 import { UUID, VIDEO_WITH_AUTHOR, VideoRowWithAuthor, canView, toCards } from "../../libs/videos";
 import { FEED_BATCH, pickRandom } from "@/app/internal_components/videos/feedPlan";
 
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
             rows = ids.map((id) => byId.get(id)).filter((row): row is VideoRowWithAuthor => !!row && row.status === "ready" && canView(row, row.profiles, viewerId))
         }
 
-        return NextResponse.json({ videos: await toCards(rows, viewerId), ads: adConfig() })
+        return NextResponse.json({ videos: await toCards(rows, viewerId), ads: await adConfigFor(viewerId) })
     } catch (e) {
         console.log("Error loading the feed: ", e instanceof Error ? e.message : e)
         return NextResponse.json({ message: "Couldn't load videos" }, { status: 500 })
