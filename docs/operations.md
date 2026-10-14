@@ -41,7 +41,11 @@ browser ──► Cloudflare ──► cloudflared tunnel (on this Mac) ──�
 
 ## Environment variables
 
-There are two env files, both gitignored. Never commit them. Copy the matching `.env.sample` to start.
+Every secret or settings file is gitignored and has a committed `.sample` next to it with the same
+keys: `.env`, `progressx/.env.local`, `data/.env`, `nginx/solr-ingest.htpasswd`,
+`nginx/solr-ingest-url.txt` and `workers/media/.dev.vars`. Never commit the real ones. Copy the sample to
+start, or fill them from Vault (`python3 ci/vault-fetch.py env progressx/RootEnv .env`, `env
+progressx/AppEnvLocal progressx/.env.local`, `files progressx/NginxFileConfig nginx`).
 
 ### 1. `.env` (repo root): Docker Compose settings
 
@@ -115,7 +119,7 @@ Used by `data/search_backend` and `data/DAGs` when run outside Docker. In Docker
 
 ### Other secret files (gitignored)
 
-- `nginx/solr-ingest.htpasswd`: password for the `/solr-ingest/` route.
+- `nginx/solr-ingest.htpasswd`: password for the `/solr-ingest/` route (format and how to make one: `nginx/solr-ingest.htpasswd.sample`).
 - `nginx/solr-ingest-url.txt`: the full ingest URL including that password. Its copy in Vault (`secret/progressx/NginxFileConfig`) is what the ETL workflow uses; update both if the password changes.
 
 ### Login settings (in code, not env vars)
