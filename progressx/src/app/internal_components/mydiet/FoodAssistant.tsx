@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import styles from './FoodAssistant.module.css'
 import NumberField from './NumberField'
 import { MICRONUTRIENT_DEFS } from './microNutrients'
@@ -43,6 +43,9 @@ type FoodAssistantProps = {
     dateKey: string
     // resolves true once the food is logged
     onAdd: (values: FoodItemFormValues, opts: { saveToCatalog: boolean }) => Promise<boolean>
+    // collapsed, only the header shows, leaving Quick Add's saved foods the room (the chat is kept)
+    open: boolean
+    onOpenChange: (open: boolean) => void
 }
 
 const SUGGESTIONS = [
@@ -243,7 +246,7 @@ function ProposalCard({ proposal, active, onAdd, onRefine }: ProposalCardProps) 
 }
 
 // Chat with the local Gemma model, which looks foods up on Google and proposes a log entry
-export default function FoodAssistant({ dateKey, onAdd }: FoodAssistantProps) {
+export default function FoodAssistant({ dateKey, onAdd, open, onOpenChange }: FoodAssistantProps) {
     const [items, setItems] = useState<Item[]>([])
     // the model-side conversation (incl. tool calls); the server is stateless, so it's sent back each turn
     const [history, setHistory] = useState<unknown[]>([])
@@ -251,6 +254,7 @@ export default function FoodAssistant({ dateKey, onAdd }: FoodAssistantProps) {
     const [photo, setPhoto] = useState<string | null>(null) // a prepared label photo waiting to be sent
     const [photoError, setPhotoError] = useState<string | null>(null)
     const [busy, setBusy] = useState(false)
+    const bodyId = useId()
     const fileRef = useRef<HTMLInputElement>(null)
     const abortRef = useRef<AbortController | null>(null)
     const nextId = useRef(0)
@@ -371,95 +375,105 @@ export default function FoodAssistant({ dateKey, onAdd }: FoodAssistantProps) {
     }
 
     return (
-        <section className={styles.assistant} aria-label="Nutrition assistant">
+        <section className={`${styles.assistant} ${open ? "" : styles.collapsed}`} aria-label="Nutrition assistant">
             <div className={styles.header}>
-                <div className={styles.title}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z" fill="currentColor"/>
-                        <path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z" fill="currentColor" opacity="0.6"/>
-                    </svg>
-                    <p>Describe it instead</p>
-                </div>
-                {items.length > 0 ? <button type="button" className={styles.linkButton} onClick={reset}>New chat</button> : null}
-            </div>
-
-            <div className={styles.log} ref={logRef} role="log" aria-live="polite">
-                {items.length === 0 ?
-                    <div className={styles.empty}>
-                        <p>Don&apos;t know the exact numbers? Tell me what you had and roughly how much, paste a link, or send a photo of the nutrition label. I&apos;ll work it out, and you confirm before anything is logged.</p>
-                        <div className={styles.suggestions}>
-                            {SUGGESTIONS.map((suggestion) => (
-                                <button type="button" key={suggestion} className={styles.suggestion} onClick={() => send(suggestion)}>{suggestion}</button>
-                            ))}
-                        </div>
-                        <p className={styles.attribution}>
-                            Nutrition data: USDA FoodData Central, and Health Canada&apos;s Canadian Nutrient File (contains information licensed under the Open Government Licence – Canada).
-                        </p>
-                    </div>
-                : items.map((item) => (
-                    item.kind === "proposal" ?
-                        <ProposalCard key={item.id} proposal={item.proposal} active={item.id > lastUserId && !busy} onAdd={onAdd} onRefine={refine} />
-                    : item.kind === "status" ?
-                        <p key={item.id} className={styles.status}>{item.text}</p>
-                    :
-                    item.kind === "user" && item.photo ?
-                        <div key={item.id} className={`${styles.bubble} ${styles.user} ${styles.photoBubble}`}>
-                            {/* eslint-disable-next-line @next/next/no-img-element -- a data: URL this page drew itself */}
-                            <img src={item.photo} alt="Your nutrition label photo" />
-                            {item.text ? <p>{item.text}</p> : null}
-                        </div>
-                    :
-                        <p key={item.id} className={`${styles.bubble} ${item.kind === "user" ? styles.user : item.kind === "error" ? styles.error : styles.reply}`}>{item.kind === "assistant" ? plain(item.text) : item.text}</p>
-                ))}
-                {busy && items[items.length - 1]?.kind !== "assistant" ? <span className={styles.typing} aria-label="Thinking"><i /><i /><i /></span> : null}
-            </div>
-
-            {photo || photoError ?
-                <div className={styles.photoTray}>
-                    {photo ?
-                        <>
-                            {/* eslint-disable-next-line @next/next/no-img-element -- a data: URL this page drew itself */}
-                            <img src={photo} alt="Label photo to send" />
-                            <span>Label photo ready. Add a note (like how much you had) or just send it.</span>
-                            <button type="button" className={styles.linkButton} onClick={() => setPhoto(null)}>Remove</button>
-                        </>
-                    : <span className={styles.photoError}>{photoError}</span>}
-                </div>
-            : null}
-            <form className={styles.composer} onSubmit={(e) => { e.preventDefault(); send(draft) }}>
-                <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-                    hidden
-                    onChange={(e) => choosePhoto(e.target.files?.[0])}
-                />
-                <button type="button" className={styles.photoButton} onClick={() => fileRef.current?.click()} disabled={busy} aria-label="Add a photo of a nutrition label">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.3-2h5.2l1.3 2h1.6A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-9z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/>
-                        <circle cx="12" cy="13" r="3.3" stroke="currentColor" strokeWidth="1.7"/>
+                <button type="button" className={styles.toggle} aria-expanded={open} aria-controls={bodyId} onClick={() => onOpenChange(!open)}>
+                    <span className={styles.title}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z" fill="currentColor"/>
+                            <path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z" fill="currentColor" opacity="0.6"/>
+                        </svg>
+                        <span className={styles.titleText}>Describe it instead</span>
+                    </span>
+                    {!open ?
+                        <span className={styles.collapsedHint}>{busy ? "Working on it…" : items.length > 0 ? "Chat in progress" : "Let AI work out the numbers"}</span>
+                    : null}
+                    <svg className={styles.chevron} width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                 </button>
-                <textarea
-                    ref={inputRef}
-                    rows={1}
-                    value={draft}
-                    maxLength={1000}
-                    placeholder="e.g. a big bowl of chicken curry"
-                    aria-label="Describe what you ate"
-                    onChange={(e) => setDraft(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(draft) } }}
-                />
-                {busy ?
-                    <button type="button" className={styles.sendButton} onClick={stop} aria-label="Stop">
-                        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="2" width="10" height="10" rx="2" fill="currentColor"/></svg>
+                {open && items.length > 0 ? <button type="button" className={styles.linkButton} onClick={reset}>New chat</button> : null}
+            </div>
+
+            <div id={bodyId} className={styles.body} hidden={!open}>
+                <div className={styles.log} ref={logRef} role="log" aria-live="polite">
+                    {items.length === 0 ?
+                        <div className={styles.empty}>
+                            <p>Don&apos;t know the exact numbers? Tell me what you had and roughly how much, paste a link, or send a photo of the nutrition label. I&apos;ll work it out, and you confirm before anything is logged.</p>
+                            <div className={styles.suggestions}>
+                                {SUGGESTIONS.map((suggestion) => (
+                                    <button type="button" key={suggestion} className={styles.suggestion} onClick={() => send(suggestion)}>{suggestion}</button>
+                                ))}
+                            </div>
+                            <p className={styles.attribution}>
+                                Nutrition data: USDA FoodData Central, and Health Canada&apos;s Canadian Nutrient File (contains information licensed under the Open Government Licence – Canada).
+                            </p>
+                        </div>
+                    : items.map((item) => (
+                        item.kind === "proposal" ?
+                            <ProposalCard key={item.id} proposal={item.proposal} active={item.id > lastUserId && !busy} onAdd={onAdd} onRefine={refine} />
+                        : item.kind === "status" ?
+                            <p key={item.id} className={styles.status}>{item.text}</p>
+                        :
+                        item.kind === "user" && item.photo ?
+                            <div key={item.id} className={`${styles.bubble} ${styles.user} ${styles.photoBubble}`}>
+                                {/* eslint-disable-next-line @next/next/no-img-element -- a data: URL this page drew itself */}
+                                <img src={item.photo} alt="Your nutrition label photo" />
+                                {item.text ? <p>{item.text}</p> : null}
+                            </div>
+                        :
+                            <p key={item.id} className={`${styles.bubble} ${item.kind === "user" ? styles.user : item.kind === "error" ? styles.error : styles.reply}`}>{item.kind === "assistant" ? plain(item.text) : item.text}</p>
+                    ))}
+                    {busy && items[items.length - 1]?.kind !== "assistant" ? <span className={styles.typing} aria-label="Thinking"><i /><i /><i /></span> : null}
+                </div>
+
+                {photo || photoError ?
+                    <div className={styles.photoTray}>
+                        {photo ?
+                            <>
+                                {/* eslint-disable-next-line @next/next/no-img-element -- a data: URL this page drew itself */}
+                                <img src={photo} alt="Label photo to send" />
+                                <span>Label photo ready. Add a note (like how much you had) or just send it.</span>
+                                <button type="button" className={styles.linkButton} onClick={() => setPhoto(null)}>Remove</button>
+                            </>
+                        : <span className={styles.photoError}>{photoError}</span>}
+                    </div>
+                : null}
+                <form className={styles.composer} onSubmit={(e) => { e.preventDefault(); send(draft) }}>
+                    <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                        hidden
+                        onChange={(e) => choosePhoto(e.target.files?.[0])}
+                    />
+                    <button type="button" className={styles.photoButton} onClick={() => fileRef.current?.click()} disabled={busy} aria-label="Add a photo of a nutrition label">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.3-2h5.2l1.3 2h1.6A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-9z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/>
+                            <circle cx="12" cy="13" r="3.3" stroke="currentColor" strokeWidth="1.7"/>
+                        </svg>
                     </button>
-                :
-                    <button type="submit" className={styles.sendButton} disabled={!draft.trim() && !photo} aria-label="Send">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </button>
-                }
-            </form>
+                    <textarea
+                        ref={inputRef}
+                        rows={1}
+                        value={draft}
+                        maxLength={1000}
+                        placeholder="e.g. a big bowl of chicken curry"
+                        aria-label="Describe what you ate"
+                        onChange={(e) => setDraft(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(draft) } }}
+                    />
+                    {busy ?
+                        <button type="button" className={styles.sendButton} onClick={stop} aria-label="Stop">
+                            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="2" width="10" height="10" rx="2" fill="currentColor"/></svg>
+                        </button>
+                    :
+                        <button type="submit" className={styles.sendButton} disabled={!draft.trim() && !photo} aria-label="Send">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </button>
+                    }
+                </form>
+            </div>
         </section>
     )
 }

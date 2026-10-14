@@ -37,6 +37,7 @@ import { backdrop, pressable } from "@/app/internal_components/a11y";
 // Indexed by dayjs' date.day() (0 = Sunday .. 6 = Saturday), matching weekStart
 // below since dayjs' default start of week is Sunday.
 const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'Th', 'F', 'S']
+const ASSISTANT_OPEN_KEY = 'dietAssistantOpen' // whether Quick Add's assistant was left open (per browser)
 
 function entryToFormValues(entry: FoodLogEntry): FoodItemFormValues {
     return {
@@ -94,6 +95,8 @@ export default function DietPage() {
 
     const [ editingEntry, setEditingEntry ] = useState<FoodLogEntry | null>(null)
     const [ quickAddSource, setQuickAddSource ] = useState<FoodItem | null>(null)
+    // the assistant in Quick Add starts closed so the saved foods are easy to reach; the choice is remembered
+    const [ assistantOpen, setAssistantOpen ] = useState(false)
 
     const [ entries, setEntries ] = useState<FoodLogEntry[]>([])
     const [ catalogItems, setCatalogItems ] = useState<FoodItem[]>([])
@@ -326,6 +329,19 @@ export default function DietPage() {
 
         return () => { cancelled = true }
     }, [])
+
+    useEffect(() => {
+        try {
+            if (localStorage.getItem(ASSISTANT_OPEN_KEY) === "true") setAssistantOpen(true)
+        } catch { /* storage unavailable: stays closed */ }
+    }, [])
+
+    function changeAssistantOpen(open: boolean) {
+        setAssistantOpen(open)
+        try {
+            localStorage.setItem(ASSISTANT_OPEN_KEY, String(open))
+        } catch { /* storage unavailable: just not remembered */ }
+    }
 
     // Load the user's personal food catalog lazily, only once Quick Add is opened.
     useEffect(() => {
@@ -714,9 +730,9 @@ export default function DietPage() {
                                             />
                                         :
                                             <>
-                                            <FoodAssistant dateKey={dateKey} onAdd={addEntry} />
+                                            <FoodAssistant dateKey={dateKey} onAdd={addEntry} open={assistantOpen} onOpenChange={changeAssistantOpen} />
                                             <p className={styles.catalogHeading}>Saved foods</p>
-                                            <div className={`${styles.catalogList} ${styles.catalogListCompact}`}>
+                                            <div className={`${styles.catalogList} ${assistantOpen ? styles.catalogListCompact : ""}`}>
                                                 {loadingCatalog ?
                                                     <div className={styles.spinnerContainer}><span className={styles.spinner} /></div>
                                                 : catalogItems.length === 0 ?
