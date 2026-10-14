@@ -60,8 +60,10 @@ def main():
         print(f"::notice::{sha[:7]} wasn't merged from a pull request, so no release notes were recorded")
         return
 
-    supabase_url = open(url_file).read().strip().rstrip("/")
-    key = open(key_file).read().strip()
+    with open(url_file) as f:
+        supabase_url = f.read().strip().rstrip("/")
+    with open(key_file) as f:
+        key = f.read().strip()
     row = {
         "commit_sha": sha,
         "pr_number": pr["number"],

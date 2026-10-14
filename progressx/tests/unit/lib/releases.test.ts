@@ -19,6 +19,10 @@ describe("cleanReleaseNotes", () => {
         expect(cleanReleaseNotes(body)).toBe("Adds an **Activity level** picker.\n\nMoreHidden bits")
     })
 
+    it("drops an unclosed comment to the end", () => {
+        expect(cleanReleaseNotes("Visible\n<!-- never closed\nhidden")).toBe("Visible")
+    })
+
     it("treats a missing description as empty", () => {
         expect(cleanReleaseNotes(null)).toBe("")
     })
