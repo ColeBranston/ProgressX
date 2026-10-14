@@ -1,0 +1,63 @@
+.eyebrow {
+    margin: -8px 0 0;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgb(var(--primary-color));
+}
+
+.notes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.82);
+    overflow-wrap: anywhere;
+}
+
+.notes h3 {
+    margin: 6px 0 0;
+    font-family: var(--primary-font-family);
+    font-size: 18px;
+    font-weight: 400;
+    color: white;
+}
+
+.notes p,
+.notes ul {
+    margin: 0;
+}
+
+.notes ul {
+    padding-left: 20px;
+}
+
+.notes li + li {
+    margin-top: 4px;
+}
+
+.notes code {
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.9em;
+}
+
+.gotIt {
+    align-self: flex-end;
+    height: 40px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 10px;
+    background: rgb(var(--primary-color));
+    color: white;
+    font-family: var(--primary-font-family);
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.gotIt:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
