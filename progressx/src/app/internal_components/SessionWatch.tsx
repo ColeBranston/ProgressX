@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 // The browser-side copies of the account's data (cleared on log out, account deletion and expiry)
-const LOCAL_ACCOUNT_KEYS = ["userData", "TotalExpenditure", "user_photos", "lastActivity"]
+const LOCAL_ACCOUNT_KEYS = ["userData", "TotalExpenditure", "user_photos", "lastActivity", "releaseSeenPending"]
 
 export function clearLocalAccountData() {
     try {

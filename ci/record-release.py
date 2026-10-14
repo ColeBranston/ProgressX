@@ -13,6 +13,7 @@ import json
 import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
 TITLE_MAX = 300
@@ -23,15 +24,32 @@ def fail(message):
     sys.exit(f"record-release: {message}")
 
 
+class NoRedirects(urllib.request.HTTPRedirectHandler):
+    """urllib would resend our headers (the service role key) to wherever a redirect points, even over
+    plain HTTP, so redirects aren't followed: they fail like any other error response."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+OPENER = urllib.request.build_opener(NoRedirects)
+
+
+def require_https(url):
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.scheme != "https" or not parsed.hostname:
+        fail(f"refusing to send credentials to a non-HTTPS URL ({parsed.scheme or 'no scheme'})")
+
+
 def call(url, headers, body=None, method=None):
+    require_https(url)
     req = urllib.request.Request(url, data=json.dumps(body).encode() if body is not None else None,
                                  method=method or ("POST" if body is not None else "GET"), headers=headers)
     try:
-        with urllib.request.urlopen(req, timeout=20) as res:
+        with OPENER.open(req, timeout=20) as res:
             text = res.read().decode()
             return json.loads(text) if text else None
     except urllib.error.HTTPError as e:
-        fail(f"{method or 'GET'} {url.split('?')[0]} failed ({e.code})")  # the body isn't shown: it could echo the key
+        fail(f"{req.get_method()} {url.split('?')[0]} failed ({e.code})")  # the body isn't shown: it could echo the key
     except urllib.error.URLError as e:
         fail(f"can't reach {url.split('?')[0]} ({e.reason})")
 

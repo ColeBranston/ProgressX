@@ -19,6 +19,11 @@ describe("cleanReleaseNotes", () => {
         expect(cleanReleaseNotes(body)).toBe("Adds an **Activity level** picker.\n\nMoreHidden bits")
     })
 
+    it("drops CodeRabbit's summary even when its closing marker was cut off", () => {
+        const body = "Real notes.\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n## Summary by CodeRabbit\n* New Features\n<!-- end of auto-generated comment: rel"
+        expect(cleanReleaseNotes(body)).toBe("Real notes.")
+    })
+
     it("drops an unclosed comment to the end", () => {
         expect(cleanReleaseNotes("Visible\n<!-- never closed\nhidden")).toBe("Visible")
     })

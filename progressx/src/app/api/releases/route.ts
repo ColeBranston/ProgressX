@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/releases  { seenId }
-// Marks a release (and every older one) as seen, so its popup isn't shown again.
+// Marks a release (and every older one) as seen, so its popup isn't shown again. Never moves backwards.
 export async function POST(req: NextRequest) {
     const userId = await getUserIdFromRequest(req)
     if (!userId) {
@@ -56,27 +56,26 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const { data: current, error: readError } = await supabase
+        // make sure the settings row exists, without changing it if it does
+        const { error: rowError } = await supabase
             .from("user_settings")
-            .select("last_seen_release_id")
-            .eq("user_id", userId)
-            .maybeSingle()
-        if (readError) throw readError
-        // never move backwards (an old tab dismissing an older release)
-        if ((current?.last_seen_release_id ?? 0) >= seenId) {
-            return NextResponse.json({ lastSeenReleaseId: current?.last_seen_release_id })
-        }
+            .upsert({ user_id: userId }, { onConflict: "user_id", ignoreDuplicates: true })
+        if (rowError) throw rowError
 
+        // Only ever moves forwards, decided by the database in one statement: if two tabs dismiss
+        // different releases at once, whichever finishes last can't put back the older one
         const { error } = await supabase
             .from("user_settings")
-            .upsert({ user_id: userId, last_seen_release_id: seenId, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
+            .update({ last_seen_release_id: seenId, updated_at: new Date().toISOString() })
+            .eq("user_id", userId)
+            .or(`last_seen_release_id.is.null,last_seen_release_id.lt.${seenId}`)
         if (error) {
             if (error.code === "23503") {
                 return NextResponse.json({ message: "No such release" }, { status: 400 })
             }
             throw error
         }
-        return NextResponse.json({ lastSeenReleaseId: seenId })
+        return NextResponse.json({ ok: true })
     } catch (error) {
         console.log("Error saving the seen release: ", error)
         return NextResponse.json({ message: "Error saving the seen release" }, { status: 500 })

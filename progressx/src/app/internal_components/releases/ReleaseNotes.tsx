@@ -5,6 +5,41 @@ import Modal from "../mystats/Modal";
 import styles from "./releaseNotes.module.css";
 import { Inline, parseReleaseNotes, Release } from "./releases";
 
+// A dismissal that couldn't be saved yet, retried on the next visit (cleared on log out, see SessionWatch)
+const PENDING_KEY = "releaseSeenPending"
+
+function readPending(): number | null {
+    try {
+        const value = Number(localStorage.getItem(PENDING_KEY))
+        return Number.isSafeInteger(value) && value > 0 ? value : null
+    } catch {
+        return null
+    }
+}
+
+function writePending(id: number | null) {
+    try {
+        if (id === null) localStorage.removeItem(PENDING_KEY)
+        else localStorage.setItem(PENDING_KEY, String(id))
+    } catch { /* storage unavailable: the popup just shows again next time */ }
+}
+
+// Records a release as seen; a failure is kept for a retry so the popup doesn't come back
+async function markSeen(id: number) {
+    try {
+        const res = await fetch("/api/releases", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ seenId: id }),
+        })
+        if (!res.ok) throw new Error(`status ${res.status}`)
+        if ((readPending() ?? 0) <= id) writePending(null)
+    } catch (err) {
+        console.error("Couldn't mark the release as seen, will retry: ", err)
+        writePending(Math.max(readPending() ?? 0, id))
+    }
+}
+
 function Inlines({ inlines }: { inlines: Inline[] }) {
     return inlines.map((inline, i) =>
         inline.code ? <code key={i}>{inline.text}</code>
@@ -22,7 +57,14 @@ export default function ReleaseNotes() {
         let cancelled = false
         fetch("/api/releases")
             .then((res) => res.ok ? res.json() : null)
-            .then((json) => { if (!cancelled && json?.release) setRelease(json.release) })
+            .then((json) => {
+                const latest: Release | undefined = json?.release
+                if (cancelled || !latest) return
+                const pending = readPending()
+                // already dismissed here, but saving it failed last time: save it now instead of asking again
+                if (pending !== null && pending >= latest.id) markSeen(pending)
+                else setRelease(latest)
+            })
             .catch(() => {}) // not worth bothering anyone about
         return () => { cancelled = true }
     }, [])
@@ -34,11 +76,7 @@ export default function ReleaseNotes() {
     function dismiss() {
         if (!release) return
         setRelease(null)
-        fetch("/api/releases", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ seenId: release.id }),
-        }).catch((err) => console.error("Couldn't mark the release as seen: ", err))
+        markSeen(release.id)
     }
 
     return (
