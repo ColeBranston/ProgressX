@@ -40,6 +40,63 @@
     background: black;
 }
 
+/* ---------- video ads between videos ---------- */
+
+.adSlot {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Google's ad player draws its video and controls (skip, "Learn more") in here */
+.adContainer {
+    position: absolute;
+    inset: 0;
+}
+
+.sponsored {
+    position: absolute;
+    top: calc(3% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    font: 600 12px var(--secondary-font-family);
+    letter-spacing: 0.04em;
+    pointer-events: none;
+}
+
+/* top right, clear of the ad's own controls at the bottom */
+.adNext {
+    position: absolute;
+    top: 3%;
+    right: 5%;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55);
+    color: white;
+    fill: white;
+    font: 600 13px var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.adNext:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.adNext:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
 .unavailable {
     margin: 0;
     padding: 0 24px;

@@ -55,7 +55,7 @@ High for health, body and image data. This favours strong contractual, technical
 
 ### b) Purposes of use
 Only to provide the service to the user who entered it, and to show content to other users according
-to the user's own privacy settings. No sale, advertising, profiling or automated decisions. Providers
+to the user's own privacy settings. No sale, profiling or automated decisions; the video feed shows non-personalized Google ads, chosen without any account or health data. Providers
 may use it only to deliver their service to ProgressX.
 
 ### c) Protection measures, including contractual

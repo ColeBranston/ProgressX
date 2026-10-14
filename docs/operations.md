@@ -98,6 +98,10 @@ To rotate one, change it in the provider's dashboard, update this file, then reb
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | **Yes** | Keys of an R2 API token with **Object Read & Write** on the video bucket only. Signs upload and playback links, checks uploads, deletes videos (including on account deletion). | R2 > Manage API tokens > Create API token |
 | `R2_VIDEO_BUCKET` | No | The bucket's name (default `progressx-videos`). | n/a |
 | `MEDIA_BASE_URL` | No | `https://media.progressx.ca` to play videos through the media Worker (Cloudflare's cache); empty = signed links straight to R2. Set it only once the Worker is deployed (`workers/media/README.md`). | n/a |
+| `AD_VIDEO_TAG_URL` | No | The video ad tag (VAST/VMAP, `https://pubads.g.doubleclick.net/gampad/ads?...`) for the ads between feed videos. Empty = no ads. Ads are always requested as non-personalized (`npa=1`), as the privacy policy promises. | Google Ad Manager > Inventory > Ad units (a video ad unit) > Tags > Google IMA SDK |
+| `AD_FIRST_AFTER`, `AD_EVERY`, `AD_MIN_GAP_SECONDS` | No | Ad pacing: videos before the first ad (default 4), videos between ads (default 6), and the fewest seconds between two ads (default 45). A slot with no ad ready is skipped, not shown blank. | n/a |
+| `ADS_TXT` | No | The `ads.txt` lines from your ad network, served at `/ads.txt` (write `
+` between lines). Ad buyers check it, so set it before turning ads on. | Ad Manager > Admin > ads.txt (or AdSense > Sites) |
 | `MEDIA_SIGNING_KEY` | **Yes** | Signs the media Worker's links; the Worker has the same value as its secret (CI sets it from Vault). Random 32 bytes, base64url. | `openssl rand -base64 32 \| tr '+/' '-_' \| tr -d '='` |
 | `SERPAPI_API_KEY` | Yes | Optional. Leave empty normally. If set, the assistant can also read Google's AI Overview (through SerpApi) for foods the database doesn't have, like restaurant items; each uncached lookup uses one search from the plan's quota. Add SerpApi to the privacy policy first (see docs/privacy/README.md). | serpapi.com > Dashboard > API Key |
 
