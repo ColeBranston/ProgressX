@@ -33,12 +33,80 @@
     color: rgba(var(--primary-color));
 }
 
-.title p {
-    margin: 0;
+.titleText {
     font-family: var(--primary-font-family);
     font-size: 16px;
     letter-spacing: 0.02em;
     color: var(--secondary-color);
+}
+
+/* the whole header row opens and closes the chat */
+.toggle {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.toggle:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.collapsedHint {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.chevron {
+    flex-shrink: 0;
+    margin-left: auto;
+    color: rgba(255, 255, 255, 0.6);
+    transform: rotate(180deg);
+    transition: transform 0.2s ease;
+}
+
+.collapsed .chevron {
+    transform: none;
+}
+
+.toggle:hover .chevron {
+    color: white;
+}
+
+.body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.body[hidden] {
+    display: none;
+}
+
+/* closed: just the header, so Quick Add's saved foods get the room */
+.assistant.collapsed {
+    flex: 0 0 auto;
+    min-height: 0;
+}
+
+.collapsed .header {
+    border-bottom: none;
 }
 
 .linkButton {
@@ -625,5 +693,9 @@
     .typing i {
         animation: none;
         opacity: 0.6;
+    }
+
+    .chevron {
+        transition: none;
     }
 }
