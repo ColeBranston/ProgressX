@@ -54,18 +54,69 @@
     inset: 0;
 }
 
-.sponsored {
-    position: absolute;
-    top: calc(3% + 10px);
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 3px 10px;
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.55);
+/* the ad as a post: advertiser, caption, "Sponsored" and a "Learn more" button over the video */
+.details.adDetails {
+    padding-bottom: 26px;
+}
+
+.adWaiting {
+    visibility: hidden;
+}
+
+.adAdvertiser {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.adAvatar {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgb(var(--primary-color));
     color: white;
-    font: 600 12px var(--secondary-font-family);
+    font: 700 15px var(--secondary-font-family);
+}
+
+.adDetails .author:hover {
+    text-decoration: none;
+}
+
+.sponsored {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.18);
+    color: white;
+    font: 600 11px var(--secondary-font-family);
     letter-spacing: 0.04em;
-    pointer-events: none;
+}
+
+.adCta {
+    pointer-events: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 40px;
+    margin-top: 12px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 6px;
+    background: rgb(var(--primary-color));
+    color: white;
+    fill: white;
+    font: 700 14px var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.adCta:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
 }
 
 /* top right, clear of the ad's own controls at the bottom */

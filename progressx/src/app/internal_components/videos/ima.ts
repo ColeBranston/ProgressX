@@ -4,8 +4,20 @@
 
 const SDK_URL = "https://imasdk.googleapis.com/js/sdkloader/ima3.js"
 
+// The ad being played: what the feed shows around it so it looks like a post
+export type ImaAd = {
+    getAdvertiserName(): string
+    getTitle(): string
+    getDescription(): string
+    getDuration(): number
+}
+
 type Listener = (event: ImaEvent) => void
-type ImaEvent = { getError?: () => { getMessage(): string }, getAdsManager?: (playback: HTMLVideoElement) => ImaAdsManager }
+type ImaEvent = {
+    getAd?: () => ImaAd | null
+    getError?: () => { getMessage(): string }
+    getAdsManager?: (playback: HTMLVideoElement, settings?: ImaRenderingSettings) => ImaAdsManager
+}
 
 export type ImaAdsManager = {
     addEventListener(type: string, listener: Listener): void
@@ -15,6 +27,7 @@ export type ImaAdsManager = {
     resume(): void
     resize(width: number, height: number, viewMode: unknown): void
     setVolume(volume: number): void
+    getRemainingTime(): number
     destroy(): void
 }
 
@@ -26,9 +39,16 @@ export type ImaAdsLoader = {
 
 export type ImaAdDisplayContainer = { initialize(): void, destroy(): void }
 
+export type ImaRenderingSettings = {
+    uiElements: string[] | null
+    restoreCustomPlaybackStateOnAdBreakComplete: boolean
+}
+
 export type Ima = {
-    AdDisplayContainer: new (container: HTMLElement, video: HTMLVideoElement) => ImaAdDisplayContainer
+    // clickTarget: our own element that opens the ad's link (and counts the click) when pressed
+    AdDisplayContainer: new (container: HTMLElement, video: HTMLVideoElement, clickTarget?: HTMLElement) => ImaAdDisplayContainer
     AdsLoader: new (container: ImaAdDisplayContainer) => ImaAdsLoader
+    AdsRenderingSettings: new () => ImaRenderingSettings
     AdsRequest: new () => {
         adTagUrl: string
         linearAdSlotWidth: number
@@ -40,7 +60,7 @@ export type Ima = {
     }
     AdsManagerLoadedEvent: { Type: { ADS_MANAGER_LOADED: string } }
     AdErrorEvent: { Type: { AD_ERROR: string } }
-    AdEvent: { Type: { STARTED: string, COMPLETE: string, SKIPPED: string, ALL_ADS_COMPLETED: string, USER_CLOSE: string } }
+    AdEvent: { Type: { LOADED: string, STARTED: string, COMPLETE: string, SKIPPED: string, ALL_ADS_COMPLETED: string, USER_CLOSE: string, CLICK: string } }
     ViewMode: { NORMAL: unknown }
 }
 
@@ -77,4 +97,16 @@ export function adTagFor(tagUrl: string, pageUrl: string, now = Date.now()): str
     if (!url.searchParams.has("description_url")) url.searchParams.set("description_url", pageUrl)
     if (!url.searchParams.has("url")) url.searchParams.set("url", pageUrl)
     return url.toString()
+}
+
+export type AdPost = { advertiser: string, caption: string }
+
+// How an ad is shown as a post: who it's from and its caption. Video ads don't always name the
+// advertiser, so the ad's title stands in, and the caption is left out when it would only repeat it.
+export function adPost(ad: Pick<ImaAd, "getAdvertiserName" | "getTitle" | "getDescription"> | null): AdPost {
+    const clean = (text: string | null | undefined) => (text ?? "").replace(/\s+/g, " ").trim()
+    const name = clean(ad?.getAdvertiserName()), title = clean(ad?.getTitle()), description = clean(ad?.getDescription())
+    const advertiser = name || title || "Sponsored"
+    const captionParts = [title !== advertiser ? title : "", description].filter((part, i, all) => part && all.indexOf(part) === i)
+    return { advertiser: advertiser.slice(0, 60), caption: captionParts.join(" · ").slice(0, 300) }
 }
