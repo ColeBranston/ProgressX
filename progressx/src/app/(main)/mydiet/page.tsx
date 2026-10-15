@@ -33,6 +33,7 @@ import {
 import { userDataContext } from '@/app/contexts/userData';
 import WeightCheckIn from '@/app/internal_components/weight/WeightCheckIn';
 import { backdrop, pressable } from "@/app/internal_components/a11y";
+import { matchesFoodSearch } from "@/app/internal_components/mydiet/foodSearch";
 
 // Indexed by dayjs' date.day() (0 = Sunday .. 6 = Saturday), matching weekStart
 // below since dayjs' default start of week is Sunday.
@@ -101,6 +102,8 @@ export default function DietPage() {
     const [ entries, setEntries ] = useState<FoodLogEntry[]>([])
     const [ catalogItems, setCatalogItems ] = useState<FoodItem[]>([])
     const [ loadingCatalog, setLoadingCatalog ] = useState(false)
+    const [ catalogSearch, setCatalogSearch ] = useState("")
+    const matchingCatalogItems = useMemo(() => catalogItems.filter((item) => matchesFoodSearch(item.name, catalogSearch)), [catalogItems, catalogSearch])
 
     const [ displayedMicronutrients, setDisplayedMicronutrients ] = useState<string[]>(ALL_MICRONUTRIENT_NAMES)
     const [ showSettings, setShowSettings ] = useState(false)
@@ -223,6 +226,7 @@ export default function DietPage() {
         setAddItemType(null)
         setQuickAddSource(null)
         setEditingEntry(null)
+        setCatalogSearch("")
     }
 
     function openEntryForEdit(entry: FoodLogEntry) {
@@ -721,7 +725,7 @@ export default function DietPage() {
 
                                     : addItemType === "quick" ?
                                         <>
-                                        <button type="button" className={styles.backButton} onClick={()=>{ setAddItemType(null); setQuickAddSource(null) }}>Back</button>
+                                        <button type="button" className={styles.backButton} onClick={()=>{ setAddItemType(null); setQuickAddSource(null); setCatalogSearch("") }}>Back</button>
                                         {quickAddSource ?
                                             <QuickAddScaler
                                                 item={quickAddSource}
@@ -731,14 +735,29 @@ export default function DietPage() {
                                         :
                                             <>
                                             <FoodAssistant dateKey={dateKey} onAdd={addEntry} open={assistantOpen} onOpenChange={changeAssistantOpen} />
-                                            <p className={styles.catalogHeading}>Saved foods</p>
+                                            <div className={styles.catalogHeader}>
+                                                <p className={styles.catalogHeading}>Saved foods</p>
+                                                {catalogItems.length > 0 ?
+                                                    <input
+                                                        type="search"
+                                                        className={styles.catalogSearch}
+                                                        placeholder="Search"
+                                                        aria-label="Search saved foods"
+                                                        value={catalogSearch}
+                                                        onChange={(e) => setCatalogSearch(e.target.value)}
+                                                        onKeyDown={(e) => { if (e.key === "Escape") setCatalogSearch("") }}
+                                                    />
+                                                : null}
+                                            </div>
                                             <div className={`${styles.catalogList} ${assistantOpen ? styles.catalogListCompact : ""}`}>
                                                 {loadingCatalog ?
                                                     <div className={styles.spinnerContainer}><span className={styles.spinner} /></div>
                                                 : catalogItems.length === 0 ?
                                                     <p>No saved items yet - add one manually and save it to your catalog.</p>
+                                                : matchingCatalogItems.length === 0 ?
+                                                    <p>No saved foods match &ldquo;{catalogSearch.trim()}&rdquo;</p>
                                                 :
-                                                    catalogItems.map((item) => (
+                                                    matchingCatalogItems.map((item) => (
                                                         <button type="button" key={item.id} className={styles.catalogItemButton} onClick={() => setQuickAddSource(item)}>
                                                             {item.name}
                                                         </button>

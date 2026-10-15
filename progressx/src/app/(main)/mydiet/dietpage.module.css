@@ -236,6 +236,42 @@
     color: rgba(255, 255, 255, 0.7);
 }
 
+/* "Saved foods" with its search box beside it */
+.catalogHeader {
+    width: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.catalogHeader .catalogHeading {
+    width: auto;
+    flex-shrink: 0;
+}
+
+.catalogSearch {
+    flex: 1;
+    min-width: 0;
+    max-width: 220px;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--secondary-color);
+    font: 14px var(--secondary-font-family);
+    outline: none;
+}
+
+.catalogSearch::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.catalogSearch:focus-visible {
+    border-color: rgba(var(--primary-color), 0.8);
+}
+
 /* under the assistant in Quick Add: the chat gets most of the room */
 .catalogListCompact {
     flex: 0 1 auto;
