@@ -15,6 +15,7 @@ type Settings = {
     profilePrivacy: "public" | "private",
     weightUnit: "lb" | "kg",
     activityLevel: number | null,
+    personalizedAds: boolean,
 }
 
 type Section = "privacy" | "diet" | "workouts"
@@ -334,6 +335,22 @@ export default function SettingsPage() {
                                         value={settings.profilePrivacy}
                                         options={[{ value: "private", label: "Private" }, { value: "public", label: "Public" }]}
                                         onChange={changeVisibility}
+                                    />
+                                </div>
+
+                                <div className={styles.row}>
+                                    <div className={styles.rowText}>
+                                        <p className={styles.rowLabel}>Personalized ads</p>
+                                        <p className={styles.rowDescription}>
+                                            Lets Google choose the ads in your feed using what it knows about your interests from other sites and apps.
+                                            Off: ads are only matched to the videos you&apos;re watching. Your profile, health and workout information is never used either way.{" "}
+                                            <Link href="/privacy">Privacy Policy</Link>
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        checked={settings.personalizedAds}
+                                        label="Personalized ads"
+                                        onChange={() => save("privacy", { personalizedAds: !settings.personalizedAds })}
                                     />
                                 </div>
                             </section>

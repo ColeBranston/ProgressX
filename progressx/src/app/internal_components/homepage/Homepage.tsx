@@ -403,7 +403,7 @@ export default function Homepage() {
                                 ["Encrypted", "In transit and at rest, with sessions that sign you out after inactivity."],
                                 ["Exportable", "Download everything you've logged as a file, any time."],
                                 ["Deletable", "Delete your account and every photo with it, in one step."],
-                                ["Never sold", "No ads, no data brokers. Your progress isn't the product."],
+                                ["Never sold", "No data brokers, and ads never use your health data. Your progress isn't the product."],
                             ].map(([title, text], i) => (
                                 <li key={title} data-reveal style={{ "--d": `${i * 90}ms` } as CSSProperties}>
                                     <span className={styles.privacyIndex}>{String(i + 1).padStart(2, "0")}</span>

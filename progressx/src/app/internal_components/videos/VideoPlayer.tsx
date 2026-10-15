@@ -6,6 +6,7 @@ import type { Playback } from "./videoTypes";
 type VideoPlayerProps = {
     playback: Playback,
     active: boolean,  // plays while true, pauses while false
+    preload?: "auto" | "metadata" | "none",  // how much to load ahead of playing (default: only what showing it needs)
     muted: boolean,
     className?: string,
     label: string,
@@ -16,7 +17,7 @@ type VideoPlayerProps = {
 // One video, played straight from its signed R2 link. Inactive videos (the ones next to the current
 // one in the feed) only load their poster; the file itself starts loading when the video is shown.
 const VideoPlayer = forwardRef<HTMLVideoElement | null, VideoPlayerProps>(function VideoPlayer(
-    { playback, active, muted, className, label, onProgress, onError }, ref,
+    { playback, active, preload, muted, className, label, onProgress, onError }, ref,
 ) {
     const videoRef = useRef<HTMLVideoElement | null>(null)
     useImperativeHandle(ref, () => videoRef.current as HTMLVideoElement)
@@ -44,7 +45,7 @@ const VideoPlayer = forwardRef<HTMLVideoElement | null, VideoPlayerProps>(functi
             muted={muted}
             loop
             playsInline
-            preload={active ? "auto" : playback.poster ? "none" : "metadata"}
+            preload={preload ?? (active ? "auto" : playback.poster ? "none" : "metadata")}
             aria-label={label}
             onTimeUpdate={(e) => {
                 const v = e.currentTarget

@@ -107,7 +107,11 @@ export default function PrivacyPolicyPage() {
                 <li>To communicate with you about your account or changes to these policies</li>
                 <li>To comply with legal obligations</li>
             </ul>
-            <p>We do <strong>not</strong> sell your personal information, and we do not use it for third-party advertising.</p>
+            <p>
+                We do <strong>not</strong> sell your personal information. The video feed shows ads (see section 06); they are
+                non-personalized unless you turn on personalized ads, and we never use your profile, health or activity information
+                to choose them.
+            </p>
 
             <h2><span>04</span>Health and body information</h2>
             <p>
@@ -132,6 +136,7 @@ export default function PrivacyPolicyPage() {
                         <li>Cloudinary: storage and delivery of photos</li>
                         <li>Google: sign-in, if you choose to use it</li>
                         <li>Cloudflare: network delivery and security, storage and streaming of videos you post, and encrypted storage of government ID photos (Cloudflare can&apos;t read them)</li>
+                        <li>Google (Google Ad Manager): the video ads in the feed. When an ad loads, your browser contacts Google directly, which receives your IP address, browser and device details and the page you&apos;re on. We don&apos;t send Google your name, email address or anything from your profile, diet, workouts or photos.</li>
                     </ul>
                 </li>
                 <li><strong>For legal reasons.</strong> If required by law, or to protect the rights, safety and property of our users, the public or ProgressX.</li>
@@ -143,7 +148,28 @@ export default function PrivacyPolicyPage() {
                 We use two essential cookies that keep you signed in: <strong>token</strong> (a short-lived sign-in token) and
                 <strong> refresh_token</strong> (used to renew it). Both last at most 30 days, are only sent over secure connections in
                 production, and cannot be read by scripts on the page. They are removed when you log out or delete your account. We also store a copy of your profile details in your browser&apos;s local storage so pages load quickly;
-                clearing your browser data removes it. We do not use advertising or cross-site tracking cookies.
+                clearing your browser data removes it.
+            </p>
+            <p>
+                <strong>Ads.</strong> The video feed shows video ads from Google between videos. By default they are
+                <strong> non-personalized</strong>: they aren&apos;t based on a profile of your interests or what you do on other sites. We
+                tell Google only that ProgressX is a fitness app and the fitness topics of the public videos around the ad (for example,
+                strength or running) so related advertisers can bid; this is about the videos, not about you. Nothing about your profile,
+                health, diet, body or workouts is ever used for ads or shared with advertisers.
+            </p>
+            <p>
+                <strong>Personalized ads are your choice.</strong> If you turn on &quot;Personalized ads&quot; in Settings, we stop asking
+                Google for non-personalized ads, and Google may choose ads using the interests it has associated with your browser from
+                other sites and apps. It stays off unless you turn it on, you can turn it off at any time, and we keep a record of each
+                change. Even then, we don&apos;t give Google any of your ProgressX information.
+            </p>
+            <p>
+                Either way, Google may use cookies or similar technologies on your device to show the ad, limit how often you see it,
+                measure it and prevent fraud. You can learn how Google uses this information at{" "}
+                <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">policies.google.com/technologies/partner-sites</a>,
+                and manage Google ad settings at{" "}
+                <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer">adssettings.google.com</a>.
+                You can also block or delete cookies in your browser; ads may still show, but less relevant ones.
             </p>
 
             <h2><span>07</span>Where your information is stored</h2>

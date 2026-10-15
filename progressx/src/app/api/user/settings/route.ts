@@ -3,6 +3,7 @@ import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
 import { loadUserSettings, WATER_GOAL_MAX_ML, WATER_GOAL_MIN_ML } from "../../libs/userSettings";
 import { ACTIVITY_LEVELS } from "@/app/internal_components/profile/profileRules";
+import { TERMS_VERSION } from "@/app/internal_components/legal/legalInfo";
 
 // GET /api/user/settings
 export async function GET(req: NextRequest) {
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// PATCH /api/user/settings  { blurProgressPhotos?, waterGoalMl?, profilePrivacy?, weightUnit?, activityLevel? }
+// PATCH /api/user/settings  { blurProgressPhotos?, waterGoalMl?, profilePrivacy?, weightUnit?, activityLevel?, personalizedAds? }
 // Only the fields sent are changed. Returns the full, saved settings.
 export async function PATCH(req: NextRequest) {
     const userId = await getUserIdFromRequest(req)
@@ -59,6 +60,14 @@ export async function PATCH(req: NextRequest) {
         settingsUpdate.weight_unit = body.weightUnit
     }
 
+    // personalized ads are opt-in: every change is kept in the consent history
+    if ("personalizedAds" in body) {
+        if (typeof body.personalizedAds !== "boolean") {
+            return NextResponse.json({ message: "personalizedAds must be true or false" }, { status: 400 })
+        }
+        settingsUpdate.personalized_ads = body.personalizedAds
+    }
+
     // these live on the profile rather than in user_settings
     const profileUpdate: Record<string, unknown> = {}
 
@@ -81,6 +90,17 @@ export async function PATCH(req: NextRequest) {
             const { error } = await supabase
                 .from("user_settings")
                 .upsert({ user_id: userId, ...settingsUpdate, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
+            if (error) throw error
+        }
+
+        if (typeof body.personalizedAds === "boolean") {
+            const { error } = await supabase.from("consent_events").insert({
+                user_id: userId,
+                terms_version: TERMS_VERSION,
+                age_confirmed: false,
+                source: body.personalizedAds ? "personalized_ads_on" : "personalized_ads_off",
+                user_agent: (req.headers.get("user-agent") ?? "").slice(0, 400) || null,
+            })
             if (error) throw error
         }
 
