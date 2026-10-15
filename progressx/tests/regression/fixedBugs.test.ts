@@ -5,6 +5,10 @@ import { apiRequest, params, useTestAuthEnv } from "../helpers/auth"
 // One test per bug that was found and fixed, named after it, so it can't quietly come back.
 
 vi.mock("@/app/supabaseClient/client", async () => ({ supabase: (await import("../helpers/fakeSupabase")).fakeDb, createAuthClient: () => { throw new Error("no auth calls expected") } }))
+// Nothing here uploads or resizes images, but accountData imports both. Loading them for real (sharp's
+// native libvips binary especially) took ~5s on a cold start and timed the ID deletion test out.
+vi.mock("sharp", () => ({ default: () => { throw new Error("no image processing expected") } }))
+vi.mock("cloudinary", () => ({ v2: { config: () => { throw new Error("no Cloudinary calls expected") } } }))
 
 const alice = "11111111-1111-4111-8111-111111111111"
 const bob = "22222222-2222-4222-8222-222222222222"
