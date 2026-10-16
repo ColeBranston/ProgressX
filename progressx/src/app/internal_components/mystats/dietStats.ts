@@ -91,7 +91,6 @@ export function buildWeekStats(days: DayStat[], microNames: string[]): WeekStat[
         const categoryNames = weekDays[0]?.categories.map((category) => category.label) ?? []
         // Each average only counts days where that part was logged: a water-only day doesn't drag down
         // calories, and a day with food but no water doesn't count as 0 ml of water.
-        // The overall score counts food days only: a water-only day scores near 0 and isn't a real day of eating.
         const loggedFor = (name: string) => name === "Water" ? water : food
 
         return {
@@ -101,7 +100,7 @@ export function buildWeekStats(days: DayStat[], microNames: string[]): WeekStat[
             trackedDays: tracked.length,
             foodDays: food.length,
             daysInRange: weekDays.length,
-            score: average(food.map((day) => day.score ?? 0)),
+            score: average(tracked.map((day) => day.score ?? 0)),
             categories: Object.fromEntries(categoryNames.map((name) => [
                 name,
                 average(loggedFor(name).flatMap((day) => {

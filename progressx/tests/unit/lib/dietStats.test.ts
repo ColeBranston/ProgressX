@@ -27,14 +27,4 @@ describe("diet stats weekly averages", () => {
         expect(categories.Calories).toBeCloseTo(0.75, 1) // (100% + 50%) / 2, not / 3
         expect(categories.Water).toBe(0.75)              // (50% + 100%) / 2, not / 3
     })
-
-    it("averages the daily score over days with food, leaving out a water-only day's near-zero score", () => {
-        const days = buildDayStats(dayjs("2026-10-04"), dayjs("2026-10-10"), [
-            day("2026-10-05", { foods: 2, calories: 2000, protein: 100, micronutrients: { Iron: 10 } }),
-            day("2026-10-06", { foods: 1, calories: 1000, protein: 50, micronutrients: { Iron: 4 }, waterMl: 1000 }),
-            day("2026-10-07", { waterMl: 3000 }),
-        ], targets)
-        const scores = days.filter((d) => d.hasFood).map((d) => d.score ?? 0)
-        expect(buildWeekStats(days, ["Iron"])[0].score).toBeCloseTo((scores[0] + scores[1]) / 2)
-    })
 })
