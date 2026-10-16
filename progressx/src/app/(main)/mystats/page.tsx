@@ -179,7 +179,7 @@ export default function DietStatsPage() {
                     <ChartCard
                         className={styles.span2}
                         title="Daily score"
-                        subtitle="How much of each day's targets you hit. Gaps are days with nothing logged."
+                        subtitle="How much of each day's targets you hit. Dashed stretches are days with nothing logged."
                         dimmed={loading}
                         table={{
                             columns: ["Day", "Score", ...categoryNames],
@@ -198,13 +198,14 @@ export default function DietStatsPage() {
                             series={[{ name: "Daily score", tone: "primary", values: days.map((day) => day.score === null ? null : toPercent(day.score)) }]}
                             format={(v) => `${Math.round(v)}%`}
                             yMax={100}
+                            gapLabel={(missing) => missing === 1 ? "No data" : `No data · ${missing} days`}
                             ariaLabel="Daily score over time, as a percentage"
                         />
                     </ChartCard>
 
                     <ChartCard
                         title="Weekly average score"
-                        subtitle="Average over the days you logged"
+                        subtitle="Average over the days you logged food"
                         dimmed={loading}
                         table={{ columns: ["Week of", "Avg score", "Days logged"], rows: [...weekStats].reverse().map((week) => [week.label, week.score === null ? "—" : pct(week.score), `${week.trackedDays}/${week.daysInRange}`]) }}
                     >
@@ -339,7 +340,7 @@ export default function DietStatsPage() {
                 </div>
 
                 <p className={styles.note}>
-                    Scores use your current profile, calorie goal ({targets.goal.toLowerCase()}) and micronutrient choices, the same way the diet page scores a day. Weekly averages only count days you logged that thing: food for calories, macros and micros, water for water.
+                    Scores use your current profile, calorie goal ({targets.goal.toLowerCase()}) and micronutrient choices, the same way the diet page scores a day. Weekly averages only count days you logged that thing: food for the score, calories, macros and micros, water for water.
                 </p>
             </>
             }

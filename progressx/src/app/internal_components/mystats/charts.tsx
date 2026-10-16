@@ -268,9 +268,12 @@ type LineChartProps = {
     // draw the line straight across days with no value (for things that change continuously, like
     // body weight) instead of breaking it; points are still only drawn where there's a value
     connectGaps?: boolean,
+    // bridge days with no value with a dashed line labelled e.g. "No data" (for things logged day by
+    // day, like the diet score), instead of leaving a hole; the label is left off when it doesn't fit
+    gapLabel?: (missing: number) => string,
 }
 
-export function LineChart({ labels, series, format, ariaLabel, height = 200, yMax, target, zoom, tickFormat = compactNumber, connectGaps = false }: LineChartProps) {
+export function LineChart({ labels, series, format, ariaLabel, height = 200, yMax, target, zoom, tickFormat = compactNumber, connectGaps = false, gapLabel }: LineChartProps) {
     const [ ref, width ] = useElementWidth<HTMLDivElement>()
     const [ index, setIndex ] = useState<number | null>(null)
 
@@ -305,6 +308,18 @@ export function LineChart({ labels, series, format, ariaLabel, height = 200, yMa
             drawing = true
         })
         return d
+    }
+
+    // Runs of missing values with a value on both sides, for gapLabel
+    function gaps(values: (number | null)[]) {
+        const found: { from: number, to: number }[] = []
+        let previous: number | null = null
+        values.forEach((v, i) => {
+            if (v === null) return
+            if (previous !== null && i - previous > 1) found.push({ from: previous, to: i })
+            previous = i
+        })
+        return found
     }
 
     function pick(e: PointerEvent<SVGRectElement>) {
@@ -362,9 +377,20 @@ export function LineChart({ labels, series, format, ariaLabel, height = 200, yMa
                     {series.map((s) => (
                         <g key={s.name} className={s.tone === "primary" ? styles.seriesPrimary : styles.seriesMuted}>
                             <path className={styles.line} d={path(s.values)} />
+                            {gapLabel && !connectGaps ? gaps(s.values).map(({ from, to }) => {
+                                const x1 = x(from), y1 = y(s.values[from]!), x2 = x(to), y2 = y(s.values[to]!)
+                                const text = gapLabel(to - from - 1)
+                                const fits = s.tone === "primary" && x2 - x1 >= text.length * 6 + 8
+                                return (
+                                    <g key={`gap-${from}`}>
+                                        <line className={styles.gapLine} x1={x1} y1={y1} x2={x2} y2={y2} />
+                                        {fits ? <text className={styles.gapText} x={(x1 + x2) / 2} y={(y1 + y2) / 2 - 7} textAnchor="middle">{text}</text> : null}
+                                    </g>
+                                )
+                            }) : null}
                             {s.values.map((v, i) => {
                                 // lone points (no neighbours) always get a dot so they don't vanish
-                                const lone = v !== null && !connectGaps && (s.values[i - 1] ?? null) === null && (s.values[i + 1] ?? null) === null
+                                const lone = v !== null && !connectGaps && !gapLabel && (s.values[i - 1] ?? null) === null && (s.values[i + 1] ?? null) === null
                                 return v !== null && (showDots || lone || i === index) ?
                                     <circle key={i} className={styles.dot} cx={x(i)} cy={y(v)} r={i === index ? 5 : 4} />
                                 : null

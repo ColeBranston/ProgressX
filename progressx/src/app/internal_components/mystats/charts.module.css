@@ -252,6 +252,30 @@
     stroke: rgba(255, 255, 255, 0.5);
 }
 
+.gapLine {
+    stroke-width: 1.5;
+    stroke-dasharray: 3 4;
+    stroke-linecap: round;
+}
+
+.seriesPrimary .gapLine {
+    stroke: rgba(226, 0, 0, 0.55);
+}
+
+.seriesMuted .gapLine {
+    stroke: rgba(255, 255, 255, 0.3);
+}
+
+.gapText {
+    font-family: var(--secondary-font-family);
+    font-size: 10px;
+    fill: rgba(255, 255, 255, 0.55);
+    paint-order: stroke;
+    stroke: #0e0e10; /* halo, like .valueText */
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
 .dot {
     stroke: #121214; /* surface ring */
     stroke-width: 2;
