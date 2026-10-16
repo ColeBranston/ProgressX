@@ -21,6 +21,7 @@ export type DayStat = {
     key: string,
     tracked: boolean,      // anything logged (food or water)
     hasFood: boolean,
+    hasWater: boolean,
     totals: DayTotals,
     score: number | null,  // 0..1
     categories: ScoreCategory[],
@@ -66,6 +67,7 @@ export function buildDayStats(from: Dayjs, to: Dayjs, apiDays: ApiDay[], targets
             key,
             tracked,
             hasFood: Boolean(raw && raw.foods > 0),
+            hasWater: Boolean(raw && raw.waterMl > 0),
             totals,
             categories,
             score: tracked ? getDailyScore(categories) : null,
@@ -85,7 +87,11 @@ export function buildWeekStats(days: DayStat[], microNames: string[]): WeekStat[
     return Array.from(weeks.entries()).map(([key, weekDays]) => {
         const tracked = weekDays.filter((day) => day.tracked)
         const food = weekDays.filter((day) => day.hasFood)
+        const water = weekDays.filter((day) => day.hasWater)
         const categoryNames = weekDays[0]?.categories.map((category) => category.label) ?? []
+        // Each average only counts days where that part was logged: a water-only day doesn't drag down
+        // calories, and a day with food but no water doesn't count as 0 ml of water.
+        const loggedFor = (name: string) => name === "Water" ? water : food
 
         return {
             key,
@@ -97,7 +103,7 @@ export function buildWeekStats(days: DayStat[], microNames: string[]): WeekStat[
             score: average(tracked.map((day) => day.score ?? 0)),
             categories: Object.fromEntries(categoryNames.map((name) => [
                 name,
-                average(tracked.flatMap((day) => {
+                average(loggedFor(name).flatMap((day) => {
                     const fraction = day.categories.find((category) => category.label === name)?.fraction
                     return fraction === null || fraction === undefined ? [] : [Math.min(1, fraction)]
                 })),
@@ -106,7 +112,7 @@ export function buildWeekStats(days: DayStat[], microNames: string[]): WeekStat[
             protein: average(food.map((day) => day.totals.protein)),
             carbs: average(food.map((day) => day.totals.carbs)),
             fats: average(food.map((day) => day.totals.fats)),
-            waterMl: average(tracked.map((day) => day.totals.waterMl)),
+            waterMl: average(water.map((day) => day.totals.waterMl)),
             micros: Object.fromEntries(microNames.map((name) => [name, average(food.map((day) => day.totals.micronutrients[name] ?? 0))])),
         }
     })
