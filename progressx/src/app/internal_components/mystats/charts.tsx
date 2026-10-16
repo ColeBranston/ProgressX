@@ -273,6 +273,9 @@ type LineChartProps = {
     gapLabel?: (missing: number) => string,
 }
 
+// gapLabel for charts with one point per day
+export const missingDaysLabel = (missing: number) => missing === 1 ? "No data" : `No data · ${missing} days`
+
 export function LineChart({ labels, series, format, ariaLabel, height = 200, yMax, target, zoom, tickFormat = compactNumber, connectGaps = false, gapLabel }: LineChartProps) {
     const [ ref, width ] = useElementWidth<HTMLDivElement>()
     const [ index, setIndex ] = useState<number | null>(null)
@@ -374,29 +377,36 @@ export function LineChart({ labels, series, format, ariaLabel, height = 200, yMa
                         </g>
                     : null}
                     {index !== null ? <line className={styles.crosshair} x1={x(index)} x2={x(index)} y1={MARGIN.top} y2={MARGIN.top + plotH} /> : null}
-                    {series.map((s) => (
-                        <g key={s.name} className={s.tone === "primary" ? styles.seriesPrimary : styles.seriesMuted}>
-                            <path className={styles.line} d={path(s.values)} />
-                            {gapLabel && !connectGaps ? gaps(s.values).map(({ from, to }) => {
-                                const x1 = x(from), y1 = y(s.values[from]!), x2 = x(to), y2 = y(s.values[to]!)
-                                const text = gapLabel(to - from - 1)
-                                const fits = s.tone === "primary" && x2 - x1 >= text.length * 6 + 8
-                                return (
-                                    <g key={`gap-${from}`}>
-                                        <line className={styles.gapLine} x1={x1} y1={y1} x2={x2} y2={y2} />
-                                        {fits ? <text className={styles.gapText} x={(x1 + x2) / 2} y={(y1 + y2) / 2 - 7} textAnchor="middle">{text}</text> : null}
-                                    </g>
-                                )
-                            }) : null}
-                            {s.values.map((v, i) => {
-                                // lone points (no neighbours) always get a dot so they don't vanish
-                                const lone = v !== null && !connectGaps && !gapLabel && (s.values[i - 1] ?? null) === null && (s.values[i + 1] ?? null) === null
-                                return v !== null && (showDots || lone || i === index) ?
-                                    <circle key={i} className={styles.dot} cx={x(i)} cy={y(v)} r={i === index ? 5 : 4} />
-                                : null
-                            })}
-                        </g>
-                    ))}
+                    {series.map((s) => {
+                        const bridges = gapLabel && !connectGaps ? gaps(s.values) : []
+                        const bridged = new Set(bridges.flatMap(({ from, to }) => [from, to]))
+                        return (
+                            <g key={s.name} className={s.tone === "primary" ? styles.seriesPrimary : styles.seriesMuted}>
+                                <path className={styles.line} d={path(s.values)} />
+                                {bridges.map(({ from, to }) => {
+                                    const x1 = x(from), y1 = y(s.values[from]!), x2 = x(to), y2 = y(s.values[to]!)
+                                    const text = gapLabel!(to - from - 1)
+                                    // rough width at the 10px label font (~6px a character); the label is only
+                                    // left off when it clearly wouldn't fit, and the tooltip still says "No data"
+                                    const fits = s.tone === "primary" && x2 - x1 >= text.length * 6 + 8
+                                    // decorative: the tooltip and the chart's aria-label carry the same information
+                                    return (
+                                        <g key={`gap-${from}`} aria-hidden="true" data-testid="chart-gap">
+                                            <line className={styles.gapLine} x1={x1} y1={y1} x2={x2} y2={y2} />
+                                            {fits ? <text className={styles.gapText} x={(x1 + x2) / 2} y={(y1 + y2) / 2 - 7} textAnchor="middle">{text}</text> : null}
+                                        </g>
+                                    )
+                                })}
+                                {s.values.map((v, i) => {
+                                    // lone points (no line touching them) always get a dot so they don't vanish
+                                    const lone = v !== null && !connectGaps && !bridged.has(i) && (s.values[i - 1] ?? null) === null && (s.values[i + 1] ?? null) === null
+                                    return v !== null && (showDots || lone || i === index) ?
+                                        <circle key={i} className={styles.dot} data-testid="chart-point" cx={x(i)} cy={y(v)} r={i === index ? 5 : 4} />
+                                    : null
+                                })}
+                            </g>
+                        )
+                    })}
                     {primary && lastIndex !== undefined && index === null ?
                         <text className={styles.valueText} x={x(lastIndex)} y={y(primary.values[lastIndex]!) - 10} textAnchor={lastIndex === n - 1 ? "end" : "middle"}>{format(primary.values[lastIndex]!)}</text>
                     : null}
