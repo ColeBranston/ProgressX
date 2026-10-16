@@ -15,7 +15,7 @@ import {
     goalType,
     weightKgFromProfile,
 } from "@/app/internal_components/index";
-import { BarChart, ChartCard, Heatmap, LineChart, StatTile } from "@/app/internal_components/mystats/charts";
+import { BarChart, ChartCard, Heatmap, LineChart, missingDaysLabel, StatTile } from "@/app/internal_components/mystats/charts";
 import { ApiDay, buildDayStats, buildWeekStats, change, WeekStat } from "@/app/internal_components/mystats/dietStats";
 
 const RANGES = [
@@ -179,7 +179,7 @@ export default function DietStatsPage() {
                     <ChartCard
                         className={styles.span2}
                         title="Daily score"
-                        subtitle="How much of each day's targets you hit. Gaps are days with nothing logged."
+                        subtitle="How much of each day's targets you hit. Dashed stretches are days with nothing logged."
                         dimmed={loading}
                         table={{
                             columns: ["Day", "Score", ...categoryNames],
@@ -198,7 +198,8 @@ export default function DietStatsPage() {
                             series={[{ name: "Daily score", tone: "primary", values: days.map((day) => day.score === null ? null : toPercent(day.score)) }]}
                             format={(v) => `${Math.round(v)}%`}
                             yMax={100}
-                            ariaLabel="Daily score over time, as a percentage"
+                            gapLabel={missingDaysLabel}
+                            ariaLabel={`Daily score over time, as a percentage. ${days.length - trackedDays} of ${days.length} days have nothing logged.`}
                         />
                     </ChartCard>
 
