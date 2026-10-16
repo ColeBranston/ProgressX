@@ -213,7 +213,7 @@ export default function DietStatsPage() {
 
                     <ChartCard
                         title="Score breakdown"
-                        subtitle="Weekly average of each part of the score"
+                        subtitle="Weekly average of each part, over the days you logged that part"
                         dimmed={loading}
                         table={{
                             columns: ["Week of", ...categoryNames],
@@ -254,7 +254,7 @@ export default function DietStatsPage() {
 
                     <ChartCard
                         title="Water"
-                        subtitle="Average per logged day"
+                        subtitle="Average per day with water logged"
                         dimmed={loading}
                         table={{ columns: ["Week of", "Avg / day"], rows: [...weekStats].reverse().map((week) => [week.label, week.waterMl === null ? "—" : formatVolume(week.waterMl)]) }}
                     >
@@ -339,7 +339,7 @@ export default function DietStatsPage() {
                 </div>
 
                 <p className={styles.note}>
-                    Scores use your current profile, calorie goal ({targets.goal.toLowerCase()}) and micronutrient choices, the same way the diet page scores a day. Weekly averages only count days you logged something.
+                    Scores use your current profile, calorie goal ({targets.goal.toLowerCase()}) and micronutrient choices, the same way the diet page scores a day. Weekly averages only count days you logged that thing: food for calories, macros and micros, water for water.
                 </p>
             </>
             }
