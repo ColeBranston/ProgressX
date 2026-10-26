@@ -792,6 +792,23 @@ export default function DietPage() {
                                 <p key={Math.round(consumed.calories)} className={styles.caloriesText}>{Math.round(consumed.calories)} kCal</p>
                             </div>
                         </div>
+                        {/* maintenance: what keeps your weight steady (estimated from your profile); target: that, adjusted for the goal */}
+                        {totalExpenditure ?
+                            <dl className={styles.calorieTargets}>
+                                <div>
+                                    <dt>Maintenance</dt>
+                                    <dd>{totalExpenditure.toLocaleString()} <span>kCal</span></dd>
+                                </div>
+                                {goalState !== "Maintain" ?
+                                    <div>
+                                        <dt>Your target ({goalState.toLowerCase()})</dt>
+                                        <dd>{getCalorieTarget(totalExpenditure, goalState).toLocaleString()} <span>kCal</span></dd>
+                                    </div>
+                                : null}
+                            </dl>
+                        :
+                            <p className={styles.calorieTargetsMissing}>Add your height, weight, age and activity level to see your maintenance calories.</p>
+                        }
                         <div className={styles.calorieBody}>
                             <CalorieTarget curr={consumed.calories} totalExpenditure={totalExpenditure} goal={goalState}/>
                             <button type="button" onClick={cycleGoalState} className={styles.customButton} aria-label={`Calorie goal: ${goalState}. Click to change`}>

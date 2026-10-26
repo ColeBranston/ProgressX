@@ -666,6 +666,49 @@
     user-select: none;
 }
 
+/* maintenance calories (and the goal's target) under the intake total */
+.calorieTargets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin: 0;
+}
+
+.calorieTargets div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.calorieTargets dt {
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.55;
+}
+
+.calorieTargets dd {
+    margin: 0;
+    font-family: var(--primary-font-family);
+    font-size: 20px;
+    color: white;
+}
+
+.calorieTargets dd span {
+    font-size: 13px;
+    opacity: 0.6;
+}
+
+.calorieTargetsMissing {
+    margin: 0;
+    max-width: 240px;
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+    line-height: 1.4;
+    opacity: 0.55;
+}
+
 .calorieBody {
     flex: 1;
     display: flex;
