@@ -678,6 +678,99 @@
     margin-top: 12px;
 }
 
+/* ---------- comparing two photos ---------- */
+
+/* the Compare button's label stays visible on narrow layouts (unlike the blur switch, it has no aria-label) */
+.compareLabel {
+    margin-right: 4px;
+}
+
+.compareBanner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 12px 10px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(var(--primary-color), 0.4);
+    background: rgba(var(--primary-color), 0.08);
+    font-family: var(--secondary-font-family);
+    font-size: 14px;
+    color: var(--secondary-color);
+}
+
+.compareBanner .secondaryButton {
+    height: 34px;
+    font-size: 14px;
+}
+
+.tileSelected {
+    border-color: rgba(var(--primary-color));
+    box-shadow: 0 0 0 2px rgba(var(--primary-color));
+}
+
+.selectedBadge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(var(--primary-color));
+    color: white;
+    font: 700 14px var(--secondary-font-family);
+}
+
+.viewer.compareViewer {
+    max-width: 1100px;
+}
+
+.compareStage {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.compareSide {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.compareImage {
+    position: relative;
+    height: min(64vh, 720px);
+    border-radius: 14px;
+    overflow: hidden;
+    background-color: black;
+    background-size: cover;
+    background-position: center;
+}
+
+.compareCaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-family: var(--secondary-font-family);
+    font-size: 13px;
+    opacity: 0.75;
+}
+
+.compareCaption span {
+    font-family: var(--primary-font-family);
+    font-size: 15px;
+    color: rgba(var(--primary-color));
+    opacity: 1;
+}
+
 @media (max-width: 700px) {
     .grid {
         grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -690,6 +783,19 @@
 
     .overlay {
         padding: 12px;
+    }
+
+    .compareStage {
+        gap: 6px;
+    }
+
+    .compareImage {
+        height: min(52vh, 520px);
+    }
+
+    .compareCaption {
+        flex-direction: column;
+        gap: 0;
     }
 }
 
