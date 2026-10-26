@@ -36,14 +36,15 @@ export const VIDEO_COLUMNS = "id, user_id, object_key, poster_key, caption, stat
 export const VIDEO_WITH_AUTHOR = `${VIDEO_COLUMNS}, profiles!videos_user_id_fkey!inner(display_username, display_name, profile_image, profile_privacy)`
 
 
-export function canView(video: Pick<VideoRow, "user_id" | "status">, author: Pick<Author, "profile_privacy"> | null, viewerId: string) {
-    if (video.user_id === viewerId) return true
+// viewerId is null for a visitor who isn't signed in: they see only public, ready videos
+export function canView(video: Pick<VideoRow, "user_id" | "status">, author: Pick<Author, "profile_privacy"> | null, viewerId: string | null) {
+    if (viewerId && video.user_id === viewerId) return true
     return video.status === "ready" && author?.profile_privacy === "public"
 }
 
 // Which of these videos the viewer has liked / favourited
-export async function reactionsFor(viewerId: string, videoIds: string[]) {
-    if (!videoIds.length) return { liked: new Set<string>(), favourited: new Set<string>() }
+export async function reactionsFor(viewerId: string | null, videoIds: string[]) {
+    if (!viewerId || !videoIds.length) return { liked: new Set<string>(), favourited: new Set<string>() }
     const [likes, favourites] = await Promise.all([
         supabase.from("video_likes").select("video_id").eq("user_id", viewerId).in("video_id", videoIds),
         supabase.from("video_favourites").select("video_id").eq("user_id", viewerId).in("video_id", videoIds),
@@ -57,7 +58,7 @@ export async function reactionsFor(viewerId: string, videoIds: string[]) {
 }
 
 // Cards for videos the viewer is allowed to see (callers filter with canView first)
-export async function toCards(rows: VideoRowWithAuthor[], viewerId: string): Promise<VideoCard[]> {
+export async function toCards(rows: VideoRowWithAuthor[], viewerId: string | null): Promise<VideoCard[]> {
     const [ { liked, favourited }, follows ] = await Promise.all([
         reactionsFor(viewerId, rows.map((r) => r.id)),
         followingSet(viewerId, rows.map((r) => r.user_id)),
@@ -83,7 +84,7 @@ export async function toCards(rows: VideoRowWithAuthor[], viewerId: string): Pro
             favourites: row.favourites_count,
             liked: liked.has(row.id),
             favourited: favourited.has(row.id),
-            isOwner: row.user_id === viewerId,
+            isOwner: viewerId !== null && row.user_id === viewerId,
             author: {
                 username: row.profiles?.display_username ?? "",
                 name: row.profiles?.display_name ?? "",

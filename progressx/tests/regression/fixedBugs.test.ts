@@ -84,7 +84,7 @@ describe("search engines", () => {
     it("publishes only https://progressx.ca URLs (Google flagged http:// duplicates without a canonical)", async () => {
         const { default: sitemap } = await import("@/app/sitemap")
         const { default: robots } = await import("@/app/robots")
-        for (const entry of sitemap()) expect(entry.url).toMatch(/^https:\/\/progressx\.ca\//)
+        for (const entry of await sitemap()) expect(entry.url).toMatch(/^https:\/\/progressx\.ca\//)
         expect(robots()).toMatchObject({ sitemap: "https://progressx.ca/sitemap.xml", host: "https://progressx.ca" })
     })
 

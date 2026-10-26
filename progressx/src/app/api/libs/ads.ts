@@ -36,10 +36,11 @@ export function adConfig(env: Record<string, string | undefined> = process.env):
     }
 }
 
-// The ad settings for one viewer: personalized only if they opted in (a failed lookup means no)
-export async function adConfigFor(userId: string): Promise<AdConfig | null> {
+// The ad settings for one viewer: personalized only if they opted in (a failed lookup means no). A
+// visitor who isn't signed in always gets non-personalized ads.
+export async function adConfigFor(userId: string | null): Promise<AdConfig | null> {
     const config = adConfig()
-    if (!config) return null
+    if (!config || !userId) return config
     const { data, error } = await supabase.from("user_settings").select("personalized_ads").eq("user_id", userId).maybeSingle()
     if (error) console.log("Couldn't read the personalized ads choice: ", error.message)
     return { ...config, personalized: data?.personalized_ads === true }

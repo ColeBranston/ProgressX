@@ -7,9 +7,8 @@ import { cleanReleaseNotes, Release, shouldShowRelease } from "@/app/internal_co
 // The newest release, if this user hasn't seen it yet (and it came out after they signed up).
 export async function GET(req: NextRequest) {
     const userId = await getUserIdFromRequest(req)
-    if (!userId) {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
-    }
+    // release notes are for signed-in users; visitors browsing the public pages just get none
+    if (!userId) return NextResponse.json({ release: null })
 
     try {
         const [

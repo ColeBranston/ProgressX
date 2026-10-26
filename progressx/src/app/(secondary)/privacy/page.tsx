@@ -128,7 +128,16 @@ export default function PrivacyPolicyPage() {
             <h2><span>05</span>How we share information</h2>
             <p>We share personal information only in these situations:</p>
             <ul>
-                <li><strong>With other users, as you choose.</strong> Other signed-in users can see your username, name, profile picture, bio and follower, following and like counts, and, while your profile is public, the lists of who follows you and who you follow. Videos you post are shown to other users (including in the For You feed) only while your profile is public; when it is private, only you can see them. The videos you like or favourite are visible only to you.</li>
+                <li>
+                    <strong>With other users and the public, as you choose.</strong> While your profile is <strong>public</strong>, anyone
+                    on the internet can see it, including people who don&apos;t have a ProgressX account: your username, name, profile
+                    picture, bio, follower, following and like counts, the lists of who follows you and who you follow, and the videos you
+                    post (on your profile, in the public feed and in search). Public profiles and videos can also be found through search
+                    engines such as Google. While your profile is <strong>private</strong>, only you can see your videos; people signed in to
+                    ProgressX can still see your username, name, profile picture, bio and counts, but people without an account can&apos;t see
+                    your profile at all. You can switch between public and private at any time in Settings; search engines may take some
+                    time to drop pages they have already stored. The videos you like or favourite are visible only to you.
+                </li>
                 <li>
                     <strong>With service providers</strong> who help us run the Service and may only use your information to provide their services to us:
                     <ul>

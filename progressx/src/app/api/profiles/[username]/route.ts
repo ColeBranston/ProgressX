@@ -21,11 +21,10 @@ function safeDecode(value: string) {
 }
 
 // GET /api/profiles/:username   -> { profile }  (with whether you follow each other)
-// What anyone signed in can see about a profile: name, picture, bio and counts. Whether their videos
+// What anyone can see about a profile, signed in or not: name, picture, bio and counts. Whether their videos
 // show is up to their privacy setting (see /api/videos). Nothing else (email, age, body stats) is sent.
 export async function GET(req: NextRequest, context: { params: Promise<{ username: string }> }) {
-    const viewerId = await getUserIdFromRequest(req)
-    if (!viewerId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    const viewerId = await getUserIdFromRequest(req) // null: not signed in
 
     const { username } = await context.params
     try {
@@ -34,15 +33,17 @@ export async function GET(req: NextRequest, context: { params: Promise<{ usernam
             "id, display_username, display_name, profile_image, profile_bio, profile_privacy, followers_count, following_count, likes_count",
         )
         if (!profile) return NextResponse.json({ message: "No such profile" }, { status: 404 })
+        // visitors who aren't signed in only see public profiles (a private one looks like it doesn't exist)
+        if (!viewerId && profile.profile_privacy !== "public") return NextResponse.json({ message: "No such profile" }, { status: 404 })
 
-        const isOwner = profile.id === viewerId
+        const isOwner = viewerId !== null && profile.id === viewerId
         const isPublic = profile.profile_privacy === "public"
         const [ { count }, following, followsYou ] = await Promise.all([
             isOwner || isPublic
                 ? supabase.from("videos").select("id", { count: "exact", head: true }).eq("user_id", profile.id).eq("status", "ready")
                 : Promise.resolve({ count: null }),
-            supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("follower_id", viewerId).eq("following_id", profile.id),
-            supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("follower_id", profile.id).eq("following_id", viewerId),
+            viewerId ? supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("follower_id", viewerId).eq("following_id", profile.id) : Promise.resolve({ count: 0 }),
+            viewerId ? supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("follower_id", profile.id).eq("following_id", viewerId) : Promise.resolve({ count: 0 }),
         ])
 
         return NextResponse.json({

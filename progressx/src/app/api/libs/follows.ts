@@ -9,11 +9,13 @@ export const FOLLOW_PAGE = 30
 
 export type ProfileRef = { id: string, profile_privacy: string | null, display_username: string }
 
-// The profile named in a route: a username, or "me" for the signed-in user (usernames have 3+ characters)
-export async function profileFromRoute(username: string, viewerId: string): Promise<ProfileRef | null> {
+// The profile named in a route: a username, or "me" for the signed-in user (usernames have 3+ characters).
+// viewerId is null for a visitor who isn't signed in, who has no "me".
+export async function profileFromRoute(username: string, viewerId: string | null): Promise<ProfileRef | null> {
     let name = username
     try { name = decodeURIComponent(username) } catch { /* already decoded */ }
     if (name === "me") {
+        if (!viewerId) return null
         const { data, error } = await supabase.from("profiles").select("id, profile_privacy, display_username").eq("id", viewerId).maybeSingle()
         if (error) throw error
         return data as ProfileRef | null
@@ -22,7 +24,8 @@ export async function profileFromRoute(username: string, viewerId: string): Prom
 }
 
 // Which of these people the viewer follows
-export async function followingSet(viewerId: string, ids: string[]): Promise<Set<string>> {
+export async function followingSet(viewerId: string | null, ids: string[]): Promise<Set<string>> {
+    if (!viewerId) return new Set()
     const unique = [...new Set(ids)].filter((id) => id !== viewerId)
     if (!unique.length) return new Set()
     const { data, error } = await supabase.from("follows").select("following_id").eq("follower_id", viewerId).in("following_id", unique)
@@ -43,7 +46,7 @@ export type FollowListEntry = { username: string, name: string, pfp: string | nu
 type FollowRow = { created_at: string, person: { id: string, display_username: string | null, display_name: string | null, profile_image: string | null, profile_privacy: string | null } | null }
 
 // One page of someone's followers or of the people they follow, newest first
-export async function followList(profileId: string, list: "followers" | "following", viewerId: string, offset: number) {
+export async function followList(profileId: string, list: "followers" | "following", viewerId: string | null, offset: number) {
     const [ match, person ] = list === "followers" ? ["following_id", "follower_id"] : ["follower_id", "following_id"]
     const { data, error } = await supabase
         .from("follows")
@@ -53,7 +56,8 @@ export async function followList(profileId: string, list: "followers" | "followi
         .range(offset, offset + FOLLOW_PAGE)
     if (error) throw error
 
-    const rows = ((data ?? []) as unknown as FollowRow[]).filter((row) => row.person?.display_username)
+    // visitors who aren't signed in only see the people in the list whose profiles are public
+    const rows = ((data ?? []) as unknown as FollowRow[]).filter((row) => row.person?.display_username && (viewerId || row.person.profile_privacy === "public"))
     const page = rows.slice(0, FOLLOW_PAGE)
     const viewerFollows = await followingSet(viewerId, page.map((row) => row.person!.id))
     return {
@@ -62,7 +66,7 @@ export async function followList(profileId: string, list: "followers" | "followi
             name: row.person!.display_name ?? "",
             pfp: row.person!.profile_image,
             privacy: row.person!.profile_privacy === "public" ? "public" : "private",
-            isOwner: row.person!.id === viewerId,
+            isOwner: viewerId !== null && row.person!.id === viewerId,
             following: viewerFollows.has(row.person!.id),
         })),
         nextCursor: (data ?? []).length > FOLLOW_PAGE ? String(offset + FOLLOW_PAGE) : null,

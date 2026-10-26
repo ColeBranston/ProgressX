@@ -35,7 +35,7 @@ Breach reporting and record-keeping: [breach-response-plan.md](breach-response-p
 | Data | Where | Deleted by |
 |---|---|---|
 | Email, password hash, Google identity | Supabase Auth (`auth.users`), US | Account deletion |
-| Profile (name, username, bio, age, gender, height, weight, activity level, privacy settings) | `profiles` | Cascade from `auth.users`. Other signed-in users can see the username, name, picture, bio and counts (`/api/profiles/:username`), never the rest |
+| Profile (name, username, bio, age, gender, height, weight, activity level, privacy settings) | `profiles` | Cascade from `auth.users`. Public profiles (username, name, picture, bio, counts, follow lists and videos) are visible to anyone, signed in or not, and indexed by search engines; private ones show only username, name, picture, bio and counts, and only to signed-in users (`/api/profiles/:username`). Never the rest |
 | Settings, diet preferences | `user_settings`, `diet_config` | Cascade |
 | Food catalog and food log | `food_items`, `food_log_entries` | Cascade |
 | Water log | `water_log_entries` | Cascade |

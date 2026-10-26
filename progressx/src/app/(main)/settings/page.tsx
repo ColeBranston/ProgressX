@@ -327,7 +327,9 @@ export default function SettingsPage() {
                                     <div className={styles.rowText}>
                                         <p className={styles.rowLabel}>Profile visibility</p>
                                         <p className={styles.rowDescription}>
-                                            {settings.profilePrivacy === "public" ? "Anyone on ProgressX can see your profile." : "Only you can see your profile."}
+                                            {settings.profilePrivacy === "public"
+                                                ? "Anyone on the internet can see your profile and videos, including people without an account, and they can show up in search engines like Google."
+                                                : "Only you can see your videos. People signed in to ProgressX can still find your name and picture."}
                                         </p>
                                     </div>
                                     <Segmented

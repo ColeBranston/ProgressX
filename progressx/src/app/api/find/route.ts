@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
-import { getUserIdFromRequest } from "../libs/helpers";
+import { getUserIdFromRequest, requesterKey } from "../libs/helpers";
 import { followingSet } from "../libs/follows";
 import { PAGE_SIZE, VIDEO_WITH_AUTHOR, VideoRowWithAuthor, canView, overLimit, toCards } from "../libs/videos";
 
@@ -29,9 +29,9 @@ function containsPattern(q: string) {
 //             only videos the viewer may see (public profiles, plus their own), newest first
 //   profiles: { profiles: [...], nextCursor }        username or name containing q, best matches first;
 //             private profiles are listed too (as on their profile page), their videos are not
+// Open to visitors who aren't signed in (they see only public videos).
 export async function GET(req: NextRequest) {
-    const viewerId = await getUserIdFromRequest(req)
-    if (!viewerId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    const viewerId = await getUserIdFromRequest(req) // null: not signed in
 
     const params = new URL(req.url).searchParams
     const q = (params.get("q") ?? "").normalize("NFC").replace(/\s+/g, " ").trim().slice(0, MAX_QUERY)
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     if (!Number.isInteger(offset) || offset < 0 || offset > MAX_OFFSET) return NextResponse.json({ message: "Bad cursor" }, { status: 400 })
     if (type !== "videos" && type !== "profiles") return NextResponse.json({ message: "type must be videos or profiles" }, { status: 400 })
     if (!q) return NextResponse.json(type === "videos" ? { videos: [], nextCursor: null } : { profiles: [], nextCursor: null })
-    if (overLimit(`find:${viewerId}`, 60, 60 * 1000)) return NextResponse.json({ message: "Too many searches, slow down a little" }, { status: 429 })
+    if (overLimit(`find:${requesterKey(req, viewerId)}`, 60, 60 * 1000)) return NextResponse.json({ message: "Too many searches, slow down a little" }, { status: 429 })
 
     try {
         return NextResponse.json(type === "profiles" ? await findProfiles(q, offset, viewerId) : await findVideos(q, offset, viewerId))
@@ -63,9 +63,10 @@ async function matchingProfiles(q: string, limit: number) {
     return (data ?? []) as ProfileRow[]
 }
 
-async function findProfiles(q: string, offset: number, viewerId: string) {
-    // fetch every candidate up to the cap, rank in code (exact username, then starts-with, then the rest)
-    const rows = await matchingProfiles(q, MAX_OFFSET + PROFILE_PAGE)
+async function findProfiles(q: string, offset: number, viewerId: string | null) {
+    // fetch every candidate up to the cap, rank in code (exact username, then starts-with, then the rest);
+    // visitors who aren't signed in only find public profiles
+    const rows = (await matchingProfiles(q, MAX_OFFSET + PROFILE_PAGE)).filter((p) => viewerId || p.profile_privacy === "public")
     const lower = q.toLowerCase()
     const rank = (p: ProfileRow) => {
         const username = p.display_username.toLowerCase()
@@ -85,16 +86,16 @@ async function findProfiles(q: string, offset: number, viewerId: string) {
             pfp: p.profile_image,
             privacy: p.profile_privacy === "public" ? "public" : "private",
             followers: p.followers_count ?? 0,
-            isOwner: p.id === viewerId,
+            isOwner: viewerId !== null && p.id === viewerId,
             following: follows.has(p.id),
         })),
         nextCursor: rows.length > offset + PROFILE_PAGE ? String(offset + PROFILE_PAGE) : null,
     }
 }
 
-async function findVideos(q: string, offset: number, viewerId: string) {
+async function findVideos(q: string, offset: number, viewerId: string | null) {
     // videos match on their caption, or on who posted them
-    const authors = (await matchingProfiles(q, 200)).filter((p) => p.profile_privacy === "public" || p.id === viewerId).map((p) => p.id)
+    const authors = (await matchingProfiles(q, 200)).filter((p) => p.profile_privacy === "public" || (viewerId !== null && p.id === viewerId)).map((p) => p.id)
     const filters = [`caption.ilike.${containsPattern(q)}`, ...(authors.length ? [`user_id.in.(${authors.join(",")})`] : [])]
 
     const { data, error } = await supabase
