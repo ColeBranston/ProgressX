@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./follows.module.css";
 import { setFollow } from "../videos/videoTypes";
+import { useRequireSignIn } from "@/app/contexts/viewer";
 
 type FollowButtonProps = {
     username: string,
@@ -18,10 +19,12 @@ export default function FollowButton({ username, following, onChange, size = "sm
     const [ busy, setBusy ] = useState(false)
     const [ error, setError ] = useState<string | null>(null)
 
+    const requireSignIn = useRequireSignIn()
+
     useEffect(() => { setOn(following) }, [following])
 
     async function toggle() {
-        if (busy) return
+        if (busy || !requireSignIn()) return
         const next = !on
         setOn(next)
         setBusy(true)

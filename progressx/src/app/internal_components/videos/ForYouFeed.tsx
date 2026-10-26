@@ -8,6 +8,7 @@ import VideoPlayer from "./VideoPlayer";
 import AdSlot from "./AdSlot";
 import { ArrowIcon, BookmarkIcon, CommentIcon, HeartIcon, MoreIcon, MutedIcon, ShareIcon, VolumeIcon } from "./icons";
 import { Reaction, VideoCard, formatCount, setFollow, setReaction } from "./videoTypes";
+import { useRequireSignIn } from "@/app/contexts/viewer";
 import { AdConfig, FeedItem, adAllowedNow, adTopics, appendWithAds, captionsBefore, loadedRange, needsMore } from "./feedPlan";
 
 const NAV_COOLDOWN_MS = 550
@@ -78,6 +79,7 @@ export default function ForYouFeed({ source = "for-you" }: { source?: "for-you" 
     const touchY = useRef<number | null>(null)
     const activeVideo = useRef<HTMLVideoElement | null>(null)
     const lastAdShownAt = useRef<number | null>(null)
+    const requireSignIn = useRequireSignIn() // likes, favourites and follows need an account
     // the latest items and cursor, for fetches started from effects
     const latest = useRef({ items, cursor })
     useEffect(() => { latest.current = { items, cursor } }, [items, cursor])
@@ -163,6 +165,7 @@ export default function ForYouFeed({ source = "for-you" }: { source?: "for-you" 
     const currentVideo = current?.kind === "video" ? current.video : null
 
     async function toggle(video: VideoCard, reaction: Reaction) {
+        if (!requireSignIn()) return
         const on = reaction === "like" ? !video.liked : !video.favourited
         const optimistic = reaction === "like"
             ? { liked: on, likes: Math.max(0, video.likes + (on ? 1 : -1)) }
@@ -202,6 +205,7 @@ export default function ForYouFeed({ source = "for-you" }: { source?: "for-you" 
 
     // the "+" under the poster's picture: follow them (every video of theirs in the feed updates)
     async function follow(video: VideoCard) {
+        if (!requireSignIn()) return
         const update = (following: boolean) => dispatch({ type: "updateVideos", update: (v) => (v.author.username === video.author.username ? { ...v, author: { ...v.author, following } } : v) })
         update(true)
         try {

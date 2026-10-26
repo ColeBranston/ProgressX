@@ -7,6 +7,7 @@ import VideoPlayer from "./VideoPlayer";
 import { ArrowIcon, BookmarkIcon, HeartIcon, MutedIcon, ShareIcon, VolumeIcon } from "./icons";
 import { Reaction, VideoCard, formatCount, setReaction } from "./videoTypes";
 import { backdrop } from "../a11y";
+import { useRequireSignIn } from "@/app/contexts/viewer";
 
 type VideoViewerProps = {
     videos: VideoCard[],
@@ -20,6 +21,7 @@ type VideoViewerProps = {
 // A video from a profile grid, full size, with like / favourite / share (and delete for your own).
 // Left / right arrows move through the grid; Escape closes.
 export default function VideoViewer({ videos, index, onIndex, onClose, onChange, onDelete }: VideoViewerProps) {
+    const requireSignIn = useRequireSignIn()
     const video = videos[index]
     const [ muted, setMuted ] = useState(false) // opened with a click, so sound is allowed
     const [ paused, setPaused ] = useState(false)
@@ -56,6 +58,7 @@ export default function VideoViewer({ videos, index, onIndex, onClose, onChange,
     if (!video) return null
 
     async function toggle(reaction: Reaction) {
+        if (!requireSignIn()) return
         const on = reaction === "like" ? !video.liked : !video.favourited
         onChange({
             ...video,

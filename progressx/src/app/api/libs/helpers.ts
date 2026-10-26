@@ -10,6 +10,14 @@ export function getPublicIdFromCloudinaryUrl(url: string) {
     return publicId;
   }
 
+// Who's asking, for rate limits on pages anyone can use without signing in: the signed-in user, or
+// the visitor's IP (Cloudflare and nginx pass it on)
+export function requesterKey(req: NextRequest, userId: string | null): string {
+    if (userId) return `user:${userId}`
+    const ip = req.headers.get("cf-connecting-ip") ?? req.headers.get("x-real-ip") ?? req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    return `ip:${ip || "unknown"}`
+}
+
 // Shared auth helper for API routes: verifies the access-token cookie (the middleware has
 // already refreshed it if it was about to expire) and returns the signed-in user's id
 // (profiles.id / auth.users.id), or null if the request isn't authenticated.

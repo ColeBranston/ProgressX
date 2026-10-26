@@ -16,6 +16,7 @@ import {
   verifyAccessToken,
 } from "./app/api/libs/session"
 import { TERMS_VERSION } from "./app/internal_components/legal/legalInfo"
+import { isPublicPage } from "./app/api/libs/publicPages"
 
 type SessionCheck =
   | { status: "valid", userId: string, refreshed?: SessionTokens }
@@ -125,7 +126,18 @@ export async function middleware(req: NextRequest) {
   // redirect), so the root URL describes the app to new people, search engines and Google's
   // OAuth branding check. Signed-in users get the app there as before.
   if (req.nextUrl.pathname === "/" && session.status !== "valid" && !hadSession) {
+    // a shared video link (/?v=<id>) opens in the public feed instead
+    const shared = req.nextUrl.searchParams.get("v")
+    if (shared) return redirect(req, `/explore?${new URLSearchParams({ v: shared })}`)
     return NextResponse.rewrite(new URL("/homepage", req.url))
+  }
+
+  // Public pages: visitors who aren't signed in (or whose login ended) just browse them signed out.
+  // Signed-in users go through the usual consent and onboarding checks below.
+  if (isPublicPage(req.nextUrl.pathname) && session.status !== "valid") {
+    // an ended login: drop its cookies from this request too, so the page renders signed out
+    if (session.status === "invalid" && hadSession) return nextWithoutSession(req)
+    return NextResponse.next()
   }
 
   if (session.status === "unavailable") {
@@ -182,7 +194,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  // pages that need a login (plus the consent and onboarding steps), and every API route except
-  // /api/auth/* (login, signup, logout)
-  matcher: ["/", "/login", "/research", "/search", "/following", "/profile", "/profile/:path*", "/mystats", "/mystats/:path*", "/mydiet", "/settings", "/consent", "/onboarding", "/api/((?!auth).*)"],
+  // app pages (public ones too, to keep a signed-in user's session fresh and send them through consent
+  // and onboarding), and every API route except /api/auth/* (login, signup, logout)
+  matcher: ["/", "/login", "/explore", "/research", "/research/:path*", "/search", "/following", "/upload", "/profile", "/profile/:path*", "/mystats", "/mystats/:path*", "/mydiet", "/settings", "/consent", "/onboarding", "/api/((?!auth).*)"],
 }

@@ -13,11 +13,10 @@ const MAX_SEEN = 100
 // GET /api/videos/feed?seen=<id,id,...>&start=<videoId>
 //   -> { videos: VideoCard[], ads: AdConfig | null }
 // The For You feed, a few videos at a time: ready videos from public profiles, picked at random (no
-// ranking yet). ?seen lists the videos already shown, newest first, so they aren't repeated while there
+// ranking yet). Open to visitors who aren't signed in (the public feed at /explore). ?seen lists the videos already shown, newest first, so they aren't repeated while there
 // are others. ?start puts one video first (a shared link), if the viewer may see it.
 export async function GET(req: NextRequest) {
-    const viewerId = await getUserIdFromRequest(req)
-    if (!viewerId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
+    const viewerId = await getUserIdFromRequest(req) // null: not signed in
 
     const params = new URL(req.url).searchParams
     const seen = (params.get("seen") ?? "").split(",").filter((id) => UUID.test(id)).slice(0, MAX_SEEN)

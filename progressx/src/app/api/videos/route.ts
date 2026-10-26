@@ -8,28 +8,30 @@ const MAX_SYNCS = 6 // abandoned-upload cleanups per request
 // GET /api/videos?user=<username>|me&tab=videos|liked|favourites&cursor=...
 //   -> { videos: VideoCard[], nextCursor: string | null }       or { private: true } (403)
 // "videos": what that person posted (your own include unfinished uploads). "liked" and
-// "favourites" are only ever your own lists.
+// "favourites" are only ever your own lists. A public profile's videos can be listed by anyone,
+// signed in or not; "me", liked and favourites need a login.
 export async function GET(req: NextRequest) {
     const viewerId = await getUserIdFromRequest(req)
-    if (!viewerId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
-
     const params = new URL(req.url).searchParams
     const tab = params.get("tab") ?? "videos"
     const user = params.get("user") ?? "me"
+    if (!viewerId && (user === "me" || tab !== "videos")) return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
     const cursor = decodeCursor(params.get("cursor"))
     if (params.get("cursor") && !cursor) return NextResponse.json({ message: "Bad cursor" }, { status: 400 })
 
     try {
         if (tab === "liked" || tab === "favourites") {
             if (user !== "me") return NextResponse.json({ message: "Only your own likes and favourites can be listed" }, { status: 403 })
-            return NextResponse.json(await reactedVideos(viewerId, tab === "liked" ? "video_likes" : "video_favourites", cursor))
+            return NextResponse.json(await reactedVideos(viewerId!, tab === "liked" ? "video_likes" : "video_favourites", cursor))
         }
         if (tab !== "videos") return NextResponse.json({ message: "tab must be videos, liked or favourites" }, { status: 400 })
 
-        let ownerId = viewerId
+        let ownerId = viewerId as string // "me" was refused above for visitors who aren't signed in
         if (user !== "me") {
             const owner = await findProfileByUsername<{ id: string, profile_privacy: string | null }>(user, "id, profile_privacy")
             if (!owner) return NextResponse.json({ message: "No such profile" }, { status: 404 })
+            // to visitors who aren't signed in, a private profile looks like it doesn't exist
+            if (!viewerId && owner.profile_privacy !== "public") return NextResponse.json({ message: "No such profile" }, { status: 404 })
             if (owner.id !== viewerId && owner.profile_privacy !== "public") {
                 return NextResponse.json({ private: true, videos: [], nextCursor: null }, { status: 403 })
             }

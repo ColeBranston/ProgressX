@@ -7,6 +7,7 @@ import styles from "./profile.module.css"
 import VideoGrid from "../internal_components/videos/VideoGrid";
 import videoStyles from "../internal_components/profile/VideosComponent.module.css"
 import FollowButton from "../internal_components/follows/FollowButton";
+import { useViewer } from "../contexts/viewer";
 import FollowList from "../internal_components/follows/FollowList";
 
 type PublicProfile = {
@@ -31,6 +32,7 @@ export default function OtherProfile({ username }: { username: string }) {
     const router = useRouter()
     const [ profile, setProfile ] = useState<PublicProfile | null>(null)
     const [ error, setError ] = useState<string | null>(null)
+    const { signedIn } = useViewer()
     const [ followList, setFollowList ] = useState<"followers" | "following" | null>(null)
 
     useEffect(() => {
@@ -57,7 +59,7 @@ export default function OtherProfile({ username }: { username: string }) {
                     {error ?
                         <div className={styles.privateNotice}>
                             <p className={styles.usernameText}>{error}</p>
-                            <Link href="/" className={styles.privateLink}>Back to For You</Link>
+                            <Link href={signedIn ? "/" : "/explore"} className={styles.privateLink}>Back to For You</Link>
                         </div>
                     : <span className={styles.profileSpinner} role="status" aria-label="Loading profile" />}
                 </div>

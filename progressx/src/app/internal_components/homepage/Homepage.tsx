@@ -206,6 +206,7 @@ export default function Homepage() {
                     <button type="button" onClick={() => scrollToId("privacy")}>Privacy</button>
                 </nav>
                 <div className={styles.navActions}>
+                    <Link href="/explore" className={styles.navGhost}>Explore</Link>
                     <Link href="/login" className={styles.navGhost}>Log in</Link>
                     <Link href="/login" className={styles.navCta}>Open app <Arrow /></Link>
                 </div>
@@ -239,7 +240,7 @@ export default function Homepage() {
                             </p>
                             <div className={styles.heroButtons}>
                                 <Magnetic><Link href="/login" className={styles.primaryButton}>Start for free <Arrow /></Link></Magnetic>
-                                <Link href="/login" className={styles.secondaryButton}>Open the app</Link>
+                                <Link href="/explore" className={styles.secondaryButton}>Watch videos</Link>
                             </div>
                         </div>
                     </div>
@@ -433,6 +434,8 @@ export default function Homepage() {
                         <p>Fitness, measured.</p>
                     </div>
                     <nav className={styles.footerLinks} aria-label="Footer">
+                        <Link href="/explore">Explore videos</Link>
+                        <Link href="/research">Research</Link>
                         <Link href="/login">Open the app</Link>
                         <Link href="/login">Log in</Link>
                         <Link href="/terms">Terms</Link>
