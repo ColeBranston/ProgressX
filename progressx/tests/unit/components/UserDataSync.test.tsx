@@ -99,6 +99,29 @@ describe("UserDataProvider sync", () => {
         expect(posts).toEqual([{ user: { pfp: null } }])
     })
 
+    it("keeps an edit made while the saved profile couldn't load, once it does", async () => {
+        // the first load fails (e.g. the session wasn't ready yet), later ones succeed
+        const posts: unknown[] = []
+        let gets = 0
+        vi.stubGlobal("fetch", vi.fn(async (_url: string, init?: RequestInit) => {
+            if (init?.method === "POST") {
+                posts.push(JSON.parse(String(init.body)))
+                return json({ message: "ok" })
+            }
+            gets++
+            return gets === 1 ? json({ message: "Not logged in" }, 401) : json({ userData: { profile_image: PICTURE, profile_bio: "Lifting", profile_privacy: "public" } })
+        }))
+        await mount()
+
+        act(() => setUserData((prev) => ({ ...prev, bio: "Cutting" }))) // retries the load, which now works
+        await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+        expect(gets).toBe(2)
+        expect(userData).toMatchObject({ bio: "Cutting", pfp: PICTURE, privacy: "public" }) // the rest comes from the server
+
+        await waitOutDebounce()
+        expect(posts).toEqual([{ user: { bio: "Cutting" } }])
+    })
+
     it("doesn't send anything while logged out", async () => {
         const posts = stubUserApi(null)
         await mount()

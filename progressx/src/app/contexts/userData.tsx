@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useEffect, useMemo, useRef, useState, Dispatch, SetStateAction } from "react";
+import { createContext, ReactNode, useCallback, useEffect, useMemo, useRef, useState, Dispatch, SetStateAction } from "react";
 import debounce from "lodash/debounce";
 
 export type UserData = Record<string, string | number | null>;
@@ -32,7 +32,7 @@ export const userDataContext = createContext<UserDataContextType>(
 ); // just to satisfy type script eslinting
 
 export function UserDataProvider({ children }: { children: ReactNode }) {
-  const [userData, setUserData] = useState<UserData>({
+  const [userData, setUserDataState] = useState<UserData>({
     username: null,
     name: null,
     email: null,
@@ -49,12 +49,20 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     activity: -1
   });
 
+  // The latest profile data, written together with the state (so updates stay pure and the sync code
+  // below always sees what was last set, even before React re-renders)
+  const latest = useRef(userData);
+  const commit = useCallback((next: UserData) => {
+    latest.current = next;
+    setUserDataState(next);
+  }, []);
+
   // ✅ Load from localStorage once on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("userData");
     console.log("UserData UseEffect Triggered")
     if (storedUser) {
-      setUserData(JSON.parse(storedUser));
+      commit(JSON.parse(storedUser)); // a saved copy, not an edit: the server's values replace it below
     } else {
       localStorage.setItem("userData", JSON.stringify(userData));
     }
@@ -63,6 +71,21 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
   // What the server has for the synced fields; null until it's loaded, and nothing is sent before then
   const serverFields = useRef<UserData | null>(null);
   const loadingServer = useRef(false);
+  // synced fields the app changed before that baseline loaded (e.g. the first load failed): when it
+  // does load, these keep the new value (and get sent) instead of being replaced by the server's
+  const editedBeforeLoad = useRef(new Set<SyncedField>());
+
+  // setUserData for the rest of the app: notes edits to synced fields made before the baseline loaded
+  const setUserData = useCallback<Dispatch<SetStateAction<UserData>>>((action) => {
+    const prev = latest.current;
+    const next = typeof action === "function" ? action(prev) : action;
+    if (!serverFields.current) {
+      for (const field of Object.keys(SYNCED_FIELDS) as SyncedField[]) {
+        if ((next[field] ?? null) !== (prev[field] ?? null)) editedBeforeLoad.current.add(field);
+      }
+    }
+    commit(next);
+  }, [commit]);
 
   // Loads the saved profile as the baseline to compare against, and lets it win over the copy in
   // localStorage, which can be out of date (another device, or from before a new picture)
@@ -76,8 +99,14 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       if (!row) return;
       const fields: UserData = {};
       for (const [field, column] of Object.entries(SYNCED_FIELDS)) fields[field] = row[column] ?? null;
+      // the server's values win, except for fields edited while it couldn't be loaded
+      const apply: UserData = {};
+      for (const field of Object.keys(fields) as SyncedField[]) {
+        if (!editedBeforeLoad.current.has(field)) apply[field] = fields[field];
+      }
+      editedBeforeLoad.current.clear();
       serverFields.current = fields;
-      setUserData((prev) => ({ ...prev, ...fields }));
+      commit({ ...latest.current, ...apply });
     } catch (err) {
       console.error("Couldn't load profile:", err);
     } finally {
