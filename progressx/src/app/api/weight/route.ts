@@ -13,6 +13,43 @@ type WeightRow = { log_date: string, period: WeightPeriod, weight_kg: number | s
 
 const isPeriod = (value: unknown): value is WeightPeriod => WEIGHT_PERIODS.includes(value as WeightPeriod)
 
+// How many of the latest morning weigh-ins the profile weight averages, so one heavy or light day
+// doesn't swing the calorie, protein and water targets
+const PROFILE_WEIGHT_MORNINGS = 10
+
+// Sets the profile weight to the average of the latest morning weigh-ins. Leaves it alone when
+// there are none (e.g. the last one was just deleted), so it keeps the onboarding weight. Resolves
+// false if it couldn't, so the request reports it rather than leaving the targets quietly out of date.
+async function syncProfileWeight(userId: string): Promise<boolean> {
+    const { data: mornings, error } = await supabase
+        .from("weight_log_entries")
+        .select("weight_kg")
+        .eq("user_id", userId)
+        .eq("period", "morning")
+        .order("log_date", { ascending: false })
+        .limit(PROFILE_WEIGHT_MORNINGS)
+    if (error) {
+        console.log("Couldn't load morning weights: ", error.message)
+        return false
+    }
+    if (!mornings?.length) return true
+
+    const averageKg = mornings.reduce((sum, row) => sum + Number(row.weight_kg), 0) / mornings.length
+    const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ weight_lbs: Math.round(averageKg * LB_PER_KG) })
+        .eq("id", userId)
+    if (profileError) {
+        console.log("Couldn't update profile weight: ", profileError.message)
+        return false
+    }
+    return true
+}
+
+// The weigh-in itself was saved or deleted, but the profile weight wasn't updated. Doing it again is
+// safe (saving replaces the entry, deleting a missing one is fine) and recalculates the average.
+const PROFILE_SYNC_FAILED = { code: "profile_weight_not_updated", message: "Saved, but your targets couldn't be updated. Please try again." }
+
 // GET /api/weight?from=YYYY-MM-DD&to=YYYY-MM-DD   ->  { entries: [{ date, period, weightKg }], weightUnit }
 export async function GET(req: NextRequest) {
     const userId = await getUserIdFromRequest(req)
@@ -79,23 +116,9 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ message: "Couldn't save your weight" }, { status: 500 })
     }
 
-    // Keep the profile weight (calorie, protein and water targets) current: the latest morning weigh-in
-    if (body.period === "morning") {
-        const { data: latest } = await supabase
-            .from("weight_log_entries")
-            .select("log_date")
-            .eq("user_id", userId)
-            .eq("period", "morning")
-            .order("log_date", { ascending: false })
-            .limit(1)
-            .maybeSingle()
-        if (latest?.log_date === body.date) {
-            const { error: profileError } = await supabase
-                .from("profiles")
-                .update({ weight_lbs: Math.round(weightKg * LB_PER_KG) })
-                .eq("id", userId)
-            if (profileError) console.log("Couldn't update profile weight: ", profileError.message)
-        }
+    // Keep the profile weight (calorie, protein and water targets) current
+    if (body.period === "morning" && !await syncProfileWeight(userId)) {
+        return NextResponse.json(PROFILE_SYNC_FAILED, { status: 500 })
     }
 
     const row = data as WeightRow
@@ -120,6 +143,9 @@ export async function DELETE(req: NextRequest) {
     if (error) {
         console.log("Error deleting weight: ", error.message)
         return NextResponse.json({ message: "Couldn't delete that weight" }, { status: 500 })
+    }
+    if (period === "morning" && !await syncProfileWeight(userId)) {
+        return NextResponse.json({ ...PROFILE_SYNC_FAILED, message: "Deleted, but your targets couldn't be updated. Please try again." }, { status: 500 })
     }
     return NextResponse.json({ message: "Deleted" })
 }
