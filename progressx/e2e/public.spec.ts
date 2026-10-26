@@ -30,15 +30,38 @@ test.describe("signed out", () => {
         expect(await page.getByRole("checkbox", { name: /18 years/ }).evaluate((el: HTMLInputElement) => el.validity.valueMissing)).toBe(true)
     })
 
-    for (const path of ["/profile", "/mydiet", "/mystats", "/settings", "/research", "/search?q=x", "/following", "/onboarding"]) {
+    // the pages that need an account (your own profile included) send you to log in
+    for (const path of ["/profile", "/mydiet", "/mystats", "/settings", "/following", "/upload", "/onboarding"]) {
         test(`${path} sends you to the login page`, async ({ page }) => {
             await page.goto(path)
             await expect(page).toHaveURL(/\/login/)
         })
     }
 
-    test("private API routes answer 401 without a session", async ({ request }) => {
-        for (const path of ["/api/user", "/api/videos/feed", "/api/verification", "/api/workouts/sets?from=2026-01-01&to=2026-01-02"]) {
+    // the public feed, search and research can be browsed without an account
+    for (const path of ["/explore", "/research", "/search?q=x"]) {
+        test(`${path} can be browsed without an account`, async ({ page }) => {
+            await page.goto(path)
+            await expect.poll(() => { const url = new URL(page.url()); return url.pathname + url.search }).toBe(path)
+            // the menu offers to log in where your profile would be
+            await expect(page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "Log in" })).toBeAttached()
+        })
+    }
+
+    test("the public feed has its own title and canonical URL, and shared video links open in it", async ({ page }) => {
+        await page.goto("/explore")
+        await expect(page).toHaveTitle(/Explore/)
+        await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://progressx.ca/explore")
+        await page.goto("/?v=00000000-0000-4000-8000-000000000000")
+        await expect(page).toHaveURL(/\/explore\?v=00000000-0000-4000-8000-000000000000/)
+    })
+
+    test("the public feed answers without a session; personal API routes still answer 401", async ({ request }) => {
+        const feed = await request.get("/api/videos/feed", { maxRedirects: 0 })
+        expect(feed.status()).toBe(200)
+        expect(Array.isArray((await feed.json()).videos)).toBe(true)
+
+        for (const path of ["/api/user", "/api/videos?user=me", "/api/profiles/me/followers", "/api/verification", "/api/workouts/sets?from=2026-01-01&to=2026-01-02"]) {
             const res = await request.get(path, { maxRedirects: 0 })
             expect([401, 307], path).toContain(res.status())
         }
@@ -55,6 +78,8 @@ test.describe("signed out", () => {
         const robots = await (await request.get("/robots.txt")).text()
         expect(robots).toContain("Sitemap: https://progressx.ca/sitemap.xml")
         expect(robots).toMatch(/Disallow: \/api\//)
+        expect(robots).toMatch(/Allow: \/explore/)
+        expect(robots).toMatch(/Disallow: \/profile\$/)
         const sitemap = await (await request.get("/sitemap.xml")).text()
         expect(sitemap.match(/<loc>[^<]+<\/loc>/g)?.every((loc) => loc.startsWith("<loc>https://progressx.ca/"))).toBe(true)
     })
