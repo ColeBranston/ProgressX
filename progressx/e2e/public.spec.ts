@@ -43,8 +43,10 @@ test.describe("signed out", () => {
         test(`${path} can be browsed without an account`, async ({ page }) => {
             await page.goto(path)
             await expect.poll(() => { const url = new URL(page.url()); return url.pathname + url.search }).toBe(path)
-            // the menu offers to log in where your profile would be
-            await expect(page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "Log in" })).toBeAttached()
+            // the menu offers to log in where your profile would be (on phones, open the slide-in menu first)
+            const openMenu = page.getByRole("button", { name: "Open menu" })
+            if (await openMenu.isVisible()) await openMenu.click()
+            await expect(page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "Log in" })).toBeVisible()
         })
     }
 
