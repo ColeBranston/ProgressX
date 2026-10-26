@@ -62,4 +62,20 @@ describe("/api/weight", () => {
         expect((await save(body)).status).toBe(400)
         expect(fakeDb.rows("weight_log_entries")).toEqual([])
     })
+
+    it("reports it when the profile weight couldn't be updated, and a retry fixes it", async () => {
+        const from = fakeDb.from.bind(fakeDb)
+        const broken = vi.spyOn(fakeDb, "from").mockImplementation((table: string) => table === "profiles"
+            ? ({ update: () => ({ eq: async () => ({ error: { message: "connection reset" } }) }) }) as unknown as ReturnType<typeof from>
+            : from(table))
+
+        const res = await save({ date: "2026-10-05", period: "morning", weightKg: 80 })
+        expect(res.status).toBe(500)
+        expect(await res.json()).toMatchObject({ code: "profile_weight_not_updated" })
+        expect(profileWeight()).toBeUndefined()
+
+        broken.mockRestore()
+        expect((await save({ date: "2026-10-05", period: "morning", weightKg: 80 })).status).toBe(200)
+        expect(profileWeight()).toBe(Math.round(80 * LB_PER_KG))
+    })
 })
