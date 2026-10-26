@@ -10,17 +10,23 @@
     height: var(--app-height); /* full screen, minus the top bar on phones */
     overflow-y: auto;
     box-sizing: border-box;
-    padding: 32px 40px 48px;
+    padding: 40px 40px 64px; /* same as MyStats */
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 20px;
 
     /* rtl puts the scrollbar on the left, right against the navbar; content is switched back to ltr below */
     direction: rtl;
 }
 
+/* the same width as MyStats: centred and capped, so wide screens don't stretch every card and chart */
 .mainContainer > * {
     direction: ltr;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* same area as the loaded page (dietWrapper drops the shared left padding), so the spinner is centred in it */
