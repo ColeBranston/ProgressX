@@ -546,7 +546,8 @@
 .dashboardGrid {
     display: grid;
     gap: 20px;
-    grid-template-columns: minmax(320px, 1fr) auto minmax(280px, 320px);
+    /* the calorie card's column is a fixed width so it doesn't resize as the goal (and the numbers it shows) changes */
+    grid-template-columns: minmax(320px, 1fr) 340px minmax(280px, 320px);
     grid-template-areas:
         "food calories water"
         "weight weight weight"
