@@ -8,6 +8,7 @@ import { cloudinaryBlurredFull, cloudinaryBlurredThumb, cloudinaryLoader, cloudi
 import dayjs from 'dayjs'
 import { useSearchParams, useRouter } from "next/navigation";
 import { backdrop } from "../a11y";
+import ComparePhotos from "./ComparePhotos";
 
 export type ProgressPhoto = {
     id: string,
@@ -31,21 +32,27 @@ const EyeIcon = () => (
 type PhotoTileProps = {
     photo: ProgressPhoto,
     blurred: boolean,
-    onOpen: () => void
+    onOpen: () => void,
+    selected?: boolean, // picking photos to compare: undefined when not picking
 }
 
-function PhotoTile({ photo, blurred, onOpen }: PhotoTileProps) {
+function PhotoTile({ photo, blurred, onOpen, selected }: PhotoTileProps) {
     const [ loaded, setLoaded ] = useState(false)
     const date = dayjs(photo.created_at)
+    const picking = selected !== undefined
 
     return (
         <button
             type="button"
-            className={styles.tile}
+            className={`${styles.tile} ${selected ? styles.tileSelected : ""}`}
             onClick={onOpen}
             style={{ backgroundImage: `url(${cloudinaryPlaceholder(photo.image_link)})` }}
-            aria-label={`Open ${blurred ? "blurred " : ""}progress photo from ${date.format("MMMM D, YYYY")}`}
+            aria-pressed={picking ? selected : undefined}
+            aria-label={picking
+                ? `${selected ? "Unselect" : "Select"} progress photo from ${date.format("MMMM D, YYYY")} to compare`
+                : `Open ${blurred ? "blurred " : ""}progress photo from ${date.format("MMMM D, YYYY")}`}
         >
+            {selected ? <span className={styles.selectedBadge} aria-hidden="true">✓</span> : null}
             {blurred ?
                 // only a pre-blurred version is loaded while blurring is on; the sharp photo never reaches the page
                 <span className={styles.tileBlurred} style={{ backgroundImage: `url(${cloudinaryBlurredThumb(photo.image_link)})` }}>
@@ -95,6 +102,9 @@ export default function ProgressPhotosComponent() {
     const [ blurSaveError, setBlurSaveError ] = useState(false)
     // one photo revealed in the viewer / the upload preview revealed, while blurring stays on
     const [ revealedId, setRevealedId ] = useState<string | null>(null)
+    // comparing two photos: picking them in the grid, then side by side
+    const [ comparePicking, setComparePicking ] = useState(false)
+    const [ compareIds, setCompareIds ] = useState<string[]>([])
     const [ previewRevealed, setPreviewRevealed ] = useState(false)
 
     const loadPhotos = useCallback(async () => {
@@ -190,6 +200,21 @@ export default function ProgressPhotosComponent() {
         setRevealedId(null)
         setViewerIndex(next)
     }, [photos, viewerIndex])
+
+    // Comparing: tap two photos (the comparison opens once two are picked), or first vs latest
+    const comparePair = compareIds.length === 2 && photos
+        ? compareIds.map((id) => photos.find((photo) => photo.id === id)).filter((photo): photo is ProgressPhoto => !!photo)
+        : []
+    function toggleCompare(id: string) {
+        setCompareIds((prev) => prev.includes(id) ? prev.filter((other) => other !== id) : prev.length >= 2 ? prev : [...prev, id])
+    }
+    const stopComparing = useCallback(() => {
+        setComparePicking(false)
+        setCompareIds([])
+    }, [])
+    function compareFirstAndLatest() {
+        if (photos && photos.length >= 2) setCompareIds([photos[photos.length - 1].id, photos[0].id]) // photos are newest first
+    }
 
     // Keyboard: arrows move between photos, Escape closes the viewer / upload dialog
     useEffect(() => {
@@ -367,6 +392,17 @@ export default function ProgressPhotosComponent() {
                 </div>
                 {photos !== null && !loadError ?
                     <div className={styles.blurSetting}>
+                        {photos.length >= 2 ?
+                            <button
+                                type="button"
+                                className={`${styles.blurToggle} ${comparePicking ? styles.blurToggleOn : ""}`}
+                                onClick={() => comparePicking ? stopComparing() : setComparePicking(true)}
+                                aria-pressed={comparePicking}
+                            >
+                                <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5H10V19H4ZM14 5H20V19H14Z" strokeLinejoin="round"/></svg>
+                                <span className={styles.compareLabel}>{comparePicking ? "Cancel" : "Compare"}</span>
+                            </button>
+                        : null}
                         {blurSaveError ? <span className={styles.blurError} role="alert">Couldn&apos;t save, try again</span> : null}
                         <button
                             type="button"
@@ -384,6 +420,13 @@ export default function ProgressPhotosComponent() {
                     </div>
                 : null}
             </div>
+
+            {comparePicking && photos ?
+                <div className={styles.compareBanner} role="status">
+                    <span>Pick two photos to compare · {compareIds.length} of 2 selected</span>
+                    <button type="button" className={styles.secondaryButton} onClick={compareFirstAndLatest}>First vs latest</button>
+                </div>
+            : null}
 
             {photos === null ?
                 <div className={styles.grid} aria-busy="true" aria-label="Loading photos">
@@ -413,9 +456,15 @@ export default function ProgressPhotosComponent() {
                             <span>{group.total} {group.total === 1 ? "photo" : "photos"}</span>
                         </p>
                         <div className={styles.grid}>
-                            {groupIndex === 0 ? addTile : null}
+                            {groupIndex === 0 && !comparePicking ? addTile : null}
                             {group.items.map(({ photo, index }) => (
-                                <PhotoTile key={photo.id} photo={photo} blurred={blurPhotos} onOpen={() => setViewerIndex(index)} />
+                                <PhotoTile
+                                    key={photo.id}
+                                    photo={photo}
+                                    blurred={blurPhotos}
+                                    selected={comparePicking ? compareIds.includes(photo.id) : undefined}
+                                    onOpen={comparePicking ? () => toggleCompare(photo.id) : () => setViewerIndex(index)}
+                                />
                             ))}
                         </div>
                     </section>
@@ -555,6 +604,16 @@ export default function ProgressPhotosComponent() {
                         </div>
                     </div>
                 </div>
+            : null}
+
+            {comparePair.length === 2 ?
+                <ComparePhotos
+                    first={comparePair[0]}
+                    second={comparePair[1]}
+                    blurred={blurPhotos}
+                    onChange={() => { setComparePicking(true); setCompareIds([]) }}
+                    onClose={stopComparing}
+                />
             : null}
 
             <input type="file"
