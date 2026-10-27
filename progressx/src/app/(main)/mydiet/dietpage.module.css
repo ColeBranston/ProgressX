@@ -364,7 +364,8 @@
 
 .customButton {
     height: 100px;
-    width: 100px;
+    min-width: 100px;
+    padding: 0 10px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -410,7 +411,19 @@
 
 .customButton p {
     margin: 0;
-    width: 50px;
+}
+
+.goalLabel {
+    display: grid;
+    text-align: left;
+}
+
+.goalLabel > span {
+    grid-area: 1 / 1;
+}
+
+.goalLabelHidden {
+    visibility: hidden;
 }
 
 .highlightedGoalItem {

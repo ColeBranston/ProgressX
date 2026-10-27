@@ -817,7 +817,12 @@ export default function DietPage() {
                                     <li style={{height: "12.5px", width: "12.5px"}} className={goalState=='Maintain'? styles.highlightedGoalItem : undefined}/>
                                     <li style={{height: "10px", width: "10px"}} className={goalState=='Deficit'? styles.highlightedGoalItem : undefined}/>
                                 </ul>
-                                <p>{goalState}</p>
+                                {/* every goal's name sits in the same grid cell, so the label is always as wide as the longest one */}
+                                <p className={styles.goalLabel}>
+                                    {(["Deficit", "Maintain", "Surplus"] as const).map((goal) => (
+                                        <span key={goal} aria-hidden={goal !== goalState} className={goal === goalState ? undefined : styles.goalLabelHidden}>{goal}</span>
+                                    ))}
+                                </p>
                             </button>
                         </div>
                     </section>
