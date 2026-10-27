@@ -1,4 +1,4 @@
-import { goalType } from './CalorieTarget'
+import type { goalType } from './CalorieTarget'
 import { averageCompletion, calorieGoalCompletion, ScoreCategory } from './DailyScore'
 import { MicroNutrient } from './microNutrients'
 

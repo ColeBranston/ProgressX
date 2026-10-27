@@ -15,7 +15,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 10%;
+    flex: 1 1 0;
+    min-height: 0;
     width: 100px;
     border-left: 3px solid rgba(var(--primary-color));
     border-right: 3px solid rgba(var(--primary-color));
@@ -65,6 +66,7 @@
     background-color: var(--background);
     border: 3px solid white;
     border-radius: 5px;
+    box-sizing: border-box;
     bottom: var(--offset);
     transition: bottom 0.1s ease-in-out,
                 height 0.1s ease-in-out,
