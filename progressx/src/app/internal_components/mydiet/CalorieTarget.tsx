@@ -1,9 +1,10 @@
 "use client";
 
-import { CSSProperties, useEffect, useState } from 'react';
+import { CSSProperties } from 'react';
 import styles from './CalorieTarget.module.css'
+import { getCalorieTarget } from './dietTargets';
 
-export type goalType = ("Deficit" | "Maintain" | "Surplus") 
+export type goalType = ("Deficit" | "Maintain" | "Surplus")
 
 type targetType = {
     curr?: number,
@@ -11,114 +12,50 @@ type targetType = {
     goal?: goalType
 }
 
-const config = {
-    NUM_SEGMENTS: 10
+const NUM_SEGMENTS = 11     // one labelled box per step, maintenance in the middle one
+const STEP = 200            // kCal between neighbouring labels
+const TARGET_BAND = 100     // the highlight covers the target ± this much, whatever the goal
+
+// The bottom box is labelled maintenance - 1000 and the top one maintenance + 1000
+export function meterLabels(totalExpenditure: number): number[] {
+    const lowest = totalExpenditure - STEP * Math.floor(NUM_SEGMENTS / 2)
+    return Array.from({ length: NUM_SEGMENTS }, (_, i) => Math.round(lowest + STEP * i)).reverse()
 }
 
-function getSegment(upper: number, lower: number) {
-    return [config.NUM_SEGMENTS - 1, (upper - lower) / config.NUM_SEGMENTS] as const
+// How far up the meter (0 = bottom, 1 = top) a calorie value sits. Each label sits in the middle of
+// its box, so the scale runs through the box centres; below the lowest label it shrinks linearly to 0
+export function meterPosition(kcal: number, totalExpenditure: number): number {
+    const lowest = totalExpenditure - STEP * Math.floor(NUM_SEGMENTS / 2)
+    const box = 1 / NUM_SEGMENTS
+    if (kcal >= lowest) return Math.min(1, box * ((kcal - lowest) / STEP + 0.5))
+    return lowest > 0 ? Math.max(0, box * 0.5 * kcal / lowest) : 0
 }
 
-function getCurrOffset(curr: number, lower: number, upper: number) {
-    return curr > lower? (1/(config.NUM_SEGMENTS+1))*((curr - lower) / getSegment(upper, lower)[1] + 1) : (1/(config.NUM_SEGMENTS+1) * curr / lower)
-}
-
+// The calorie meter: the day's intake fills the bar from the bottom, and the white box marks the
+// goal's target (the same number the card shows), turning green once the intake is inside it
 export default function CalorieTarget({
     totalExpenditure = 2000,
     curr = 0,
     goal = "Maintain"
 }: targetType) {
-
-    const [upper, setUpper] = useState(0)
-    const [lower, setLower] = useState(0)
-    const [boxArray, setBoxArray] = useState<number[]>([])
-    const [intakeOffset, setIntakeOffset] = useState<number>(0)
-    const [goalState, setGoalState] = useState<goalType>("Maintain")
-
-    const [goalBoundaries, setGoalBoundaries] = useState<Record<goalType, number[]>>({
-        "Deficit": [0,0],
-        "Maintain": [0,0],
-        "Surplus": [0,0]
-    })
-
-    useEffect(() => {
-        // compute the dynamic range
-        const tempUpper = totalExpenditure + 1000
-        const tempLower = totalExpenditure - 1000
-
-        setUpper(tempUpper)
-        setLower(tempLower)
-
-        // compute segment size
-        const [total, val] = getSegment(tempUpper, tempLower)
-
-        // build segment values using local variables (NOT state)
-        const tempArray: number[] = []
-        let trailPointer = tempLower
-
-        for (let i = 0; i < total; i++) {
-            trailPointer += val
-            tempArray.push(Math.round(trailPointer))
-        }
-
-        // reverse for your UI requirement
-        setBoxArray(tempArray.reverse())
-
-    }, [totalExpenditure])
-
-    useEffect(()=> {
-        const tempOffset = getCurrOffset(curr, lower, upper)
-        setIntakeOffset(tempOffset)
-    }, [lower, upper, curr])
-
-    useEffect(()=> {
-        setGoalState(goal)
-        console.log(goalBoundaries)
-
-        /*
-            Setting the boundaries for each goal depending on the daily expenditure
-        */
-
-        const tempBoundaries = goalBoundaries
-
-        tempBoundaries.Deficit = [totalExpenditure-1000, totalExpenditure-1] // 1000kCal max deficit since thats A. 2Lbs/week, and B. the accepted ammount before you begin to get excess skin
-        tempBoundaries.Maintain = [totalExpenditure-50, totalExpenditure+50] // +- 50 acceptance for maintainence
-        tempBoundaries.Surplus = [totalExpenditure+1, totalExpenditure+500] // stop is at 500 kCal surplus because any calories over that is just fat tissue
-
-        setGoalBoundaries(tempBoundaries)
-    }, [goal])
+    const target = getCalorieTarget(totalExpenditure, goal) || totalExpenditure
+    const onTarget = Math.abs(curr - target) <= TARGET_BAND
 
     return (
         <div className={styles.calorieBarContainer}>
-            <>
-            <div className={styles.segment}>
-                <p>{Math.round(upper)}</p>
-            </div>
-                
-            {boxArray?.length==config.NUM_SEGMENTS-1? 
-            
-                boxArray.map((num) => (
-                    <div className={styles.segment} key={num}>
-                        <p>{num}</p>
-                    </div>
-                ))
-                :
-                Array.from({ length: config.NUM_SEGMENTS-1 }).map((val: unknown, i: number) => { // val wont be anything since its just an array of empty values, so we just need the index
-                    return  <div key={i} className={styles.segment}>
-                                <p>0</p>
-                            </div>
-                })}
-            <div className={styles.segment}>
-                <p>{Math.round(lower)}</p>
-            </div>
+            {meterLabels(totalExpenditure).map((num, i) => (
+                <div className={styles.segment} key={i}>
+                    <p>{num}</p>
+                </div>
+            ))}
 
-            <div className={styles.goalHightlight} style={{"--offset": goalState==="Deficit"? "9%" : goalState==="Maintain"? (typeof window !== "undefined" && window.matchMedia('screen and (max-width: 1550px) and (min-width: 1200px)').matches ? "54%" : "52%"): goalState==="Surplus"? "54%" : "0",
-                                                            "--height": goalState==="Deficit"? "43%" : goalState==="Maintain"? "20px": goalState==="Surplus"? "22%" : "0",
-                                                            "--background": (curr > goalBoundaries[goalState][0] && curr < goalBoundaries[goalState][1])? "rgba(0, 255, 0, 0.4)" : "rgba(var(--primary-color), 0.2)"} as CSSProperties}></div>
-            
+            <div className={styles.goalHightlight} data-testid="calorie-target-band" style={{
+                "--offset": `${meterPosition(target - TARGET_BAND, totalExpenditure) * 100}%`,
+                "--height": `${(meterPosition(target + TARGET_BAND, totalExpenditure) - meterPosition(target - TARGET_BAND, totalExpenditure)) * 100}%`,
+                "--background": onTarget ? "rgba(0, 255, 0, 0.4)" : "rgba(var(--primary-color), 0.2)"} as CSSProperties}></div>
+
             {/* This is the vertical progress bar indicating the user's current daily intake */}
-            <div className={styles.currProgress} style={{"--curr-scale": intakeOffset} as CSSProperties}></div>
-            </>
+            <div className={styles.currProgress} style={{"--curr-scale": meterPosition(curr, totalExpenditure)} as CSSProperties}></div>
         </div>
     )
 }
