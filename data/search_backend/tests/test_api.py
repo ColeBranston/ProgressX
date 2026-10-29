@@ -27,11 +27,11 @@ def test_search_uses_edismax_and_caches(backend):
     first = client.get("/search/1/creatine strength")
     assert first.status_code == 200
     assert first.headers["X-Cache"] == "MISS"
-    assert first.json() == {"docs": [DOC] * 10, "hits": 25}
+    assert first.json() == {"docs": [DOC] * 10, "hits": 25, "facets": {"year": [], "journal": []}}
     call = core.calls[-1]
     assert call["q"] == "creatine strength"
     assert call["start"] == 10 and call["rows"] == 10
-    assert call["defType"] == "edismax" and call["qf"] == "title^10 content^2"
+    assert call["defType"] == "edismax" and call["qf"] == "title^10 content^2 authors_text^30 journal_text^20"
 
     second = client.get("/search/1/creatine   strength")
     assert second.headers["X-Cache"] == "HIT"
@@ -52,7 +52,63 @@ def test_negative_pages_are_rejected(backend):
 
 def test_empty_page_has_the_same_shape(backend):
     app, _, _ = backend
-    assert TestClient(app.app).get("/search/5/nothing").json() == {"docs": [], "hits": 0}
+    assert TestClient(app.app).get("/search/5/nothing").json() == {"docs": [], "hits": 0, "facets": {"year": [], "journal": []}}
+
+
+def test_author_and_journal_matches_are_boosted_above_the_abstract(backend):
+    app, core, _ = backend
+    TestClient(app.app).get("/search/0/schoenfeld volume")
+    weights = lambda fields: dict(f.split("^") for f in fields.split())  # noqa: E731
+    qf, pf = weights(core.calls[-1]["qf"]), weights(core.calls[-1]["pf"])
+    for boosts in (qf, pf):
+        assert float(boosts["authors_text"]) > float(boosts["title"]) > float(boosts["content"])
+        assert float(boosts["journal_text"]) > float(boosts["title"])
+
+
+def test_year_and_journal_filters(backend):
+    app, core, _ = backend
+    TestClient(app.app).get("/search/0/creatine", params={"year": ["2021", "2019"], "journal": 'J "Sports" Med'})
+    call = core.calls[-1]
+    assert call["fq"] == [
+        '{!tag=year}published:("2019" OR "2021")',
+        '{!tag=journal}journal:("J \\"Sports\\" Med")',
+    ]
+    # each facet's counts leave out its own filter, so picking a year still lists the other years
+    assert call["facet.field"] == ["{!ex=year}published", "{!ex=journal}journal"]
+
+
+def test_no_filters_sends_no_filter_queries(backend):
+    app, core, _ = backend
+    TestClient(app.app).get("/search/0/creatine")
+    assert core.calls[-1]["fq"] == []
+
+
+def test_facet_counts_come_back_newest_year_first(backend):
+    app, core, _ = backend
+    core.facet_fields = {"published": ["2019", 4, "2021", 2, "2022", 1], "journal": ["Sports Medicine", 5, "Nutrients", 2]}
+    facets = TestClient(app.app).get("/search/0/creatine").json()["facets"]
+    assert facets == {
+        "year": [{"value": "2022", "count": 1}, {"value": "2021", "count": 2}, {"value": "2019", "count": 4}],
+        "journal": [{"value": "Sports Medicine", "count": 5}, {"value": "Nutrients", "count": 2}],
+    }
+
+
+def test_filters_get_their_own_cache_entry(backend):
+    app, core, _ = backend
+    client = TestClient(app.app)
+    client.get("/search/0/creatine")
+    assert client.get("/search/0/creatine", params={"year": "2021"}).headers["X-Cache"] == "MISS"
+    # the same filters in another order are the same search
+    client.get("/search/0/creatine", params={"year": ["2021", "2020"]})
+    assert client.get("/search/0/creatine", params={"year": ["2020", "2021"]}).headers["X-Cache"] == "HIT"
+    assert len(core.calls) == 3
+
+
+@pytest.mark.parametrize("params", [{"year": "21"}, {"year": "2021) OR (*:*"}, {"journal": "x" * 301}, {"year": [str(1900 + i) for i in range(51)]}])
+def test_bad_filters_are_rejected(backend, params):
+    app, core, _ = backend
+    assert TestClient(app.app).get("/search/0/creatine", params=params).status_code == 422
+    assert core.calls == []
 
 
 def test_doc_lookup_decodes_base64url_ids(backend):
@@ -84,5 +140,5 @@ def test_cached_falls_back_to_memory_without_redis(backend, monkeypatch):
     core.docs = [DOC]
     client = TestClient(app.app)
     client.get("/search/0/creatine")
-    assert client.get("/cached").json() == {"docs": [DOC], "hits": 1}
+    assert client.get("/cached").json() == {"docs": [DOC], "hits": 1, "facets": {"year": [], "journal": []}}
     assert client.get("/health").json()["cache"] == "disabled"

@@ -46,6 +46,30 @@
          stored="true"
          multiValued="false"/>
 
+  <!-- Optional: studies ingested before authors were collected have none -->
+  <field name="authors"
+         type="string"
+         indexed="true"
+         stored="true"
+         required="false"
+         multiValued="true"/>
+
+  <!-- Keyword matching on author and journal names; journal itself stays exact for facets -->
+  <field name="authors_text"
+         type="text_name"
+         indexed="true"
+         stored="false"
+         multiValued="true"/>
+
+  <field name="journal_text"
+         type="text_name"
+         indexed="true"
+         stored="false"
+         multiValued="false"/>
+
+  <copyField source="authors" dest="authors_text"/>
+  <copyField source="journal" dest="journal_text"/>
+
   <field name="created_at"
          type="pdate"
          required="true"
@@ -104,6 +128,17 @@
               ignoreCase="true"
               words="lang/stopwords_en.txt"/>
       <filter class="solr.PorterStemFilterFactory"/>
+    </analyzer>
+  </fieldType>
+
+  <!-- Names (authors, journals): word by word, case and accent insensitive, no stemming -->
+  <fieldType name="text_name"
+             class="solr.TextField"
+             positionIncrementGap="100">
+    <analyzer>
+      <tokenizer class="solr.StandardTokenizerFactory"/>
+      <filter class="solr.ASCIIFoldingFilterFactory"/>
+      <filter class="solr.LowerCaseFilterFactory"/>
     </analyzer>
   </fieldType>
 

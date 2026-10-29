@@ -18,6 +18,7 @@ clean_schema = {
     "journal": None,
     "published": None,
     "updated_at": None,
+    "authors": None, # optional, see pubMed_doc.optional_keys
 }
 
 print(solrConfigs)

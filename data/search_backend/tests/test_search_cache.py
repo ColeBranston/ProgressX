@@ -12,10 +12,13 @@ def test_normalize_query_only_squeezes_whitespace():
 
 def test_keys_are_short_namespaced_and_distinct():
     key = search_cache.search_key("a" * 5000, 0)
-    assert key.startswith("progressx:search:v1:results:") and len(key) < 120
+    assert key.startswith("progressx:search:v2:results:") and len(key) < 120
     assert search_cache.search_key("protein  intake", 0) == search_cache.search_key("protein intake", 0)
     assert search_cache.search_key("protein", 0) != search_cache.search_key("protein", 1)
     assert search_cache.doc_key("x") != search_cache.search_key("x", 0)
+    assert search_cache.search_key("x", 0, ["2021"]) != search_cache.search_key("x", 0)
+    assert search_cache.search_key("x", 0, ["2021"]) != search_cache.search_key("x", 0, [], ["2021"])
+    assert search_cache.search_key("x", 0, ["2021", "2020"]) == search_cache.search_key("x", 0, ["2020", "2021"])
 
 
 def test_round_trips_json_with_ttl(monkeypatch):
