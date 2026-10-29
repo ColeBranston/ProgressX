@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import styles from "./follows.module.css";
 import { setFollow } from "../videos/videoTypes";
 import { useRequireSignIn } from "@/app/contexts/viewer";
+import VerifyHint from "../verification/VerifyHint";
 
 type FollowButtonProps = {
     username: string,
@@ -56,7 +56,7 @@ export default function FollowButton({ username, following, onChange, size = "sm
         </button>
         {error ?
             <span className={styles.followError} role="alert">
-                {error}{error.startsWith("Verify your ID") ? <> <Link href="/settings#verification">Verify now</Link></> : null}
+                <VerifyHint message={error} />
             </span>
         : null}
         </span>

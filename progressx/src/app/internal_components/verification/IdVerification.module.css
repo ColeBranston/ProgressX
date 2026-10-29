@@ -149,3 +149,10 @@
     outline: 2px solid white;
     outline-offset: 2px;
 }
+
+.verifyLink {
+    color: rgba(var(--primary-color));
+    font-weight: 700;
+    text-decoration: underline;
+    white-space: nowrap;
+}
