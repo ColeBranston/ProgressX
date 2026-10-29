@@ -8,8 +8,8 @@ import { VIDEO_WITH_AUTHOR, VideoRowWithAuthor, decodeCursor, encodeCursor, olde
 const FEED_PAGE = 8
 
 // GET /api/videos/following?cursor=...   -> { videos: VideoCard[], nextCursor, followsAnyone, ads }
-// The Following feed: newest videos from the people you follow. Private profiles' videos stay private
-// even to their followers (private means only the owner sees them).
+// The Following feed: newest videos from the people you follow, private profiles included (following a
+// private profile needs its owner's approval, see libs/follows).
 export async function GET(req: NextRequest) {
     const viewerId = await getUserIdFromRequest(req)
     if (!viewerId) return NextResponse.json({ message: "Unauthorized" }, { status: 401 })
@@ -26,7 +26,6 @@ export async function GET(req: NextRequest) {
             .from("videos")
             .select(VIDEO_WITH_AUTHOR)
             .eq("status", "ready")
-            .eq("profiles.profile_privacy", "public")
             .in("user_id", ids)
         if (cursor) query = query.or(olderThan(cursor))
         const { data, error } = await query.order("created_at", { ascending: false }).order("id", { ascending: false }).limit(FEED_PAGE + 1)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
 import { adConfigFor } from "../../libs/ads";
+import { followingSet } from "../../libs/follows";
 import { UUID, VIDEO_WITH_AUTHOR, VideoRowWithAuthor, canView, toCards } from "../../libs/videos";
 import { FEED_BATCH, pickRandom } from "@/app/internal_components/videos/feedPlan";
 
@@ -39,9 +40,11 @@ export async function GET(req: NextRequest) {
         if (ids.length) {
             const { data, error } = await supabase.from("videos").select(VIDEO_WITH_AUTHOR).in("id", ids)
             if (error) throw error
-            const byId = new Map((data as unknown as VideoRowWithAuthor[]).map((row) => [row.id, row]))
-            // keep the random order; a shared video only if the viewer may see it
-            rows = ids.map((id) => byId.get(id)).filter((row): row is VideoRowWithAuthor => !!row && row.status === "ready" && canView(row, row.profiles, viewerId))
+            const found = data as unknown as VideoRowWithAuthor[]
+            const byId = new Map(found.map((row) => [row.id, row]))
+            // keep the random order; a shared video only if the viewer may see it (a private profile's, if they follow it)
+            const followed = await followingSet(viewerId, found.map((row) => row.user_id))
+            rows = ids.map((id) => byId.get(id)).filter((row): row is VideoRowWithAuthor => !!row && row.status === "ready" && canView(row, row.profiles, viewerId, followed))
         }
 
         return NextResponse.json({ videos: await toCards(rows, viewerId), ads: await adConfigFor(viewerId) })

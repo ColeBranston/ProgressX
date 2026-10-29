@@ -9,6 +9,7 @@ import SettingsPage from "@/app/(main)/settings/page"
 vi.mock("@/app/internal_components/verification/IdVerification", () => ({ default: () => null }))
 
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } })
+const onlyMe = { photos: "only_me", weight: "only_me", workouts: "only_me", diet: "only_me" }
 
 function Page() {
     const [ userData, setUserData ] = useState<UserData>({ weight: 180, gender: "male", activity: 2 })
@@ -18,8 +19,8 @@ function Page() {
 afterEach(() => vi.unstubAllGlobals())
 
 describe("Settings profile privacy", () => {
-    it("has visibility and the four things a profile can show, all off, and saves each one without undoing another", async () => {
-        let saved = { blurProgressPhotos: false, waterGoalMl: null, profilePrivacy: "public", weightUnit: "lb", activityLevel: 2, personalizedAds: false, sharing: { photos: false, weight: false, workouts: false, diet: false } }
+    it("has visibility and an audience for each kind of tracking, all only me, and saves each without undoing another", async () => {
+        let saved = { blurProgressPhotos: false, waterGoalMl: null, profilePrivacy: "public", weightUnit: "lb", activityLevel: 2, personalizedAds: false, sharing: onlyMe }
         const patches: unknown[] = []
         vi.stubGlobal("fetch", vi.fn(async (_url: string, init?: RequestInit) => {
             if (init?.method === "PATCH") {
@@ -33,24 +34,24 @@ describe("Settings profile privacy", () => {
 
         const section = within(await screen.findByRole("region", { name: "Profile privacy" }))
         expect(section.getByRole("radiogroup", { name: "Profile visibility" })).toBeInTheDocument()
-        const switches = section.getAllByRole("switch")
-        expect(switches.map((s) => s.getAttribute("aria-label"))).toEqual([
-            "Show progress photos on my profile", "Show weight on my profile", "Show workouts on my profile", "Show diet on my profile",
-        ])
-        expect(switches.every((s) => s.getAttribute("aria-checked") === "false")).toBe(true)
+        for (const kind of ["progress photos", "weight", "workouts", "diet"]) {
+            const group = within(section.getByRole("radiogroup", { name: `Who sees your ${kind}` }))
+            expect(group.getAllByRole("radio").map((r) => r.textContent)).toEqual(["Only me", "Followers", "Everyone"])
+            expect(group.getByRole("radio", { name: "Only me" })).toHaveAttribute("aria-checked", "true")
+        }
 
-        await userEvent.click(section.getByRole("switch", { name: "Show weight on my profile" }))
-        await userEvent.click(section.getByRole("switch", { name: "Show diet on my profile" }))
-        await waitFor(() => expect(saved.sharing).toEqual({ photos: false, weight: true, workouts: false, diet: true }))
-        expect(patches.at(-1)).toEqual({ sharing: { photos: false, weight: true, workouts: false, diet: true } })
-        expect(section.getByRole("switch", { name: "Show weight on my profile" })).toHaveAttribute("aria-checked", "true")
+        await userEvent.click(within(section.getByRole("radiogroup", { name: "Who sees your weight" })).getByRole("radio", { name: "Everyone" }))
+        await userEvent.click(within(section.getByRole("radiogroup", { name: "Who sees your diet" })).getByRole("radio", { name: "Followers" }))
+        await waitFor(() => expect(saved.sharing).toEqual({ photos: "only_me", weight: "everyone", workouts: "only_me", diet: "followers" }))
+        expect(patches.at(-1)).toEqual({ sharing: { photos: "only_me", weight: "everyone", workouts: "only_me", diet: "followers" } })
     })
 
-    it("says the choices don't apply while the profile is private", async () => {
-        const settings = { blurProgressPhotos: false, waterGoalMl: null, profilePrivacy: "private", weightUnit: "lb", activityLevel: 2, personalizedAds: false, sharing: { photos: true, weight: false, workouts: false, diet: false } }
+    it("explains that a private profile's tracking only reaches approved followers", async () => {
+        const settings = { blurProgressPhotos: false, waterGoalMl: null, profilePrivacy: "private", weightUnit: "lb", activityLevel: 2, personalizedAds: false, sharing: onlyMe }
         vi.stubGlobal("fetch", vi.fn(async () => json({ settings, email: "me@example.com" })))
         render(<Page />)
         const section = within(await screen.findByRole("region", { name: "Profile privacy" }))
-        expect(section.getByText(/only apply while your profile is public/)).toBeInTheDocument()
+        expect(section.getByText(/only followers you've approved can see anything/)).toBeInTheDocument()
+        expect(section.getByText(/People have to ask to follow you/)).toBeInTheDocument()
     })
 })

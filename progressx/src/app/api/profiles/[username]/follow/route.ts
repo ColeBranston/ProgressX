@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../../libs/helpers";
-import { profileFromRoute } from "../../../libs/follows";
+import { isFollowing, profileFromRoute } from "../../../libs/follows";
 import { overLimit } from "../../../libs/videos";
 import { requireVerified } from "../../../libs/requireVerified";
 
 type Context = { params: Promise<{ username: string }> }
 
-// PUT /api/profiles/:username/follow     -> follow them
-// DELETE /api/profiles/:username/follow  -> unfollow
-// Either way the answer is { following, followers } (their new follower count)
+// PUT /api/profiles/:username/follow     -> follow them; for a private profile, ask to (a follow request)
+// DELETE /api/profiles/:username/follow  -> unfollow, or take back a request
+// Either way the answer is { following, requested, followers } (their new follower count)
 export const PUT = (req: NextRequest, context: Context) => setFollow(req, context, true)
 export const DELETE = (req: NextRequest, context: Context) => setFollow(req, context, false)
 
@@ -28,16 +28,28 @@ async function setFollow(req: NextRequest, context: Context, on: boolean) {
         if (!target) return NextResponse.json({ message: "No such profile" }, { status: 404 })
         if (target.id === viewerId) return NextResponse.json({ message: "You can't follow yourself" }, { status: 400 })
 
-        const result = on
-            ? await supabase.from("follows").upsert({ follower_id: viewerId, following_id: target.id }, { onConflict: "follower_id,following_id", ignoreDuplicates: true })
-            : await supabase.from("follows").delete().eq("follower_id", viewerId).eq("following_id", target.id)
-        if (result.error) throw result.error
+        if (!on) {
+            const [ unfollow, withdraw ] = await Promise.all([
+                supabase.from("follows").delete().eq("follower_id", viewerId).eq("following_id", target.id),
+                supabase.from("follow_requests").delete().eq("requester_id", viewerId).eq("target_id", target.id),
+            ])
+            if (unfollow.error) throw unfollow.error
+            if (withdraw.error) throw withdraw.error
+        } else if (target.profile_privacy === "public" || await isFollowing(viewerId, target.id)) {
+            const { error } = await supabase.from("follows").upsert({ follower_id: viewerId, following_id: target.id }, { onConflict: "follower_id,following_id", ignoreDuplicates: true })
+            if (error) throw error
+        } else {
+            // a private profile: its owner accepts or declines it from the requests on their profile
+            const { error } = await supabase.from("follow_requests").upsert({ requester_id: viewerId, target_id: target.id }, { onConflict: "requester_id,target_id", ignoreDuplicates: true })
+            if (error) throw error
+        }
 
-        const [ counts, still ] = await Promise.all([
+        const [ counts, still, pending ] = await Promise.all([
             supabase.from("profiles").select("followers_count").eq("id", target.id).single(),
             supabase.from("follows").select("follower_id", { head: true, count: "exact" }).eq("follower_id", viewerId).eq("following_id", target.id),
+            supabase.from("follow_requests").select("requester_id", { head: true, count: "exact" }).eq("requester_id", viewerId).eq("target_id", target.id),
         ])
-        return NextResponse.json({ following: (still.count ?? 0) > 0, followers: counts.data?.followers_count ?? 0 })
+        return NextResponse.json({ following: (still.count ?? 0) > 0, requested: (pending.count ?? 0) > 0, followers: counts.data?.followers_count ?? 0 })
     } catch (e) {
         console.log("Error saving a follow: ", e instanceof Error ? e.message : e)
         return NextResponse.json({ message: "Couldn't save that" }, { status: 500 })

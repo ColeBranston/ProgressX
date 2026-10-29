@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
 import { usernameError, validateOnboarding } from "@/app/internal_components/profile/profileRules";
-import { readSharing } from "@/app/internal_components/profile/sharing";
-import { sharingColumns } from "../../libs/sharing";
+import { readAudiences } from "@/app/internal_components/profile/sharing";
+import { audienceColumns } from "../../libs/sharing";
 
 // Is this username free? Case-insensitive, and your own current username counts as free.
 async function usernameTaken(username: string, userId: string): Promise<boolean> {
@@ -42,7 +42,8 @@ export async function GET(req: NextRequest) {
 
 // POST /api/user/onboarding  { username, name, age, gender, heightCm, weightLbs, activity, weightUnit?, privacy?, sharing? }
 // Saves the profile details and marks onboarding complete, with their privacy choices: whether the profile
-// is public, and what it shows ({ photos, weight, workouts, diet }; anything not sent stays off). Problems come back per field:
+// is public, and who sees each kind of tracking ({ photos, weight, workouts, diet } of audiences; anything not
+// sent stays "only_me"). Problems come back per field:
 // 400 { message, errors: { field: message } }, or 409 when the username was taken meanwhile.
 export async function POST(req: NextRequest) {
     const userId = await getUserIdFromRequest(req)
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
         activity: Number(body.activity),
     }
     const privacy = body.privacy ?? "private"
-    const sharing = body.sharing === undefined ? {} : readSharing(body.sharing)
+    const sharing = body.sharing === undefined ? {} : readAudiences(body.sharing)
     if ((privacy !== "public" && privacy !== "private") || !sharing) {
         return NextResponse.json({ message: "Invalid privacy choices" }, { status: 400 })
     }
@@ -101,8 +102,8 @@ export async function POST(req: NextRequest) {
         }
 
         // the unit they entered their weight in becomes their default for workouts, alongside what their
-        // profile shows (if this fails nothing is shown, since every choice defaults to off)
-        const settings: Record<string, unknown> = sharingColumns(sharing)
+        // profile shows (if this fails nothing is shown, since every audience defaults to only_me)
+        const settings: Record<string, unknown> = audienceColumns(sharing)
         if (body.weightUnit === "lb" || body.weightUnit === "kg") settings.weight_unit = body.weightUnit
         if (Object.keys(settings).length > 0) {
             const { error: settingsError } = await supabase

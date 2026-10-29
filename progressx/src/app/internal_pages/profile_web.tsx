@@ -18,7 +18,8 @@ export default function ProfileWeb() {
     const [ selector, setSelector ] = useState(0)
     
     const [ isEdit, setIsEdit ] = useState(false)
-    const [ followList, setFollowList ] = useState<"followers" | "following" | null>(null)
+    const [ followList, setFollowList ] = useState<"followers" | "following" | "requests" | null>(null)
+    const [ requests, setRequests ] = useState(0) // people asking to follow (a private profile)
 
     const pfpImageForm = useRef<HTMLInputElement>(null)
 
@@ -87,6 +88,14 @@ export default function ProfileWeb() {
     }, [setUserData])
 
     useEffect(() => { refreshCounts() }, [refreshCounts])
+
+    const refreshRequests = useCallback(async () => {
+        const res = await fetch("/api/user/follow-requests", { cache: "no-store" }).catch(() => null)
+        const json = res?.ok ? await res.json().catch(() => null) : null
+        if (Array.isArray(json?.requests)) setRequests(json.requests.length)
+    }, [])
+
+    useEffect(() => { refreshRequests() }, [refreshRequests])
 
     function togglePrivate() {
         if (isEdit) {
@@ -194,6 +203,11 @@ export default function ProfileWeb() {
                                     <button type="button" className={`${styles.profileStatsContainer} ${styles.profileStatsButton}`} onClick={() => setFollowList("following")}><span className={styles.profileStatsText}>{userData.following ?? 0}</span>Following</button>
                                     <button type="button" className={`${styles.profileStatsContainer} ${styles.profileStatsButton}`} onClick={() => setFollowList("followers")}><span className={styles.profileStatsText}>{userData.followers ?? 0}</span>Followers</button>
                                     <p className={styles.profileStatsContainer}><span className={styles.profileStatsText}>{userData.likes ?? 0}</span>Likes</p>
+                                    {requests > 0 ?
+                                        <button type="button" className={`${styles.profileStatsContainer} ${styles.profileStatsButton} ${styles.requestsButton}`} onClick={() => setFollowList("requests")}>
+                                            <span className={styles.profileStatsText}>{requests}</span>{requests === 1 ? "Request" : "Requests"}
+                                        </button>
+                                    : null}
                                 </div>
                                 <div className={styles.profileInfoRow}>
                                     {isEdit? 
@@ -269,8 +283,8 @@ export default function ProfileWeb() {
                         <FollowList
                             username="me"
                             initial={followList}
-                            counts={{ followers: Number(userData.followers ?? 0), following: Number(userData.following ?? 0) }}
-                            onClose={() => { setFollowList(null); refreshCounts() }}
+                            counts={{ followers: Number(userData.followers ?? 0), following: Number(userData.following ?? 0), requests }}
+                            onClose={() => { setFollowList(null); refreshCounts(); refreshRequests() }}
                         />
                     : null}
 

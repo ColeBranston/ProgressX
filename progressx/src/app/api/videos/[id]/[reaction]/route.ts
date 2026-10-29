@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../../libs/helpers";
 import { UUID, canView, overLimit, type Author, type VideoStatus } from "../../../libs/videos";
+import { followingSet } from "../../../libs/follows";
 import { requireVerified } from "../../../libs/requireVerified";
 
 const TABLES = { like: "video_likes", favourite: "video_favourites" } as const
@@ -40,7 +41,8 @@ async function react(req: NextRequest, context: Context, on: boolean) {
     }
     const row = video as unknown as { id: string, user_id: string, status: VideoStatus, profiles: Pick<Author, "profile_privacy"> } | null
     // you can always take a like back; adding one needs the video to be visible to you
-    if (!row || (on && (!canView(row, row.profiles, userId) || row.status !== "ready"))) {
+    const followed = row && on ? await followingSet(userId, [row.user_id]).catch(() => new Set<string>()) : new Set<string>()
+    if (!row || (on && (!canView(row, row.profiles, userId, followed) || row.status !== "ready"))) {
         return NextResponse.json({ message: "Video not found" }, { status: 404 })
     }
 

@@ -1,6 +1,7 @@
 import { verifyAccessToken } from "@/app/api/libs/session";
 import { supabase } from "@/app/supabaseClient/client";
 import { NextRequest, NextResponse } from "../../../../node_modules/next/server";
+import { acceptFollowRequests } from "../libs/follows";
 
 export async function GET(req: NextRequest) {
     const token = req.cookies?.get("token")?.value
@@ -44,6 +45,9 @@ export async function POST(req: NextRequest) {
         if (onboardingError) {
             throw new Error(`${onboardingError}`)
         }
+
+        // a public profile can be followed by anyone, so whoever was waiting becomes a follower
+        if (update.profile_privacy === "public") await acceptFollowRequests(id)
 
         return NextResponse.json({message: `Recieved user update`})
     } catch(e) {

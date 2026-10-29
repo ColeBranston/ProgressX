@@ -36,10 +36,13 @@ export const VIDEO_COLUMNS = "id, user_id, object_key, poster_key, caption, stat
 export const VIDEO_WITH_AUTHOR = `${VIDEO_COLUMNS}, profiles!videos_user_id_fkey!inner(display_username, display_name, profile_image, profile_privacy)`
 
 
-// viewerId is null for a visitor who isn't signed in: they see only public, ready videos
-export function canView(video: Pick<VideoRow, "user_id" | "status">, author: Pick<Author, "profile_privacy"> | null, viewerId: string | null) {
+const NOBODY: ReadonlySet<string> = new Set()
+
+// viewerId is null for a visitor who isn't signed in: they see only public, ready videos. followed is who
+// the viewer follows (see libs/follows followingSet): a private profile's ready videos are for its approved followers.
+export function canView(video: Pick<VideoRow, "user_id" | "status">, author: Pick<Author, "profile_privacy"> | null, viewerId: string | null, followed: ReadonlySet<string> = NOBODY) {
     if (viewerId && video.user_id === viewerId) return true
-    return video.status === "ready" && author?.profile_privacy === "public"
+    return video.status === "ready" && (author?.profile_privacy === "public" || (viewerId !== null && followed.has(video.user_id)))
 }
 
 // Which of these videos the viewer has liked / favourited

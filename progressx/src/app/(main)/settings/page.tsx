@@ -8,7 +8,7 @@ import { userDataContext, UserData } from "@/app/contexts/userData";
 import { formatVolume, getWaterTargetMl } from "@/app/internal_components/index";
 import { clearLocalAccountData } from "@/app/internal_components/SessionWatch";
 import { ACTIVITY_LEVELS } from "@/app/internal_components/profile/profileRules";
-import { SHARE_KINDS, SHARE_OPTIONS, ShareKind, Sharing } from "@/app/internal_components/profile/sharing";
+import { Audience, AUDIENCES, AUDIENCE_LABELS, audienceNote, SHARE_KINDS, SHARE_OPTIONS, ShareAudiences, ShareKind } from "@/app/internal_components/profile/sharing";
 
 type Settings = {
     blurProgressPhotos: boolean,
@@ -17,7 +17,7 @@ type Settings = {
     weightUnit: "lb" | "kg",
     activityLevel: number | null,
     personalizedAds: boolean,
-    sharing: Sharing,
+    sharing: ShareAudiences,
 }
 
 type Section = "profile" | "privacy" | "diet" | "workouts"
@@ -179,10 +179,10 @@ export default function SettingsPage() {
     }
 
     // sends all four choices, built on the latest ones, so toggling two in quick succession keeps both
-    function changeSharing(kind: ShareKind) {
+    function changeSharing(kind: ShareKind, audience: Audience) {
         const current = settingsRef.current
-        if (!current) return
-        save("profile", { sharing: { ...current.sharing, [kind]: !current.sharing[kind] } })
+        if (!current || current.sharing[kind] === audience) return
+        save("profile", { sharing: { ...current.sharing, [kind]: audience } })
     }
 
     // Saves activity levels in the order they were picked, so the last one picked is what ends up saved
@@ -325,8 +325,8 @@ export default function SettingsPage() {
                                         <p className={styles.rowLabel}>Profile visibility</p>
                                         <p className={styles.rowDescription}>
                                             {settings.profilePrivacy === "public"
-                                                ? "Anyone on the internet can see your profile and videos, including people without an account, and your videos show in other people's For You feeds. Your profile can show up in search engines like Google."
-                                                : "Only you can see your videos, and they don't show in anyone's For You feed. People signed in to ProgressX can still find your name and picture."}
+                                                ? "Anyone can follow you. Anyone on the internet can see your profile and videos, including people without an account, and your videos show in other people's For You feeds. Your profile can show up in search engines like Google."
+                                                : "People have to ask to follow you, and only the followers you approve see your videos. They don't show in For You, search or to anyone else. People signed in to ProgressX can still find your name and picture."}
                                         </p>
                                     </div>
                                     <Segmented
@@ -339,22 +339,23 @@ export default function SettingsPage() {
 
                                 <div className={styles.row}>
                                     <div className={styles.rowText}>
-                                        <p className={styles.rowLabel}>What your profile shows</p>
-                                        <p className={styles.rowDescription}>
-                                            {settings.profilePrivacy === "public"
-                                                ? "Choose what people signed in to ProgressX can see on your profile. It's never shown to visitors without an account or to search engines."
-                                                : "These only apply while your profile is public. While it's private, none of this is shown to anyone."}
-                                        </p>
+                                        <p className={styles.rowLabel}>Who sees your tracking</p>
+                                        <p className={styles.rowDescription}>{audienceNote(settings.profilePrivacy)}</p>
                                     </div>
                                 </div>
 
                                 {SHARE_KINDS.map((kind) => (
-                                    <div key={kind} className={`${styles.row} ${settings.profilePrivacy === "private" ? styles.rowInactive : ""}`}>
+                                    <div key={kind} className={styles.row}>
                                         <div className={styles.rowText}>
                                             <p className={styles.rowLabel}>{SHARE_OPTIONS[kind].label}</p>
                                             <p className={styles.rowDescription}>{SHARE_OPTIONS[kind].description}</p>
                                         </div>
-                                        <Switch checked={settings.sharing[kind]} label={`Show ${SHARE_OPTIONS[kind].label.toLowerCase()} on my profile`} onChange={() => changeSharing(kind)} />
+                                        <Segmented
+                                            label={`Who sees your ${SHARE_OPTIONS[kind].label.toLowerCase()}`}
+                                            value={settings.sharing[kind]}
+                                            options={AUDIENCES.map((audience) => ({ value: audience, label: AUDIENCE_LABELS[audience] }))}
+                                            onChange={(audience) => changeSharing(kind, audience)}
+                                        />
                                     </div>
                                 ))}
                             </section>

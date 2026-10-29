@@ -3,8 +3,9 @@ import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../../../libs/helpers";
 import { findProfileByUsername } from "../../../../libs/videos";
 import { fetchAllPages, isDateString, readDateRange } from "../../../../libs/dateRange";
-import { loadSharing, visibleSharing } from "../../../../libs/sharing";
-import { isShareKind, ShareKind } from "@/app/internal_components/profile/sharing";
+import { loadAudiences, visibleSharing } from "../../../../libs/sharing";
+import { isFollowing } from "../../../../libs/follows";
+import { DEFAULT_AUDIENCES, isShareKind, ShareKind } from "@/app/internal_components/profile/sharing";
 import { getCalorieTarget, getMacroTargets, getTotalExpenditure, weightKgFromProfile } from "@/app/internal_components/mydiet/dietTargets";
 import type { goalType } from "@/app/internal_components/mydiet/CalorieTarget";
 
@@ -31,8 +32,8 @@ const notShared = () => NextResponse.json({ code: "not_shared", message: "This i
 //   weight?from&to   (YYYY-MM-DD) -> { entries: [{ date, period, weightKg }], weightUnit }
 //   workouts?from&to (YYYY-MM-DD) -> { sets: [{ exerciseId, performedOn, weightKg, reps }], weightUnit }
 //   diet?date        (YYYY-MM-DD) -> { date, entries: [...], targets: { calories, protein, carbs, fats, goal } }
-// Someone's tracking, when they chose to show it on their public profile (see libs/sharing). Only for
-// signed-in viewers; weightUnit is the viewer's own unit, for showing the weights.
+// Someone's tracking, when they chose to show it to this viewer (an audience per kind, see libs/sharing).
+// Only for signed-in viewers; weightUnit is the viewer's own unit, for showing the weights.
 export async function GET(req: NextRequest, context: { params: Promise<{ username: string, kind: string }> }) {
     const viewerId = await getUserIdFromRequest(req)
     if (!viewerId) return NextResponse.json({ message: "Log in to see this" }, { status: 401 })
@@ -45,9 +46,8 @@ export async function GET(req: NextRequest, context: { params: Promise<{ usernam
         if (!owner) return NextResponse.json({ message: "No such profile" }, { status: 404 })
 
         const isOwner = owner.id === viewerId
-        const visible = visibleSharing(isOwner ? { photos: true, weight: true, workouts: true, diet: true } : await loadSharing(owner.id), {
-            isOwner, signedIn: true, profilePublic: owner.profile_privacy === "public",
-        })
+        const [ audiences, follows ] = isOwner ? [ DEFAULT_AUDIENCES, true ] : await Promise.all([loadAudiences(owner.id), isFollowing(viewerId, owner.id)])
+        const visible = visibleSharing(audiences, { isOwner, signedIn: true, profilePublic: owner.profile_privacy === "public", follows })
         if (!visible[kind]) return notShared()
 
         return await respond(kind, owner, viewerId, new URL(req.url).searchParams)

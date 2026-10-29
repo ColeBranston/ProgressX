@@ -4,8 +4,9 @@ import { getUserIdFromRequest } from "../../libs/helpers";
 import { loadUserSettings, WATER_GOAL_MAX_ML, WATER_GOAL_MIN_ML } from "../../libs/userSettings";
 import { ACTIVITY_LEVELS } from "@/app/internal_components/profile/profileRules";
 import { TERMS_VERSION } from "@/app/internal_components/legal/legalInfo";
-import { readSharing } from "@/app/internal_components/profile/sharing";
-import { sharingColumns } from "../../libs/sharing";
+import { readAudiences } from "@/app/internal_components/profile/sharing";
+import { audienceColumns } from "../../libs/sharing";
+import { acceptFollowRequests } from "../../libs/follows";
 
 // GET /api/user/settings
 export async function GET(req: NextRequest) {
@@ -70,13 +71,13 @@ export async function PATCH(req: NextRequest) {
         settingsUpdate.personalized_ads = body.personalizedAds
     }
 
-    // what the profile shows signed-in people: { photos?, weight?, workouts?, diet? }, only the ones sent change
+    // who sees each kind of tracking: { photos?, weight?, workouts?, diet? } of "only_me" | "followers" | "everyone"; only the ones sent change
     if ("sharing" in body) {
-        const sharing = readSharing(body.sharing)
+        const sharing = readAudiences(body.sharing)
         if (!sharing) {
-            return NextResponse.json({ message: "sharing must be an object of photos, weight, workouts and diet set to true or false" }, { status: 400 })
+            return NextResponse.json({ message: "sharing must be an object of photos, weight, workouts and diet set to only_me, followers or everyone" }, { status: 400 })
         }
-        Object.assign(settingsUpdate, sharingColumns(sharing))
+        Object.assign(settingsUpdate, audienceColumns(sharing))
     }
 
     // these live on the profile rather than in user_settings
@@ -118,6 +119,8 @@ export async function PATCH(req: NextRequest) {
         if (Object.keys(profileUpdate).length > 0) {
             const { error } = await supabase.from("profiles").update(profileUpdate).eq("id", userId)
             if (error) throw error
+            // a public profile can be followed by anyone, so whoever was waiting becomes a follower
+            if (profileUpdate.profile_privacy === "public") await acceptFollowRequests(userId)
         }
 
         return NextResponse.json(await loadUserSettings(userId))

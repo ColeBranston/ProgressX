@@ -1,6 +1,6 @@
 import { supabase } from "@/app/supabaseClient/client";
-import type { Sharing } from "@/app/internal_components/profile/sharing";
-import { SHARE_SELECT, sharingFromRow } from "./sharing";
+import type { ShareAudiences } from "@/app/internal_components/profile/sharing";
+import { SHARE_SELECT, audiencesFromRow } from "./sharing";
 
 export const WATER_GOAL_MIN_ML = 500
 export const WATER_GOAL_MAX_ML = 6000 // matches the check constraint on user_settings.water_goal_ml
@@ -12,7 +12,7 @@ export type UserSettings = {
     weightUnit: "lb" | "kg", // how workout weights are shown and entered (stored in kg)
     activityLevel: number | null, // profiles.activity_level 1..5, drives the calorie and water targets
     personalizedAds: boolean, // opted in to personalized ads (off unless they turn it on)
-    sharing: Sharing, // what their profile shows signed-in people while it's public (all off unless they turn it on)
+    sharing: ShareAudiences, // who sees each kind of their tracking on their profile (only them unless they choose otherwise)
 }
 
 // Reads the user's settings; a missing user_settings row means all defaults
@@ -38,7 +38,7 @@ export async function loadUserSettings(userId: string): Promise<{ settings: User
             weightUnit: row?.weight_unit === "kg" ? "kg" : "lb",
             activityLevel: profile?.activity_level ?? null,
             personalizedAds: row?.personalized_ads === true,
-            sharing: sharingFromRow(row as Record<string, unknown> | null),
+            sharing: audiencesFromRow(row as Record<string, unknown> | null),
         },
         email: profile?.email ?? null,
     }

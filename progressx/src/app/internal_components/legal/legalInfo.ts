@@ -12,6 +12,7 @@ export const PRIVACY_OFFICER_EMAIL = "cole.branston@progressx.ca"
 
 // Version of the terms + privacy policy users agree to. Change it whenever either document changes
 // materially: everyone is then asked to agree again (see middleware and /consent) before continuing.
-// (Not changed for 2026-10-29, showing your own tracking on your profile: it's off unless each person turns it on,
-// and that choice is their consent.)
+// (Not changed for 2026-10-29, showing your own tracking on your profile, or for follow requests on private profiles:
+// nothing is shown to anyone new unless each person chooses it (an audience, or accepting a follower), and that choice
+// is their consent.)
 export const TERMS_VERSION = "2026-10-26" // 2026-10-26: public profiles and videos visible to anyone on the web and in search engines; 2026-09-28.2: not available to Quebec residents; 2026-10-08: government ID verification; 2026-10-14: non-personalized video ads from Google

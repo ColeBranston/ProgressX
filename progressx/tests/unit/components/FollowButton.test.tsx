@@ -16,9 +16,25 @@ describe("FollowButton", () => {
         render(<FollowButton username="lift_daily" following={false} onChange={onChange} />)
 
         await userEvent.click(screen.getByRole("button", { name: "Follow @lift_daily" }))
-        await waitFor(() => expect(onChange).toHaveBeenCalledWith(true, 11))
+        await waitFor(() => expect(onChange).toHaveBeenCalledWith(true, 11, false))
         expect(fetch).toHaveBeenCalledWith("/api/profiles/lift_daily/follow", { method: "PUT" })
         expect(screen.getByRole("button", { name: "Unfollow @lift_daily" })).toHaveAttribute("aria-pressed", "true")
+    })
+
+    it("shows Requested when the profile is private, and cancelling takes the request back", async () => {
+        const fetch = respond(200, { following: false, requested: true, followers: 3 })
+        vi.stubGlobal("fetch", fetch)
+        const onChange = vi.fn()
+        render(<FollowButton username="quiet_one" following={false} onChange={onChange} />)
+        await userEvent.click(screen.getByRole("button", { name: "Follow @quiet_one" }))
+        await waitFor(() => expect(onChange).toHaveBeenCalledWith(false, 3, true))
+        const requested = screen.getByRole("button", { name: "Cancel follow request to @quiet_one" })
+        expect(requested).toHaveTextContent("Requested")
+
+        fetch.mockResolvedValueOnce(new Response(JSON.stringify({ following: false, requested: false, followers: 3 }), { status: 200 }))
+        await userEvent.click(requested)
+        await waitFor(() => expect(screen.getByRole("button", { name: "Follow @quiet_one" })).toBeEnabled())
+        expect(fetch).toHaveBeenLastCalledWith("/api/profiles/quiet_one/follow", { method: "DELETE" })
     })
 
     it("unfollows with DELETE", async () => {

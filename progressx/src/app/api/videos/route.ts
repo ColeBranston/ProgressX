@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../libs/helpers";
+import { canSeeProfile, followingSet } from "../libs/follows";
 import { PAGE_SIZE, findProfileByUsername, VIDEO_WITH_AUTHOR, VideoRowWithAuthor, canView, decodeCursor, encodeCursor, olderThan, syncVideo, toCards } from "../libs/videos";
 
 const MAX_SYNCS = 6 // abandoned-upload cleanups per request
@@ -9,7 +10,7 @@ const MAX_SYNCS = 6 // abandoned-upload cleanups per request
 //   -> { videos: VideoCard[], nextCursor: string | null }       or { private: true } (403)
 // "videos": what that person posted (your own include unfinished uploads). "liked" and
 // "favourites" are only ever your own lists. A public profile's videos can be listed by anyone,
-// signed in or not; "me", liked and favourites need a login.
+// signed in or not, a private one's by its approved followers; "me", liked and favourites need a login.
 export async function GET(req: NextRequest) {
     const viewerId = await getUserIdFromRequest(req)
     const params = new URL(req.url).searchParams
@@ -27,15 +28,17 @@ export async function GET(req: NextRequest) {
         if (tab !== "videos") return NextResponse.json({ message: "tab must be videos, liked or favourites" }, { status: 400 })
 
         let ownerId = viewerId as string // "me" was refused above for visitors who aren't signed in
+        let followed: ReadonlySet<string> = new Set()
         if (user !== "me") {
             const owner = await findProfileByUsername<{ id: string, profile_privacy: string | null }>(user, "id, profile_privacy")
             if (!owner) return NextResponse.json({ message: "No such profile" }, { status: 404 })
             // to visitors who aren't signed in, a private profile looks like it doesn't exist
             if (!viewerId && owner.profile_privacy !== "public") return NextResponse.json({ message: "No such profile" }, { status: 404 })
-            if (owner.id !== viewerId && owner.profile_privacy !== "public") {
+            if (!await canSeeProfile(viewerId, owner)) {
                 return NextResponse.json({ private: true, videos: [], nextCursor: null }, { status: 403 })
             }
             ownerId = owner.id
+            followed = new Set([owner.id]) // they can see this profile, so its videos as well
         }
 
         let query = supabase.from("videos").select(VIDEO_WITH_AUTHOR).eq("user_id", ownerId)
@@ -64,7 +67,7 @@ export async function GET(req: NextRequest) {
         }
 
         return NextResponse.json({
-            videos: await toCards(current.filter((row) => canView(row, row.profiles, viewerId)), viewerId),
+            videos: await toCards(current.filter((row) => canView(row, row.profiles, viewerId, followed)), viewerId),
             nextCursor: rows.length > PAGE_SIZE ? encodeCursor(page[page.length - 1]) : null,
         })
     } catch (e) {
@@ -74,7 +77,7 @@ export async function GET(req: NextRequest) {
 }
 
 // The viewer's liked or favourited videos, most recently liked first. Videos that are no longer
-// visible (the poster went private) stay recorded but aren't shown.
+// visible (the poster went private, and the viewer doesn't follow them) stay recorded but aren't shown.
 async function reactedVideos(viewerId: string, table: "video_likes" | "video_favourites", cursor: { createdAt: string, id: string } | null) {
     let query = supabase.from(table).select(`created_at, video_id, videos!inner(${VIDEO_WITH_AUTHOR})`).eq("user_id", viewerId)
     if (cursor) query = query.or(olderThan(cursor, "created_at", "video_id"))
@@ -83,7 +86,8 @@ async function reactedVideos(viewerId: string, table: "video_likes" | "video_fav
 
     const rows = (data ?? []) as unknown as { created_at: string, video_id: string, videos: VideoRowWithAuthor }[]
     const page = rows.slice(0, PAGE_SIZE)
-    const visible = page.map((r) => r.videos).filter((video) => video && canView(video, video.profiles, viewerId))
+    const followed = await followingSet(viewerId, page.map((r) => r.videos?.user_id).filter((id): id is string => Boolean(id)))
+    const visible = page.map((r) => r.videos).filter((video) => video && canView(video, video.profiles, viewerId, followed))
     const last = page[page.length - 1]
     return {
         videos: await toCards(visible, viewerId),
