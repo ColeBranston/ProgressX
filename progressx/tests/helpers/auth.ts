@@ -13,13 +13,16 @@ export function useTestAuthEnv() {
     vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "not-used-by-the-fake")
 }
 
-export function accessToken(userId: string) {
-    return new SignJWT({ sub: userId, role: "authenticated" })
+// expiresIn: seconds from now (negative for an expired token); signedInAt: unix seconds of the
+// original sign-in, kept in the `amr` claim like Supabase does; email: the account's email claim
+export function accessToken(userId: string, { expiresIn = 3600, signedInAt = undefined as number | undefined, email = undefined as string | undefined } = {}) {
+    const now = Math.floor(Date.now() / 1000)
+    return new SignJWT({ sub: userId, role: "authenticated", ...(email ? { email } : {}), ...(signedInAt ? { amr: [{ method: "password", timestamp: signedInAt }] } : {}) })
         .setProtectedHeader({ alg: "HS256" })
-        .setIssuedAt()
+        .setIssuedAt(now - 60)
         .setAudience("authenticated")
         .setIssuer(`${TEST_SUPABASE_URL}/auth/v1`)
-        .setExpirationTime("1h")
+        .setExpirationTime(now + expiresIn)
         .sign(new TextEncoder().encode(SECRET))
 }
 
