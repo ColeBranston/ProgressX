@@ -5,7 +5,11 @@
   "content": "Higher daily protein intake (1.6 g/kg) increased lean mass gains during twelve weeks of resistance training compared with the recommended dietary allowance.",
   "journal": "Journal of Strength Research",
   "published": "2021",
-  "updated_at": "2026-10-01T00:00:00Z"
+  "updated_at": "2026-10-01T00:00:00Z",
+  "authors": [
+   "Stuart M Phillips",
+   "Brad J Schoenfeld"
+  ]
  },
  {
   "id": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC900002/",
@@ -29,7 +33,11 @@
   "content": "Weekly set volume showed a graded dose-response relationship with muscle hypertrophy, with protein intake held constant across groups.",
   "journal": "Journal of Strength Research",
   "published": "2020",
-  "updated_at": "2026-10-01T00:00:00Z"
+  "updated_at": "2026-10-01T00:00:00Z",
+  "authors": [
+   "Brad J Schoenfeld",
+   "James W Krieger"
+  ]
  },
  {
   "id": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC900005/",

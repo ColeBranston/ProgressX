@@ -61,6 +61,15 @@ def test_clean_core_title_is_exact_match_and_content_is_full_text():
     assert hits("content:cyclist") == 1  # stemmed
 
 
+def test_clean_core_matches_author_and_journal_words():
+    from urllib.parse import quote
+    hits = lambda q: solr_request(f"clean_ingestion_data/select?wt=json&q={quote(q)}")["response"]["numFound"]  # noqa: E731
+    assert hits("authors_text:schoenfeld") == 2  # word by word, any case
+    assert hits('authors:"Brad J Schoenfeld"') == 2  # the stored names stay exact
+    assert hits("journal_text:strength") == 2
+    assert hits("journal:strength") == 0  # journal itself stays exact, for facets
+
+
 def test_created_at_defaults_to_now():
     doc = solr_request('clean_ingestion_data/select?wt=json&q=id:"https://www.ncbi.nlm.nih.gov/pmc/articles/PMC900001/"')["response"]["docs"][0]
     assert doc["created_at"].startswith("20")

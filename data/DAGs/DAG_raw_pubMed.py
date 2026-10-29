@@ -18,6 +18,19 @@ DELAY = 0.34            # NCBI rate limiting
 START_YEAR = 2000
 END_YEAR = datetime.now().year
 
+# ---------------- FUNCTION: AUTHOR NAMES ----------------
+def parse_authors(article):
+    """
+    "ForeName LastName" for each author, or the group's name for a collective author ("PREDIMED Study
+    Group"). ";" and "||" are stripped since they separate values in the raw core's "additional" field.
+    """
+    names = []
+    for author in article.findall(".//AuthorList/Author"):
+        name = " ".join(part for part in (author.findtext("ForeName"), author.findtext("LastName")) if part) or author.findtext("CollectiveName")
+        if name:
+            names.append(name.replace("||", " ").replace(";", " ").strip())
+    return [name for name in names if name]
+
 # ---------------- FUNCTION: ONE ARTICLE -> RAW SOLR DOCUMENT ----------------
 def parse_article(article, updated_at=None):
     """
@@ -37,6 +50,7 @@ def parse_article(article, updated_at=None):
     if not all([title, year_pub, abstract]):
         return None
 
+    authors = parse_authors(article)
     pmc_link = f"https://www.ncbi.nlm.nih.gov/pmc/articles/{pmcid}/" if pmcid else None
     doi_link = f"https://doi.org/{doi}" if doi else None
 
@@ -46,7 +60,7 @@ def parse_article(article, updated_at=None):
         "updated_at": updated_at or now,
         "published": year_pub,
         "type": "pubMed",
-        "additional": f"title:{title}||journal:{journal}||pmid:{pmid}"
+        "additional": f"title:{title}||journal:{journal}||pmid:{pmid}" + (f"||authors:{';'.join(authors)}" if authors else "")
     }
 
 # ---------------- FUNCTION: FETCH AND LOAD CHUNK ----------------

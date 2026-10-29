@@ -6,12 +6,12 @@ import DAG_raw_pubMed as raw
 from doc_classes.pubMed_doc import pubMed_doc
 
 
-def article(pmc="PMC123", doi="10.1/abc", title="Creatine and strength", year="2021", abstract=("Part one.", "Part two."), journal="J Sports"):
+def article(pmc="PMC123", doi="10.1/abc", title="Creatine and strength", year="2021", abstract=("Part one.", "Part two."), journal="J Sports", authors=""):
     ids = "".join(f'<ArticleId IdType="{kind}">{value}</ArticleId>' for kind, value in (("pmc", pmc), ("doi", doi)) if value)
     texts = "".join(f"<AbstractText>{t}</AbstractText>" for t in abstract)
     return ET.fromstring(f"""<PubmedArticle><MedlineCitation><PMID>42</PMID><Article>
         <Journal><Title>{journal}</Title><JournalIssue><PubDate><Year>{year}</Year></PubDate></JournalIssue></Journal>
-        <ArticleTitle>{title}</ArticleTitle><Abstract>{texts}</Abstract></Article></MedlineCitation>
+        <ArticleTitle>{title}</ArticleTitle><Abstract>{texts}</Abstract><AuthorList>{authors}</AuthorList></Article></MedlineCitation>
         <PubmedData><ArticleIdList>{ids}</ArticleIdList></PubmedData></PubmedArticle>""")
 
 
@@ -47,6 +47,31 @@ def test_clean_doc_reads_title_and_journal_from_additional():
         "published": "2021",
         "updated_at": "2026-10-01T00:00:00Z",
     }
+
+
+AUTHORS = (
+    "<Author><LastName>Schoenfeld</LastName><ForeName>Brad J</ForeName></Author>"
+    "<Author><CollectiveName>PREDIMED Study Group</CollectiveName></Author>"
+    "<Author><LastName>Ogborn</LastName></Author>"
+    "<Author><LastName>Krieger;</LastName><ForeName>James||W</ForeName></Author>"
+    "<Author></Author>"
+)
+
+
+def test_parse_article_collects_authors():
+    doc = raw.parse_article(article(authors=AUTHORS))
+    assert doc["additional"] == "title:Creatine and strength||journal:J Sports||pmid:42||authors:Brad J Schoenfeld;PREDIMED Study Group;Ogborn;James W Krieger"
+
+
+def test_clean_doc_reads_authors_from_additional():
+    raw_doc = raw.parse_article(article(authors=AUTHORS))
+    assert pubMed_doc(raw_doc).getDoc()["authors"] == ["Brad J Schoenfeld", "PREDIMED Study Group", "Ogborn", "James W Krieger"]
+
+
+def test_clean_doc_without_authors_leaves_the_field_out():
+    """Studies in the raw core from before authors were collected still migrate"""
+    raw_doc = {"id": "x", "content": "c", "published": "2020", "updated_at": "t", "additional": "title:T||journal:J||pmid:1"}
+    assert "authors" not in pubMed_doc(raw_doc).getDoc()
 
 
 def test_clean_doc_keeps_colons_in_titles():

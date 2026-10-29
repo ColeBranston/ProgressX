@@ -14,7 +14,7 @@ SEARCH_TTL_SECONDS = int(os.environ.get("SEARCH_CACHE_TTL_SECONDS", "3600"))   #
 DOC_TTL_SECONDS = int(os.environ.get("DOC_CACHE_TTL_SECONDS", "86400"))        # a single document rarely changes
 
 # bump the version to invalidate every cached entry after changing the response shape
-KEY_PREFIX = "progressx:search:v1"
+KEY_PREFIX = "progressx:search:v2"  # v2: results carry year and journal facets
 RECENT_KEY = f"{KEY_PREFIX}:recent"
 
 _client = redis.Redis.from_url(
@@ -41,8 +41,10 @@ def normalize_query(query: str) -> str:
     return re.sub(r"\s+", " ", query).strip()
 
 
-def search_key(query: str, page_num: int) -> str:
-    return _key("results", normalize_query(query), page_num)
+def search_key(query: str, page_num: int, years=(), journals=()) -> str:
+    # filter order doesn't change the results, so it doesn't change the key
+    filters = "".join(sorted(set(years))) + "" + "".join(sorted(set(journals)))
+    return _key("results", normalize_query(query), page_num, filters)
 
 
 def doc_key(doc_id: str) -> str:

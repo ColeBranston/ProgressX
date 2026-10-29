@@ -10,9 +10,10 @@ sys.path.insert(0, BACKEND)
 
 
 class FakeResults:
-    def __init__(self, docs, hits=None):
+    def __init__(self, docs, hits=None, facets=None):
         self.docs = docs
         self.hits = len(docs) if hits is None else hits
+        self.facets = facets or {}
 
 
 class FakeCore:
@@ -21,6 +22,7 @@ class FakeCore:
     def __init__(self, docs=()):
         self.docs = list(docs)
         self.calls = []
+        self.facet_fields = {}  # e.g. {"published": ["2020", 3, "2021", 1]}, as Solr sends them
 
     def search(self, q, **params):
         self.calls.append({"q": q, **params})
@@ -28,7 +30,7 @@ class FakeCore:
             wanted = q[4:-1]
             return FakeResults([d for d in self.docs if d["id"] == wanted])
         start, rows = params.get("start", 0), params.get("rows", 10)
-        return FakeResults(self.docs[start:start + rows], hits=len(self.docs))
+        return FakeResults(self.docs[start:start + rows], hits=len(self.docs), facets={"facet_fields": self.facet_fields})
 
 
 @pytest.fixture

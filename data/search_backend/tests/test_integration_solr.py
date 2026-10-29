@@ -32,7 +32,7 @@ def test_finds_studies_by_their_abstract(live_backend):
     body = live_backend.get("/search/0/creatine bench press").json()
     assert body["hits"] == 1
     assert body["docs"][0]["title"] == "Creatine supplementation and strength"
-    assert set(body["docs"][0]) == {"id", "title", "journal"}
+    assert set(body["docs"][0]) == {"id", "title", "journal", "published"}  # no authors on this one
 
 
 def test_stemming_and_minimum_match(live_backend):
@@ -45,6 +45,38 @@ def test_stemming_and_minimum_match(live_backend):
 def test_exact_title_ranks_first(live_backend):
     docs = live_backend.get("/search/0/Training volume dose response").json()["docs"]
     assert docs[0]["title"] == "Training volume dose response"
+
+
+def test_finds_studies_by_author(live_backend):
+    titles = lambda q: [d["title"] for d in live_backend.get(f"/search/0/{q}").json()["docs"]]  # noqa: E731
+    assert titles("phillips") == ["Protein intake and muscle hypertrophy in resistance-trained adults"]
+    assert set(titles("Schoenfeld")) == {"Protein intake and muscle hypertrophy in resistance-trained adults", "Training volume dose response"}
+    # an author and a word from the abstract together
+    assert titles("schoenfeld set volume") == ["Training volume dose response"]
+    doc = live_backend.get("/search/0/phillips").json()["docs"][0]
+    assert doc["authors"] == ["Stuart M Phillips", "Brad J Schoenfeld"]
+
+
+def test_journal_matches_rank_above_abstract_matches(live_backend):
+    # "strength" is in two abstracts and in the journal name of two other studies
+    docs = live_backend.get("/search/0/strength").json()["docs"]
+    assert [d["journal"] for d in docs[:2]] == ["Journal of Strength Research"] * 2
+    assert {d["title"] for d in docs[2:]} == {"Creatine supplementation and strength", "Sleep duration and recovery"}
+
+
+def test_year_facets_and_filters(live_backend):
+    body = live_backend.get("/search/0/strength").json()
+    assert body["facets"]["year"] == [{"value": y, "count": 1} for y in ("2022", "2021", "2020", "2019")]
+    assert {"value": "Journal of Strength Research", "count": 2} in body["facets"]["journal"]
+
+    picked = live_backend.get("/search/0/strength", params={"year": ["2019", "2022"]}).json()
+    assert picked["hits"] == 2
+    assert {d["published"] for d in picked["docs"]} == {"2019", "2022"}
+    # the year counts still list every year, so more can be picked
+    assert len(picked["facets"]["year"]) == 4
+
+    both = live_backend.get("/search/0/strength", params={"year": ["2020", "2021", "2022"], "journal": "Journal of Strength Research"}).json()
+    assert {d["title"] for d in both["docs"]} == {"Protein intake and muscle hypertrophy in resistance-trained adults", "Training volume dose response"}
 
 
 def test_results_are_cached_in_redis(live_backend):

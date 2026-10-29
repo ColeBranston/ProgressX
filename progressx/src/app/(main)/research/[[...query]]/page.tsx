@@ -1,15 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import styles from "./research.module.css"
-import { useParams, useRouter } from "next/dist/client/components/navigation";
-import { StudyCard } from "@/app/internal_components";
+import { useParams, useRouter, useSearchParams } from "next/dist/client/components/navigation";
+import { SearchFacets, StudyCard } from "@/app/internal_components";
+import { FacetField, Facets, Filters, filterQuery, noFilters, readFilters, toggleFilter } from "@/app/internal_components/research/researchFilters";
 import { pressable } from "@/app/internal_components/a11y";
 
 export type SolrResponse = {
     debug?: Record<string, string>,
     docs: SolrDoc[],
-    facets?: Record<string, string>,
+    facets?: Facets, // year and journal counts for the search, from the search backend
     grouped?: Record<string, string>,
     highlighting?: Record<string, string>,
     hits: number,
@@ -26,9 +27,10 @@ export type SolrDoc = {
     journal: string,
     title: string,
     published?: string,
+    authors?: string[],
     content?: string
 }
-const ResearchPage = () => {
+const ResearchResults = () => {
 
     const [query, setQuery] = useState<string>("")
     const [lastQuery, setLastQuery] = useState<string|undefined>("")
@@ -36,11 +38,15 @@ const ResearchPage = () => {
     const [resultCount, setResultCount] = useState<number>(0)
     const [cached, setCached] = useState<SolrDoc[]>([])
     const [currPage, setCurrPage] = useState<number>(0)
+    const [facets, setFacets] = useState<Facets | undefined>(undefined)
 
     const [isLoading, setIsLoading] = useState<boolean>(true)
 
     const router = useRouter()
     const params = useParams()
+    const searchParams = useSearchParams()
+    const filtersQuery = filterQuery(readFilters(searchParams)) // "?year=2021&journal=..." or ""
+    const filters = useMemo(() => readFilters(new URLSearchParams(filtersQuery)), [filtersQuery])
     const latestRequest = useRef(0) // ignores responses from older searches that finish late
 
     const RESULTS_PER_PAGE = 10 // matches rows=10 in the search backend
@@ -51,8 +57,17 @@ const ResearchPage = () => {
     const firstPageButton = Math.max(0, Math.min(currPage - 5, totalPages - MAX_PAGE_BUTTONS))
     const pageButtons = Array.from({length: Math.min(MAX_PAGE_BUTTONS, totalPages - firstPageButton)}, (_, i) => firstPageButton + i)
 
-    function goToPage(pageNum: number, searchQuery: string) {
-        router.push(`/research/${pageNum}/${encodeURIComponent(searchQuery)}`)
+    function goToPage(pageNum: number, searchQuery: string, nextFilters: Filters = filters) {
+        router.push(`/research/${pageNum}/${encodeURIComponent(searchQuery)}${filterQuery(nextFilters)}`)
+    }
+
+    // changing the filters changes the results, so go back to the first page
+    function toggleFacet(field: FacetField, value: string) {
+        goToPage(0, lastQuery ?? "", toggleFilter(filters, field, value))
+    }
+
+    function clearFacets() {
+        goToPage(0, lastQuery ?? "", noFilters())
     }
 
     function submitSearch(e: React.FormEvent<HTMLFormElement>) {
@@ -61,13 +76,13 @@ const ResearchPage = () => {
         goToPage(0, query) // the params effect below does the fetch
     }
 
-    async function getResults(currentQuery: string, pageNum: number){
+    async function getResults(currentQuery: string, pageNum: number, currentFilters: string){
         setIsLoading(true)
         const requestId = ++latestRequest.current
 
         console.log("Query triggered, query: ", currentQuery)
 
-        const endpoint = `/api/search/search/${pageNum}/${encodeURIComponent(currentQuery)}`
+        const endpoint = `/api/search/search/${pageNum}/${encodeURIComponent(currentQuery)}${currentFilters}`
                 const response = await fetch(endpoint, {
             method: 'GET',
             credentials: 'include',
@@ -81,6 +96,7 @@ const ResearchPage = () => {
 
             setDocs(solrResponse.docs ?? [])
             setResultCount(solrResponse.hits || 0)
+            setFacets(solrResponse.facets)
             setLastQuery(currentQuery)
         }
         setIsLoading(false)
@@ -140,7 +156,7 @@ const ResearchPage = () => {
             setQuery(tempQuery)
             setCurrPage(pageNum)
             if (tempQuery) {
-                getResults(tempQuery, pageNum)
+                getResults(tempQuery, pageNum, filtersQuery)
             } else {
                 setIsLoading(false)
             }
@@ -149,7 +165,7 @@ const ResearchPage = () => {
             console.log(`No Params detected, getting cached documents`)
             getCached()
         }
-    },[params])
+    },[params, filtersQuery])
 
     const scrollRef = useHorizontalScroll()
 
@@ -182,6 +198,7 @@ const ResearchPage = () => {
                                 <p className={styles.searchHeader}>{lastQuery?.toUpperCase()}</p>
                                 <p className={styles.resultsCount}>Search Results: {resultCount}</p>
                             </div>
+                            <SearchFacets facets={facets} filters={filters} onToggle={toggleFacet} onClear={clearFacets} />
                             <div className={styles.resultsScroll} ref={scrollRef}>
                                 <div className={styles.resultsGrid}>
                                     {docs.map((doc: SolrDoc, index:number)=>{
@@ -202,8 +219,9 @@ const ResearchPage = () => {
                                 <div className={styles.resultsHeaderContainer}>
                                     <p className={styles.searchHeader}>{lastQuery?.toUpperCase()}</p>
                                     <p className={styles.resultsCount}>Search Results: {resultCount}</p>
-                                    <p>No results found, try changing your search</p>
+                                    <p>No results found, try changing your search{filtersQuery ? " or clearing the filters" : ""}</p>
                                 </div>
+                                <SearchFacets facets={facets} filters={filters} onToggle={toggleFacet} onClear={clearFacets} />
                             </div>
                         )
                         :
@@ -231,5 +249,12 @@ const ResearchPage = () => {
         </div>
     )
 }
+
+// useSearchParams needs a Suspense boundary so /research can still be prerendered
+const ResearchPage = () => (
+    <Suspense>
+        <ResearchResults />
+    </Suspense>
+)
 
 export default ResearchPage
