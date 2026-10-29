@@ -14,7 +14,7 @@ export default function LegalPage({ title, otherPage, children }: LegalPageProps
         <div className={styles.pageScroll}>
             <div className={styles.page}>
                 <div className={styles.topBar}>
-                    <Link href="/login" className="mainLogo">
+                    <Link href="/" className="mainLogo">
                         <span className="progress">Progress</span>
                         <span className="X">X</span>
                     </Link>
@@ -30,7 +30,7 @@ export default function LegalPage({ title, otherPage, children }: LegalPageProps
                 <footer className={styles.footer}>
                     <Link href="/privacy">Privacy Policy</Link>
                     <Link href="/terms">Terms of Service</Link>
-                    <Link href="/login">Back to ProgressX</Link>
+                    <Link href="/">Back to ProgressX</Link>
                 </footer>
             </div>
         </div>
