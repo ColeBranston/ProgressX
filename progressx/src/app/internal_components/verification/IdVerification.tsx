@@ -146,7 +146,8 @@ export default function IdVerification() {
 
 type Slot = { file: File, url: string } | null
 
-function VerifyDialog({ onClose, onDone }: { onClose: () => void, onDone: () => void }) {
+// The upload-and-check dialog: Settings opens it, and so does the optional last step of onboarding
+export function VerifyDialog({ onClose, onDone }: { onClose: () => void, onDone: () => void }) {
     const [ kind, setKind ] = useState<"passport" | "card">("passport")
     const [ front, setFront ] = useState<Slot>(null)
     const [ back, setBack ] = useState<Slot>(null)

@@ -5,6 +5,7 @@ import styles from "./VideoUploadForm.module.css";
 import shared from "../profile/ProgressPhotos.module.css";
 import { CAPTION_MAX, MAX_VIDEO_BYTES, MAX_VIDEO_SECONDS, VIDEO_TYPES } from "./videoTypes";
 import { backdrop } from "../a11y";
+import VerifyHint from "../verification/VerifyHint";
 
 type VideoUploadFormProps = {
     onClose: () => void,
@@ -260,7 +261,7 @@ export default function VideoUploadForm({ onClose, onUploaded }: VideoUploadForm
                     </div>
                 }
 
-                {error ? <p className={shared.uploadError} role="alert">{error}</p> : null}
+                {error ? <p className={shared.uploadError} role="alert"><VerifyHint message={error} /></p> : null}
 
                 <input
                     ref={fileInput}

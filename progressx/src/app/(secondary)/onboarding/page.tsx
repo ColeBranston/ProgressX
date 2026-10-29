@@ -15,15 +15,27 @@ import {
     usernameError,
     validateOnboarding,
 } from "@/app/internal_components/profile/profileRules";
+import { VerifyDialog } from "@/app/internal_components/verification/IdVerification";
 
 // New accounts land here (the middleware sends anyone who hasn't finished it) after agreeing to the
-// terms. Three short steps; nothing is saved until the end.
+// terms. Three short steps, saved together at the end of the third; then an optional fourth to verify
+// their ID (it needs the saved profile: the API is closed to accounts that haven't finished onboarding).
 
 const STEPS = [
     { title: "About you", fields: ["name", "username"] },
     { title: "Your body", fields: ["age", "gender", "heightCm", "weightLbs"] },
     { title: "Activity", fields: ["activity"] },
+    { title: "Verify your ID", fields: [] },
 ] as const satisfies readonly { title: string, fields: readonly (keyof OnboardingDetails)[] }[]
+
+const SAVE_STEP = 2     // the details are saved when this step is finished
+const VERIFY_STEP = 3   // optional: skipping it goes straight to the app
+
+// a full page load, so the middleware sees the finished profile: the client router can reuse its
+// earlier "/ -> /onboarding" redirect and leave the page stuck
+function finish() {
+    window.location.replace("/")
+}
 
 type UsernameCheck = { state: "idle" | "checking" | "available" | "taken" | "error", message?: string }
 
@@ -47,6 +59,8 @@ export default function Onboarding() {
     const [weight, setWeight] = useState("")
     const [activity, setActivity] = useState<number | null>(null)
     const [usernameCheck, setUsernameCheck] = useState<UsernameCheck>({ state: "idle" })
+    const [verifyOpen, setVerifyOpen] = useState(false)
+    const [verified, setVerified] = useState(false)
     const headingRef = useRef<HTMLHeadingElement>(null)
 
     // who's signing up (shown for reassurance; the middleware already made sure they're logged in)
@@ -58,6 +72,15 @@ export default function Onboarding() {
 
     // move focus to the new step's heading so screen readers and keyboards follow along
     useEffect(() => { headingRef.current?.focus() }, [step])
+
+    // where ID verification isn't set up, there's nothing to offer: go straight to the app
+    useEffect(() => {
+        if (step !== VERIFY_STEP) return
+        fetch("/api/verification", { cache: "no-store" }).then((res) => res.ok ? res.json() : null).then((json) => {
+            if (json?.available === false) finish()
+            else if (json?.status?.state === "verified") setVerified(true)
+        }).catch(() => {})
+    }, [step])
 
     const heightCm = heightUnit === "cm"
         ? Number(centimetres)
@@ -128,7 +151,8 @@ export default function Onboarding() {
     async function submit(event: FormEvent) {
         event.preventDefault()
         setFormError(null)
-        if (step < STEPS.length - 1) {
+        if (step === VERIFY_STEP) return finish()
+        if (step < SAVE_STEP) {
             if (checkStep(step)) setStep(step + 1)
             return
         }
@@ -143,9 +167,8 @@ export default function Onboarding() {
             })
             const json = await res.json().catch(() => ({}))
             if (res.ok) {
-                // a full page load, so the middleware sees the finished profile: the client router can
-                // reuse its earlier "/ -> /onboarding" redirect and leave the page stuck on "Saving..."
-                window.location.replace("/")
+                setSaving(false)
+                setStep(VERIFY_STEP)
                 return
             }
             if (res.status === 401) {
@@ -187,7 +210,7 @@ export default function Onboarding() {
                     {STEPS.map((s, i) => (
                         <li key={s.title} className={i < step ? styles.stepDone : i === step ? styles.stepCurrent : ""} aria-current={i === step ? "step" : undefined}>
                             <span className={styles.stepBar} />
-                            <span className={styles.stepLabel}>{i + 1}. {s.title}</span>
+                            <span className={styles.stepLabel}>{i + 1}. {s.title}{i === VERIFY_STEP ? " (optional)" : ""}</span>
                         </li>
                     ))}
                 </ol>
@@ -219,6 +242,23 @@ export default function Onboarding() {
                                             : "3–20 letters, numbers, _ or .")}
                                 </p>
                             </div>
+                        </div>
+                    : step === VERIFY_STEP ?
+                        <div className={styles.fields} key="step3">
+                            {verified ?
+                                <p className={styles.verifiedNote} role="status">✓ You&apos;re verified. You can post videos, like, favourite and follow.</p>
+                            :
+                                <>
+                                    <p className={styles.stepIntro}>
+                                        Your details are saved. To post videos, like, favourite and follow, verify your identity with a
+                                        passport, or a driver&apos;s licence or provincial ID card. It&apos;s how we keep bots and fake accounts out.
+                                    </p>
+                                    <p className={styles.fieldHint}>
+                                        It&apos;s checked automatically on ProgressX&apos;s own server and stored encrypted; it&apos;s never shown on the site.
+                                        This step is optional: you can browse and track without it, and verify any time in Settings.
+                                    </p>
+                                </>
+                            }
                         </div>
                     : step === 1 ?
                         <div className={styles.fields} key="step1">
@@ -323,13 +363,25 @@ export default function Onboarding() {
 
                     {formError ? <p className={styles.formError} role="alert">{formError}</p> : null}
 
-                    <div className={styles.actions}>
-                        {step > 0 ? <button type="button" className={styles.secondary} onClick={() => { setFormError(null); setStep(step - 1) }} disabled={saving}>Back</button> : <span />}
-                        <button type="submit" className={styles.primary} disabled={saving}>
-                            {saving ? "Saving…" : step < STEPS.length - 1 ? "Continue" : "Start tracking"}
-                        </button>
-                    </div>
+                    {step === VERIFY_STEP ?
+                        <div className={styles.actions}>
+                            {verified ? <span /> : <button type="submit" className={styles.secondary}>Skip for now</button>}
+                            {verified ?
+                                <button type="submit" className={styles.primary}>Start tracking</button>
+                            :
+                                <button type="button" className={styles.primary} onClick={() => setVerifyOpen(true)}>Verify ID</button>
+                            }
+                        </div>
+                    :
+                        <div className={styles.actions}>
+                            {step > 0 ? <button type="button" className={styles.secondary} onClick={() => { setFormError(null); setStep(step - 1) }} disabled={saving}>Back</button> : <span />}
+                            <button type="submit" className={styles.primary} disabled={saving}>
+                                {saving ? "Saving…" : step < SAVE_STEP ? "Continue" : "Save and continue"}
+                            </button>
+                        </div>
+                    }
                 </form>
+                {verifyOpen ? <VerifyDialog onClose={() => setVerifyOpen(false)} onDone={() => { setVerifyOpen(false); setVerified(true) }} /> : null}
             </main>
         </div>
     )

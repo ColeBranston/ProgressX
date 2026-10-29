@@ -497,3 +497,17 @@
         transition: none;
     }
 }
+
+.stepIntro {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.verifiedNote {
+    margin: 0;
+    font-family: var(--secondary-font-family);
+    font-size: 15px;
+    color: rgb(90, 220, 130);
+}

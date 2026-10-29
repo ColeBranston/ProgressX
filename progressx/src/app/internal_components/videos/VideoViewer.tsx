@@ -8,6 +8,7 @@ import { ArrowIcon, BookmarkIcon, HeartIcon, MutedIcon, ShareIcon, VolumeIcon } 
 import { Reaction, VideoCard, formatCount, setReaction } from "./videoTypes";
 import { backdrop } from "../a11y";
 import { useRequireSignIn } from "@/app/contexts/viewer";
+import VerifyHint from "../verification/VerifyHint";
 
 type VideoViewerProps = {
     videos: VideoCard[],
@@ -171,7 +172,7 @@ export default function VideoViewer({ videos, index, onIndex, onClose, onChange,
                             :   <button type="button" className={styles.textButton} onClick={() => setConfirming(true)}>Delete video</button>}
                         </div>
                     : null}
-                    {notice ? <p className={styles.notice} role="status">{notice}</p> : null}
+                    {notice ? <p className={styles.notice} role="status"><VerifyHint message={notice} /></p> : null}
                 </div>
             </div>
         </div>

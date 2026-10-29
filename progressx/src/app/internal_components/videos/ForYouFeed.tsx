@@ -9,6 +9,7 @@ import AdSlot from "./AdSlot";
 import { ArrowIcon, BookmarkIcon, CommentIcon, HeartIcon, MoreIcon, MutedIcon, ShareIcon, VolumeIcon } from "./icons";
 import { Reaction, VideoCard, formatCount, setFollow, setReaction } from "./videoTypes";
 import { useRequireSignIn } from "@/app/contexts/viewer";
+import VerifyHint, { needsVerification } from "../verification/VerifyHint";
 import { AdConfig, FeedItem, adAllowedNow, adTopics, appendWithAds, captionsBefore, loadedRange, needsMore } from "./feedPlan";
 
 const NAV_COOLDOWN_MS = 550
@@ -157,7 +158,8 @@ export default function ForYouFeed({ source = "for-you" }: { source?: "for-you" 
 
     useEffect(() => {
         if (!toast) return
-        const timer = setTimeout(() => setToast(null), 2200)
+        // longer when it carries a "Verify now" link, so there's time to tap it
+        const timer = setTimeout(() => setToast(null), needsVerification(toast) ? 6000 : 2200)
         return () => clearTimeout(timer)
     }, [toast])
 
@@ -408,7 +410,7 @@ export default function ForYouFeed({ source = "for-you" }: { source?: "for-you" 
                 <button type="button" className={styles.navDown} onClick={() => go(1)} disabled={index >= items.length - 1} aria-label="Next video"><ArrowIcon size={30} /></button>
             </div>
 
-            {toast ? <p className={styles.toast} role="status">{toast}</p> : null}
+            {toast ? <p className={styles.toast} role="status"><VerifyHint message={toast} /></p> : null}
         </div>
     )
 }
