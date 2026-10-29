@@ -74,6 +74,9 @@ test.describe("signed out", () => {
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
         await page.goto("/privacy")
         await expect(page.getByRole("heading", { name: /Government ID/i })).toBeVisible()
+        // the way back goes to the homepage, not the login page
+        await page.getByRole("link", { name: "Back to ProgressX" }).click()
+        await expect.poll(() => new URL(page.url()).pathname).toBe("/")
     })
 
     test("robots.txt and the sitemap only list the canonical https site", async ({ request }) => {
