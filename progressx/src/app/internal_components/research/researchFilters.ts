@@ -35,7 +35,7 @@ export const hasFilters = (filters: Filters) => FACET_FIELDS.some((field) => fil
 export function filterQuery(filters: Filters): string {
     const params = new URLSearchParams()
     for (const field of FACET_FIELDS) {
-        for (const value of [...filters[field]].sort()) params.append(field, value)
+        for (const value of [...filters[field]].sort((a, b) => a.localeCompare(b))) params.append(field, value)
     }
     const query = params.toString()
     return query ? `?${query}` : ""
