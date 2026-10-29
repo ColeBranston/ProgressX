@@ -139,6 +139,16 @@ export default function PrivacyPolicyPage() {
                     time to drop pages they have already stored. The videos you like or favourite are visible only to you.
                 </li>
                 <li>
+                    <strong>Your tracking, only if you turn it on.</strong> You can choose to show your progress photos, your weight
+                    (weigh-ins and how it has changed), your workouts (exercises, sets, reps and weights) and your diet (the foods you log
+                    and how your calories and macros compare to your targets) on your profile. Each one is off unless you turn it on, when
+                    you create your account or later in Settings &gt; Profile privacy, and you can turn it off again at any time. What you
+                    turn on is shown only while your profile is public, and only to people signed in to ProgressX: never to people without
+                    an account, and it is kept out of search engines. Your diet targets are worked out from your age, sex, height, weight and
+                    activity level, so someone who sees them may be able to estimate those details. People who can see your tracking could
+                    copy or screenshot it, which we can&apos;t prevent.
+                </li>
+                <li>
                     <strong>With service providers</strong> who help us run the Service and may only use your information to provide their services to us:
                     <ul>
                         <li>Supabase: authentication and database hosting</li>
@@ -201,7 +211,7 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Access and portability:</strong> download a copy of all the personal information we hold about you at any time from Settings &gt; Your data &gt; Download my data.</li>
                 <li><strong>Correction:</strong> you can view and edit most of your information in the app, or ask us to correct it.</li>
                 <li><strong>Deletion:</strong> delete individual photos and videos in the app, remove your government ID from Settings &gt; Identity verification, or permanently delete your whole account and all of its data from Settings &gt; Your data &gt; Delete account.</li>
-                <li><strong>Privacy settings:</strong> you can change who can see your profile and blur your progress photos at any time.</li>
+                <li><strong>Privacy settings:</strong> you can change who can see your profile, what tracking it shows, and blur your progress photos at any time.</li>
                 <li><strong>Withdrawing consent:</strong> you can withdraw your consent at any time by deleting your account. You can also contact us to withdraw consent to a particular use.</li>
             </ul>
             <p>

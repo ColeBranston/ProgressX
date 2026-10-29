@@ -38,14 +38,32 @@ async function fillDetails() {
     await user.type(screen.getByLabelText(/Weight in lb/), "175")
     await user.click(screen.getByRole("button", { name: "Continue" }))
     await user.click(screen.getByRole("radio", { name: /Moderately active/ }))
-    await user.click(screen.getByRole("button", { name: "Save and continue" }))
+    await user.click(screen.getByRole("button", { name: "Continue" }))
+    await screen.findByRole("heading", { name: "Your privacy" })
     return user
 }
+
+describe("onboarding's privacy step", () => {
+    it("starts private with nothing shown, and saves what they choose with the details", async () => {
+        render(<Onboarding />)
+        const user = await fillDetails()
+        expect(screen.getByRole("radio", { name: "Private" })).toHaveAttribute("aria-checked", "true")
+        expect(screen.getAllByRole("switch").map((s) => s.getAttribute("aria-checked"))).toEqual(["false", "false", "false", "false"])
+
+        await user.click(screen.getByRole("radio", { name: "Public" }))
+        await user.click(screen.getByRole("switch", { name: /Progress photos/ }))
+        await user.click(screen.getByRole("switch", { name: /Workouts/ }))
+        await user.click(screen.getByRole("button", { name: "Save and continue" }))
+        await screen.findByRole("heading", { name: "Verify your ID" })
+        expect(saved).toMatchObject({ privacy: "public", sharing: { photos: true, weight: false, workouts: true, diet: false } })
+    })
+})
 
 describe("onboarding's ID step", () => {
     it("saves the details first, then offers to verify, and skipping goes to the app", async () => {
         render(<Onboarding />)
         const user = await fillDetails()
+        await user.click(screen.getByRole("button", { name: "Save and continue" }))
         expect(await screen.findByRole("heading", { name: "Verify your ID" })).toBeInTheDocument()
         expect(saved).toMatchObject({ username: "newperson", age: 30 })
         expect(replace).not.toHaveBeenCalled()
@@ -61,7 +79,8 @@ describe("onboarding's ID step", () => {
     it("goes straight to the app where ID verification isn't set up", async () => {
         verification = { available: false, status: { state: "none" } }
         render(<Onboarding />)
-        await fillDetails()
+        const user = await fillDetails()
+        await user.click(screen.getByRole("button", { name: "Save and continue" }))
         await waitFor(() => expect(replace).toHaveBeenCalledWith("/"))
     })
 })

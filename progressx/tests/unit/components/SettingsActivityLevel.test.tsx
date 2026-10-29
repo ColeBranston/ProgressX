@@ -8,7 +8,7 @@ import SettingsPage from "@/app/(main)/settings/page"
 
 vi.mock("@/app/internal_components/verification/IdVerification", () => ({ default: () => null }))
 
-const settings = { blurProgressPhotos: false, waterGoalMl: null, profilePrivacy: "private", weightUnit: "lb", activityLevel: 1 }
+const settings = { blurProgressPhotos: false, waterGoalMl: null, profilePrivacy: "private", weightUnit: "lb", activityLevel: 1, personalizedAds: false, sharing: { photos: false, weight: false, workouts: false, diet: false } }
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } })
 
 // Like the real server, each PATCH is saved as soon as it arrives and answered with the settings as they

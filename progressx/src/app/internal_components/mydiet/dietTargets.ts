@@ -1,5 +1,5 @@
 import type { goalType } from './CalorieTarget'
-import { averageCompletion, calorieGoalCompletion, ScoreCategory } from './DailyScore'
+import { averageCompletion, calorieGoalCompletion, ScoreCategory } from './dailyScoring'
 import { MicroNutrient } from './microNutrients'
 
 // Shared by the diet page and the My Stats diet analytics, so a day scores the same on both.

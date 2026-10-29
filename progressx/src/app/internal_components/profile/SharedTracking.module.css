@@ -1,0 +1,315 @@
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+.empty,
+.note {
+    margin: 24px auto;
+    font-family: var(--secondary-font-family);
+    font-size: 14px;
+    opacity: 0.6;
+    text-align: center;
+}
+
+.note {
+    margin: 0;
+    text-align: left;
+}
+
+.spinner {
+    display: block;
+    width: 32px;
+    height: 32px;
+    margin: 40px auto;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(var(--primary-color));
+    animation: sharedSpin 0.8s linear infinite;
+}
+
+@keyframes sharedSpin {
+    to { transform: rotate(360deg); }
+}
+
+.card {
+    padding: 18px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.cardTitle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    font-family: var(--primary-font-family);
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.goal {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(var(--primary-color), 0.15);
+    color: rgba(var(--primary-color));
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+}
+
+.tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+/* ---------- Photos ---------- */
+
+.photoGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+    width: 100%;
+}
+
+.photoTile {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    padding: 0;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+}
+
+.photoTile:focus-visible {
+    outline: 2px solid rgba(var(--primary-color));
+    outline-offset: 2px;
+}
+
+.photoImage {
+    object-fit: cover;
+}
+
+.photoImageContain {
+    object-fit: contain;
+}
+
+.photoDate {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-family: var(--secondary-font-family);
+    font-size: 12px;
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.viewer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: min(800px, 100%);
+    max-height: 100%;
+    color: white;
+    font-family: var(--secondary-font-family);
+}
+
+.viewerHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.viewerHeader p {
+    margin: 0;
+}
+
+.closeButton {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.viewerImage {
+    position: relative;
+    height: min(75vh, 900px);
+}
+
+.viewerCaption {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* ---------- Workouts ---------- */
+
+.exerciseList,
+.foodList {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.exerciseList li,
+.foodList li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-family: var(--secondary-font-family);
+    font-size: 14px;
+}
+
+.exerciseName,
+.foodName {
+    font-weight: 600;
+}
+
+.sets {
+    opacity: 0.7;
+}
+
+/* ---------- Diet ---------- */
+
+.dayNav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    font-family: var(--primary-font-family);
+    font-size: 18px;
+}
+
+.dayNav p {
+    min-width: 120px;
+    margin: 0;
+    text-align: center;
+}
+
+.dayNav button {
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    background: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.dayNav button:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.foodName span {
+    margin-left: 8px;
+    font-weight: 400;
+    opacity: 0.55;
+}
+
+.foodMacros {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.foodMacros span {
+    font-size: 12px;
+    opacity: 0.6;
+}
+
+/* ---------- Tabs (another person's profile) ---------- */
+
+.tabs {
+    display: flex;
+    gap: 22px;
+    width: 70%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-bottom: 2px solid rgb(113, 113, 113, 0.5);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.tab {
+    position: relative;
+    flex-shrink: 0;
+    padding: 0 0 8px;
+    border: none;
+    background: none;
+    color: inherit;
+    font-size: 24px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 0.1s linear;
+}
+
+.tab:hover,
+.tab[aria-selected="true"] {
+    color: rgba(var(--primary-color));
+}
+
+.tab[aria-selected="true"]::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -3px;
+    height: 5px;
+    border-radius: 5px;
+    background: rgba(var(--primary-color));
+}
+
+.tab:focus-visible {
+    outline: 2px solid rgba(var(--primary-color));
+    outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+    .tabs {
+        width: 100%;
+        gap: 16px;
+    }
+
+    .tab {
+        font-size: 18px;
+    }
+}
