@@ -8,6 +8,7 @@ import { userDataContext, UserData } from "@/app/contexts/userData";
 import { formatVolume, getWaterTargetMl } from "@/app/internal_components/index";
 import { clearLocalAccountData } from "@/app/internal_components/SessionWatch";
 import { ACTIVITY_LEVELS } from "@/app/internal_components/profile/profileRules";
+import { SHARE_KINDS, SHARE_OPTIONS, ShareKind, Sharing } from "@/app/internal_components/profile/sharing";
 
 type Settings = {
     blurProgressPhotos: boolean,
@@ -16,9 +17,10 @@ type Settings = {
     weightUnit: "lb" | "kg",
     activityLevel: number | null,
     personalizedAds: boolean,
+    sharing: Sharing,
 }
 
-type Section = "privacy" | "diet" | "workouts"
+type Section = "profile" | "privacy" | "diet" | "workouts"
 type SaveStatus = { section: Section, state: "saving" | "saved" | "error" } | null
 
 const WATER_GOAL_MIN_ML = 500 // matches user_settings.water_goal_ml
@@ -171,9 +173,16 @@ export default function SettingsPage() {
 
     async function changeVisibility(value: "public" | "private") {
         if (!settings || value === settings.profilePrivacy) return
-        const saved = await save("privacy", { profilePrivacy: value })
+        const saved = await save("profile", { profilePrivacy: value })
         // keep the profile page's lock icon in sync
         if (saved) setUserData((prev: UserData) => ({ ...prev, privacy: value }))
+    }
+
+    // sends all four choices, built on the latest ones, so toggling two in quick succession keeps both
+    function changeSharing(kind: ShareKind) {
+        const current = settingsRef.current
+        if (!current) return
+        save("profile", { sharing: { ...current.sharing, [kind]: !current.sharing[kind] } })
     }
 
     // Saves activity levels in the order they were picked, so the last one picked is what ends up saved
@@ -305,6 +314,51 @@ export default function SettingsPage() {
 
                     :
                         <>
+                            <section className={styles.card} aria-labelledby="profile-privacy-heading">
+                                <div className={styles.cardHeader}>
+                                    <h2 id="profile-privacy-heading" className={styles.cardTitle}>Profile privacy</h2>
+                                    {statusText("profile")}
+                                </div>
+
+                                <div className={styles.row}>
+                                    <div className={styles.rowText}>
+                                        <p className={styles.rowLabel}>Profile visibility</p>
+                                        <p className={styles.rowDescription}>
+                                            {settings.profilePrivacy === "public"
+                                                ? "Anyone on the internet can see your profile and videos, including people without an account, and your videos show in other people's For You feeds. Your profile can show up in search engines like Google."
+                                                : "Only you can see your videos, and they don't show in anyone's For You feed. People signed in to ProgressX can still find your name and picture."}
+                                        </p>
+                                    </div>
+                                    <Segmented
+                                        label="Profile visibility"
+                                        value={settings.profilePrivacy}
+                                        options={[{ value: "private", label: "Private" }, { value: "public", label: "Public" }]}
+                                        onChange={changeVisibility}
+                                    />
+                                </div>
+
+                                <div className={styles.row}>
+                                    <div className={styles.rowText}>
+                                        <p className={styles.rowLabel}>What your profile shows</p>
+                                        <p className={styles.rowDescription}>
+                                            {settings.profilePrivacy === "public"
+                                                ? "Choose what people signed in to ProgressX can see on your profile. It's never shown to visitors without an account or to search engines."
+                                                : "These only apply while your profile is public. While it's private, none of this is shown to anyone."}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {SHARE_KINDS.map((kind) => (
+                                    <div key={kind} className={`${styles.row} ${settings.profilePrivacy === "private" ? styles.rowInactive : ""}`}>
+                                        <div className={styles.rowText}>
+                                            <p className={styles.rowLabel}>{SHARE_OPTIONS[kind].label}</p>
+                                            <p className={styles.rowDescription}>{SHARE_OPTIONS[kind].description}</p>
+                                        </div>
+                                        <Switch checked={settings.sharing[kind]} label={`Show ${SHARE_OPTIONS[kind].label.toLowerCase()} on my profile`} onChange={() => changeSharing(kind)} />
+                                    </div>
+                                ))}
+                            </section>
+
                             <section className={styles.card} aria-labelledby="privacy-heading">
                                 <div className={styles.cardHeader}>
                                     <h2 id="privacy-heading" className={styles.cardTitle}>Privacy</h2>
@@ -320,23 +374,6 @@ export default function SettingsPage() {
                                         checked={settings.blurProgressPhotos}
                                         label="Blur progress photos"
                                         onChange={() => save("privacy", { blurProgressPhotos: !settings.blurProgressPhotos })}
-                                    />
-                                </div>
-
-                                <div className={styles.row}>
-                                    <div className={styles.rowText}>
-                                        <p className={styles.rowLabel}>Profile visibility</p>
-                                        <p className={styles.rowDescription}>
-                                            {settings.profilePrivacy === "public"
-                                                ? "Anyone on the internet can see your profile and videos, including people without an account, and they can show up in search engines like Google."
-                                                : "Only you can see your videos. People signed in to ProgressX can still find your name and picture."}
-                                        </p>
-                                    </div>
-                                    <Segmented
-                                        label="Profile visibility"
-                                        value={settings.profilePrivacy}
-                                        options={[{ value: "private", label: "Private" }, { value: "public", label: "Public" }]}
-                                        onChange={changeVisibility}
                                     />
                                 </div>
 

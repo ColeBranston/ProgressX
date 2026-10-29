@@ -43,6 +43,11 @@ test("sign up, onboard, use the app, then delete the account", async ({ page }) 
         await page.getByRole("radio", { name: /Moderately active/ }).click()
         // onboarding lands on For You, which loads the profile into the app's user data
         const profileLoaded = page.waitForResponse((res) => res.url().endsWith("/api/user") && res.request().method() === "GET", { timeout: 30_000 })
+        await page.getByRole("button", { name: "Continue" }).click()
+        // what the profile shows: private with nothing shown unless they choose otherwise
+        await expect(page.getByRole("heading", { name: "Your privacy" })).toBeVisible()
+        await expect(page.getByRole("radio", { name: "Private" })).toHaveAttribute("aria-checked", "true")
+        await expect(page.getByRole("switch", { checked: true })).toHaveCount(0)
         await page.getByRole("button", { name: "Save and continue" }).click()
         // then the optional ID step (passed straight through where verification isn't set up)
         const skip = page.getByRole("button", { name: "Skip for now" })

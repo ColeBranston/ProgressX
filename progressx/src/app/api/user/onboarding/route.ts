@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
 import { usernameError, validateOnboarding } from "@/app/internal_components/profile/profileRules";
+import { readSharing } from "@/app/internal_components/profile/sharing";
+import { sharingColumns } from "../../libs/sharing";
 
 // Is this username free? Case-insensitive, and your own current username counts as free.
 async function usernameTaken(username: string, userId: string): Promise<boolean> {
@@ -38,8 +40,9 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST /api/user/onboarding  { username, name, age, gender, heightCm, weightLbs, activity, weightUnit? }
-// Saves the profile details and marks onboarding complete. Problems come back per field:
+// POST /api/user/onboarding  { username, name, age, gender, heightCm, weightLbs, activity, weightUnit?, privacy?, sharing? }
+// Saves the profile details and marks onboarding complete, with their privacy choices: whether the profile
+// is public, and what it shows ({ photos, weight, workouts, diet }; anything not sent stays off). Problems come back per field:
 // 400 { message, errors: { field: message } }, or 409 when the username was taken meanwhile.
 export async function POST(req: NextRequest) {
     const userId = await getUserIdFromRequest(req)
@@ -61,6 +64,12 @@ export async function POST(req: NextRequest) {
         weightLbs: Number(body.weightLbs),
         activity: Number(body.activity),
     }
+    const privacy = body.privacy ?? "private"
+    const sharing = body.sharing === undefined ? {} : readSharing(body.sharing)
+    if ((privacy !== "public" && privacy !== "private") || !sharing) {
+        return NextResponse.json({ message: "Invalid privacy choices" }, { status: 400 })
+    }
+
     const errors = validateOnboarding(details)
     if (Object.keys(errors).length > 0) {
         return NextResponse.json({ message: "Some details need fixing", errors }, { status: 400 })
@@ -79,6 +88,7 @@ export async function POST(req: NextRequest) {
             height_cm: Math.round(details.heightCm),
             weight_lbs: Math.round(details.weightLbs),
             activity_level: details.activity,
+            profile_privacy: privacy,
             isOnboarded: true,
         }).eq("id", userId)
 
@@ -90,12 +100,15 @@ export async function POST(req: NextRequest) {
             throw error
         }
 
-        // the unit they entered their weight in becomes their default for workouts
-        if (body.weightUnit === "lb" || body.weightUnit === "kg") {
+        // the unit they entered their weight in becomes their default for workouts, alongside what their
+        // profile shows (if this fails nothing is shown, since every choice defaults to off)
+        const settings: Record<string, unknown> = sharingColumns(sharing)
+        if (body.weightUnit === "lb" || body.weightUnit === "kg") settings.weight_unit = body.weightUnit
+        if (Object.keys(settings).length > 0) {
             const { error: settingsError } = await supabase
                 .from("user_settings")
-                .upsert({ user_id: userId, weight_unit: body.weightUnit, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
-            if (settingsError) console.log("Couldn't save weight unit at onboarding: ", settingsError.message)
+                .upsert({ user_id: userId, ...settings, updated_at: new Date().toISOString() }, { onConflict: "user_id" })
+            if (settingsError) console.log("Couldn't save settings at onboarding: ", settingsError.message)
         }
 
         return NextResponse.json({ message: "Profile saved" }, { status: 201 })

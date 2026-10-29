@@ -16,20 +16,24 @@ import {
     validateOnboarding,
 } from "@/app/internal_components/profile/profileRules";
 import { VerifyDialog } from "@/app/internal_components/verification/IdVerification";
+import { NO_SHARING, SHARE_KINDS, SHARE_OPTIONS, Sharing } from "@/app/internal_components/profile/sharing";
 
 // New accounts land here (the middleware sends anyone who hasn't finished it) after agreeing to the
-// terms. Three short steps, saved together at the end of the third; then an optional fourth to verify
-// their ID (it needs the saved profile: the API is closed to accounts that haven't finished onboarding).
+// terms. Four short steps (the last is what their profile shows), saved together at the end; then an
+// optional fifth to verify their ID (it needs the saved profile: the API is closed to accounts that haven't
+// finished onboarding).
 
 const STEPS = [
     { title: "About you", fields: ["name", "username"] },
     { title: "Your body", fields: ["age", "gender", "heightCm", "weightLbs"] },
     { title: "Activity", fields: ["activity"] },
+    { title: "Your privacy", fields: [] },
     { title: "Verify your ID", fields: [] },
 ] as const satisfies readonly { title: string, fields: readonly (keyof OnboardingDetails)[] }[]
 
-const SAVE_STEP = 2     // the details are saved when this step is finished
-const VERIFY_STEP = 3   // optional: skipping it goes straight to the app
+const PRIVACY_STEP = 3  // nothing is shown until they choose to show it
+const SAVE_STEP = 3     // the details and privacy choices are saved when this step is finished
+const VERIFY_STEP = 4   // optional: skipping it goes straight to the app
 
 // a full page load, so the middleware sees the finished profile: the client router can reuse its
 // earlier "/ -> /onboarding" redirect and leave the page stuck
@@ -59,6 +63,8 @@ export default function Onboarding() {
     const [weight, setWeight] = useState("")
     const [activity, setActivity] = useState<number | null>(null)
     const [usernameCheck, setUsernameCheck] = useState<UsernameCheck>({ state: "idle" })
+    const [privacy, setPrivacy] = useState<"private" | "public">("private")
+    const [sharing, setSharing] = useState<Sharing>(NO_SHARING)
     const [verifyOpen, setVerifyOpen] = useState(false)
     const [verified, setVerified] = useState(false)
     const headingRef = useRef<HTMLHeadingElement>(null)
@@ -163,7 +169,7 @@ export default function Onboarding() {
             const res = await fetch("/api/user/onboarding", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...details, weightUnit }),
+                body: JSON.stringify({ ...details, weightUnit, privacy, sharing }),
             })
             const json = await res.json().catch(() => ({}))
             if (res.ok) {
@@ -259,6 +265,44 @@ export default function Onboarding() {
                                     </p>
                                 </>
                             }
+                        </div>
+                    : step === PRIVACY_STEP ?
+                        <div className={styles.fields} key="step-privacy">
+                            <fieldset className={styles.field}>
+                                <legend>Who can see your profile?</legend>
+                                <div className={styles.chips} role="radiogroup" aria-describedby="privacy-hint">
+                                    {([["private", "Private"], ["public", "Public"]] as const).map(([value, label]) => (
+                                        <button key={value} type="button" role="radio" aria-checked={privacy === value} className={styles.chip} onClick={() => setPrivacy(value)}>{label}</button>
+                                    ))}
+                                </div>
+                                <p id="privacy-hint" className={styles.fieldHint}>
+                                    {privacy === "public"
+                                        ? "Anyone can see your profile and videos, and your videos can show in other people's For You feeds."
+                                        : "Only you can see your videos, and they won't show in anyone's For You feed. People can still find your name and picture."}
+                                </p>
+                            </fieldset>
+
+                            <fieldset className={styles.field}>
+                                <legend>What your profile shows</legend>
+                                <p className={styles.fieldHint}>
+                                    {privacy === "public"
+                                        ? "Everything is off unless you turn it on. What you turn on is only shown to people signed in to ProgressX, never to search engines."
+                                        : "These only apply if your profile is public. While it's private, none of this is shown to anyone."}
+                                </p>
+                                <div className={styles.shareList}>
+                                    {SHARE_KINDS.map((kind) => (
+                                        <button key={kind} type="button" role="switch" aria-checked={sharing[kind]} className={styles.shareOption}
+                                            onClick={() => setSharing((prev) => ({ ...prev, [kind]: !prev[kind] }))}>
+                                            <span className={styles.shareText}>
+                                                <strong>{SHARE_OPTIONS[kind].label}</strong>
+                                                <span>{SHARE_OPTIONS[kind].description}</span>
+                                            </span>
+                                            <span className={styles.shareSwitch} aria-hidden="true"><i /></span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </fieldset>
+                            <p className={styles.fieldHint}>You can change any of this later in Settings &gt; Profile privacy.</p>
                         </div>
                     : step === 1 ?
                         <div className={styles.fields} key="step1">

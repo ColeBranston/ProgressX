@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/supabaseClient/client";
 import { getUserIdFromRequest } from "../../libs/helpers";
 import { findProfileByUsername } from "../../libs/videos";
+import { loadSharing, visibleSharing } from "../../libs/sharing";
+import { NO_SHARING } from "@/app/internal_components/profile/sharing";
 
 type PublicProfileRow = {
     id: string,
@@ -22,7 +24,8 @@ function safeDecode(value: string) {
 
 // GET /api/profiles/:username   -> { profile }  (with whether you follow each other)
 // What anyone can see about a profile, signed in or not: name, picture, bio and counts. Whether their videos
-// show is up to their privacy setting (see /api/videos). Nothing else (email, age, body stats) is sent.
+// show is up to their privacy setting (see /api/videos). Nothing else (email, age, body stats) is sent;
+// `shared` says which of their tracking this viewer may open (see ./tracking/[kind]).
 export async function GET(req: NextRequest, context: { params: Promise<{ username: string }> }) {
     const viewerId = await getUserIdFromRequest(req) // null: not signed in
 
@@ -38,12 +41,14 @@ export async function GET(req: NextRequest, context: { params: Promise<{ usernam
 
         const isOwner = viewerId !== null && profile.id === viewerId
         const isPublic = profile.profile_privacy === "public"
-        const [ { count }, following, followsYou ] = await Promise.all([
+        const [ { count }, following, followsYou, sharing ] = await Promise.all([
             isOwner || isPublic
                 ? supabase.from("videos").select("id", { count: "exact", head: true }).eq("user_id", profile.id).eq("status", "ready")
                 : Promise.resolve({ count: null }),
             viewerId ? supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("follower_id", viewerId).eq("following_id", profile.id) : Promise.resolve({ count: 0 }),
             viewerId ? supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("follower_id", profile.id).eq("following_id", viewerId) : Promise.resolve({ count: 0 }),
+            // only signed-in people ever see tracking, so there's nothing to look up for anyone else
+            viewerId && isPublic && !isOwner ? loadSharing(profile.id) : null,
         ])
 
         return NextResponse.json({
@@ -61,6 +66,7 @@ export async function GET(req: NextRequest, context: { params: Promise<{ usernam
                 youFollow: (following.count ?? 0) > 0,
                 followsYou: (followsYou.count ?? 0) > 0,
                 listsVisible: isOwner || isPublic, // their followers / following lists
+                shared: visibleSharing(sharing ?? NO_SHARING, { isOwner: false, signedIn: viewerId !== null, profilePublic: isPublic }),
             },
         })
     } catch (e) {

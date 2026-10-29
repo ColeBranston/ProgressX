@@ -404,3 +404,8 @@
         animation: none;
     }
 }
+
+/* sharing choices while the profile is private: still editable, but they don't apply */
+.rowInactive .rowText {
+    opacity: 0.55;
+}
