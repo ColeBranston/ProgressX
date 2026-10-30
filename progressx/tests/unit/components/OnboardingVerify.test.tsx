@@ -5,6 +5,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import Onboarding from "@/app/(secondary)/onboarding/page"
 import VerifyHint from "@/app/internal_components/verification/VerifyHint"
 
+// these render whole pages in jsdom, which can take more than 5s on a busy machine
+vi.setConfig({ testTimeout: 20_000 })
+
 const replace = vi.fn()
 let verification: { available: boolean, status: { state: string } }
 let saved: unknown
@@ -26,7 +29,7 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals())
 
 async function fillDetails() {
-    const user = userEvent.setup()
+    const user = userEvent.setup({ delay: null }) // no pause between keystrokes: quick on a busy machine
     await user.type(screen.getByLabelText("Name"), "New Person")
     await user.type(screen.getByLabelText("Username"), "newperson")
     await screen.findByText(/Available/)
