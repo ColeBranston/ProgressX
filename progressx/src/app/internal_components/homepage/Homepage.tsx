@@ -59,11 +59,24 @@ function clamp01(v: number) {
     return Math.min(1, Math.max(0, v))
 }
 
+// The scene's start-up (parsing three.js, building the particle shapes, compiling shaders) holds up the
+// main thread for a moment, which made the hero title stutter as it slid in. It waits for the title.
+const TITLE_WAIT_MAX = 3000
+
+// Resolves once the title's letters have finished animating in: straight away when they don't animate
+// (reduced motion, or no Web Animations API), and after TITLE_WAIT_MAX at the latest
+function titleSettled(title: Element | null): Promise<void> {
+    const animations = title?.getAnimations?.({ subtree: true }) ?? []
+    const finished = Promise.all(animations.map((a) => a.finished)).then(() => {}, () => {})
+    return Promise.race([finished, new Promise<void>((resolve) => setTimeout(resolve, TITLE_WAIT_MAX))])
+}
+
 export default function Homepage() {
     const rootRef = useRef<HTMLDivElement>(null)
     const scrollerRef = useRef<HTMLDivElement>(null)
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const heroRef = useRef<HTMLElement>(null)
+    const titleRef = useRef<HTMLHeadingElement>(null)
     const storyRef = useRef<HTMLElement>(null)
     const afterStoryRef = useRef<HTMLElement>(null)
     const previewRef = useRef<HTMLElement>(null)
@@ -73,7 +86,7 @@ export default function Homepage() {
     const [webgl, setWebgl] = useState(true)
     const [scrolled, setScrolled] = useState(false)
 
-    // ---- the 3D scene (loaded after first paint so the page shows instantly) ----
+    // ---- the 3D scene (loaded once the hero title has animated in, so the page shows instantly) ----
     useEffect(() => {
         const canvas = canvasRef.current
         if (!canvas) return
@@ -84,8 +97,9 @@ export default function Homepage() {
         }
         const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
         let cancelled = false
-        import("./scene").then(({ createHomeScene }) => {
-            if (cancelled) return
+        titleSettled(titleRef.current).then(() => cancelled ? null : import("./scene")).then((loaded) => {
+            if (!loaded || cancelled) return
+            const { createHomeScene } = loaded
             try {
                 sceneRef.current = createHomeScene(canvas, { reducedMotion })
                 rootRef.current?.classList.add(styles.sceneReady)
@@ -228,7 +242,7 @@ export default function Homepage() {
 
                     <div className={styles.heroCopy}>
                         <p className={styles.eyebrow}>The fitness app that shows its work</p>
-                        <h1 className={styles.heroTitle} aria-label="Built for progress.">
+                        <h1 ref={titleRef} className={styles.heroTitle} aria-label="Built for progress.">
                             <SplitWord text="BUILT" delay={0} />
                             <SplitWord text="FOR" delay={5} />
                             <SplitWord text="PROGRESS." delay={8} accent />
