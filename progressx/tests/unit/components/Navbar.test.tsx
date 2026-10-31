@@ -26,10 +26,16 @@ beforeEach(() => {
 afterEach(() => vi.clearAllMocks())
 
 describe("Navbar", () => {
-    it.each([["For You", "/"], ["Research", "/research"], ["Following", "/following"], ["Upload", "/upload"], ["MyStats", "/mystats"], ["MyDiet", "/mydiet"], ["Profile", "/profile"]])("goes to %s", async (name, path) => {
+    it.each([["For You", "/"], ["Research", "/research"], ["Following", "/following"], ["Upload", "/upload"], ["MyStats", "/mystats"], ["MyDiet", "/mydiet"], ["Profile", "/profile"]])("links %s to %s", (name, path) => {
         renderNav()
-        await user.click(within(nav()).getByRole("button", { name }))
-        expect(push).toHaveBeenCalledWith(path)
+        expect(within(nav()).getByRole("link", { name })).toHaveAttribute("href", path)
+    })
+
+    it("marks the tab for the current page", () => {
+        pathname = "/mystats/weight"
+        renderNav()
+        expect(within(nav()).getByRole("link", { name: "MyStats" })).toHaveAttribute("aria-current", "page")
+        expect(within(nav()).getByRole("link", { name: "MyDiet" })).not.toHaveAttribute("aria-current")
     })
 
     it("links to the company pages and the terms", () => {
@@ -38,25 +44,11 @@ describe("Navbar", () => {
         expect(within(nav()).getByRole("link", { name: "Company" })).toHaveAttribute("href", "/homepage")
     })
 
-    it("works from the keyboard", async () => {
-        renderNav()
-        within(nav()).getByRole("button", { name: "Research" }).focus()
-        await user.keyboard("{Enter}")
-        expect(push).toHaveBeenLastCalledWith("/research")
-        within(nav()).getByRole("button", { name: "Following" }).focus()
-        await user.keyboard(" ")
-        expect(push).toHaveBeenLastCalledWith("/following")
-        await user.keyboard("a")
-        expect(push).toHaveBeenCalledTimes(2)
-    })
-
-    it("sends signed-out visitors to the public feed and the login page", async () => {
+    it("sends signed-out visitors to the public feed and the login page", () => {
         renderNav(false)
-        await user.click(within(nav()).getByRole("button", { name: "For You" }))
-        expect(push).toHaveBeenLastCalledWith("/explore")
-        await user.click(within(nav()).getByRole("button", { name: "Log in" }))
-        expect(push).toHaveBeenLastCalledWith("/login")
-        expect(within(nav()).queryByRole("button", { name: "Profile" })).not.toBeInTheDocument()
+        expect(within(nav()).getByRole("link", { name: "For You" })).toHaveAttribute("href", "/explore")
+        expect(within(nav()).getByRole("link", { name: "Log in" })).toHaveAttribute("href", "/login")
+        expect(within(nav()).queryByRole("link", { name: "Profile" })).not.toBeInTheDocument()
     })
 
     it("searches for what was typed, and ignores an empty search", async () => {
@@ -99,6 +91,14 @@ describe("Navbar", () => {
 
         await user.click(open)
         await user.click(container.querySelector("[aria-hidden='true']:not(svg)")!) // the backdrop
+        expect(open).toHaveAttribute("aria-expanded", "false")
+    })
+
+    it("closes the menu when a tab is picked, the current one included", async () => {
+        renderNav()
+        const open = screen.getByRole("button", { name: "Open menu" })
+        await user.click(open)
+        await user.click(within(nav()).getByRole("link", { name: "For You" })) // already on /
         expect(open).toHaveAttribute("aria-expanded", "false")
     })
 })

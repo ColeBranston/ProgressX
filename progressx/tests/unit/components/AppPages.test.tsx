@@ -65,7 +65,7 @@ describe("app layout", () => {
         expect(screen.getByRole("navigation", { name: "Main" })).toBeInTheDocument()
         expect(screen.getByText("session watch")).toBeInTheDocument()
         expect(screen.getByText("release notes")).toBeInTheDocument()
-        expect(screen.getByRole("button", { name: "Profile" })).toBeInTheDocument()
+        expect(screen.getByRole("link", { name: "Profile" })).toBeInTheDocument()
     })
 
     it("counts a refresh token alone as signed in", async () => {
@@ -79,7 +79,7 @@ describe("app layout", () => {
         expect(screen.getByText("page")).toBeInTheDocument()
         expect(screen.queryByText("session watch")).not.toBeInTheDocument()
         expect(screen.queryByText("release notes")).not.toBeInTheDocument()
-        expect(screen.getByRole("button", { name: "Log in" })).toBeInTheDocument()
+        expect(screen.getByRole("link", { name: "Log in" })).toBeInTheDocument()
     })
 })
 

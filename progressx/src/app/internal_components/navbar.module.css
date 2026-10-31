@@ -241,3 +241,11 @@
     transition: none;
   }
 }
+
+/* the link inside each sidebar tab takes the tab's look; the li keeps the colours and hover */
+.tabLink {
+    display: flex;
+    gap: 15px;
+    color: inherit;
+    text-decoration: none;
+}
