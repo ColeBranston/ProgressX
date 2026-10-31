@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import styles from "./research.module.css"
 import { useParams, useRouter, useSearchParams } from "next/dist/client/components/navigation";
 import { ResultsSkeleton, SearchFacets, StudyCard } from "@/app/internal_components";
@@ -30,7 +30,7 @@ export type SolrDoc = {
     authors?: string[],
     content?: string
 }
-const ResearchResults = () => {
+const ResearchPage = () => {
 
     const [query, setQuery] = useState<string>("")
     const [lastQuery, setLastQuery] = useState<string|undefined>("")
@@ -252,11 +252,9 @@ const ResearchResults = () => {
     )
 }
 
-// useSearchParams needs a Suspense boundary so /research can still be prerendered
-const ResearchPage = () => (
-    <Suspense>
-        <ResearchResults />
-    </Suspense>
-)
-
+// No <Suspense> around this page, even though it reads useSearchParams: the (main) layout reads cookies,
+// so /research is always rendered per request and never prerendered (the case that needs one). With a
+// boundary around the whole page, React streamed it as a hidden segment and swapped it in a moment later;
+// when the app updated state first (e.g. loading the profile from localStorage), React rendered the page
+// itself and left the hidden server copy behind, so there were two of everything, two search boxes included.
 export default ResearchPage
