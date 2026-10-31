@@ -128,6 +128,40 @@ describe("Homepage", () => {
         expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument()
     })
 
+    it("waits for the hero title to finish animating in before starting the scene", async () => {
+        let finish!: () => void
+        const finished = new Promise<void>((resolve) => { finish = resolve })
+        const getAnimations = vi.fn(() => [{ finished }] as unknown as Animation[])
+        Element.prototype.getAnimations = getAnimations
+        try {
+            render(<Homepage />)
+            await act(async () => {})
+            expect(getAnimations).toHaveBeenCalledWith({ subtree: true })
+            expect(createHomeScene).not.toHaveBeenCalled()
+
+            finish()
+            await waitFor(() => expect(createHomeScene).toHaveBeenCalled())
+        } finally {
+            delete (Element.prototype as Partial<Element>).getAnimations
+        }
+    })
+
+    it("starts the scene anyway if the title animation never finishes", async () => {
+        vi.useFakeTimers()
+        Element.prototype.getAnimations = () => [{ finished: new Promise(() => {}) }] as unknown as Animation[]
+        try {
+            render(<Homepage />)
+            await act(async () => { await vi.advanceTimersByTimeAsync(2900) })
+            expect(createHomeScene).not.toHaveBeenCalled()
+            await act(async () => { await vi.advanceTimersByTimeAsync(200) })
+            vi.useRealTimers()
+            await waitFor(() => expect(createHomeScene).toHaveBeenCalled())
+        } finally {
+            vi.useRealTimers()
+            delete (Element.prototype as Partial<Element>).getAnimations
+        }
+    })
+
     it("carries on without the scene when it fails to start", async () => {
         const error = vi.spyOn(console, "error").mockImplementation(() => {})
         createHomeScene.mockImplementation(() => { throw new Error("no GPU") })
