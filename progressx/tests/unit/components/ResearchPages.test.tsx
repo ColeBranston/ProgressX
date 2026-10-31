@@ -87,7 +87,9 @@ describe("research search", () => {
         await user.click(screen.getByRole("button", { name: "Page 13" }))
         expect(push).toHaveBeenLastCalledWith("/research/13/creatine?year=2021")
 
-        const filters = screen.getByRole("complementary", { name: "Filter results" })
+        // the filters sit in the search row; picking a journal starts again from page 0
+        const filters = screen.getByRole("group", { name: "Filter results" })
+        await user.click(within(filters).getByRole("button", { name: "Journal" }))
         await user.click(within(filters).getByRole("checkbox", { name: "Journal 1, 2 studies" }))
         expect(push).toHaveBeenLastCalledWith(expect.stringMatching(/^\/research\/0\/creatine\?.*journal=Journal\+1/))
         await user.click(within(filters).getByRole("button", { name: "Clear filters" }))
