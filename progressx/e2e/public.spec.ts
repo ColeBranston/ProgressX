@@ -46,7 +46,7 @@ test.describe("signed out", () => {
             // the menu offers to log in where your profile would be (on phones, open the slide-in menu first)
             const openMenu = page.getByRole("button", { name: "Open menu" })
             if (await openMenu.isVisible()) await openMenu.click()
-            await expect(page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "Log in" })).toBeVisible()
+            await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Log in" })).toBeVisible()
         })
     }
 

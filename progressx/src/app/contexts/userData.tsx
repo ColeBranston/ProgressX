@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useCallback, useEffect, useMemo, useRef, useState, Dispatch, SetStateAction } from "react";
+import { createContext, ReactNode, startTransition, useCallback, useEffect, useMemo, useRef, useState, Dispatch, SetStateAction } from "react";
 import debounce from "lodash/debounce";
 
 export type UserData = Record<string, string | number | null>;
@@ -57,12 +57,17 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
     setUserDataState(next);
   }, []);
 
+  // Loading a saved copy (localStorage, then the server) is background work. As a transition, React
+  // finishes hydrating the streamed parts of the page (each tab's loading.tsx boundary) before applying
+  // it; an urgent update there made React render the page again and leave its hidden server copy behind
+  const restore = useCallback((next: UserData) => startTransition(() => commit(next)), [commit]);
+
   // ✅ Load from localStorage once on mount
   useEffect(() => {
     const storedUser = localStorage.getItem("userData");
     console.log("UserData UseEffect Triggered")
     if (storedUser) {
-      commit(JSON.parse(storedUser)); // a saved copy, not an edit: the server's values replace it below
+      restore(JSON.parse(storedUser)); // a saved copy, not an edit: the server's values replace it below
     } else {
       localStorage.setItem("userData", JSON.stringify(userData));
     }
@@ -106,7 +111,7 @@ export function UserDataProvider({ children }: { children: ReactNode }) {
       }
       editedBeforeLoad.current.clear();
       serverFields.current = fields;
-      commit({ ...latest.current, ...apply });
+      restore({ ...latest.current, ...apply });
     } catch (err) {
       console.error("Couldn't load profile:", err);
     } finally {

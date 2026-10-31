@@ -6,6 +6,12 @@ import StatsSkeleton from "@/app/(main)/mystats/StatsSkeleton"
 import DietSkeleton from "@/app/(main)/mydiet/DietSkeleton"
 import ProfileSkeleton from "@/app/internal_components/profile/ProfileSkeleton"
 import SharedTracking from "@/app/internal_components/profile/SharedTracking"
+import MainLoading from "@/app/(main)/loading"
+import DietLoading from "@/app/(main)/mydiet/loading"
+import StatsLoading from "@/app/(main)/mystats/loading"
+import WeightLoading from "@/app/(main)/mystats/weight/loading"
+import WorkoutsLoading from "@/app/(main)/mystats/workouts/loading"
+import ProfileLoading from "@/app/(main)/profile/loading"
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -54,5 +60,20 @@ describe("page skeletons", () => {
         vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})))
         render(<SharedTracking username="ann" kind="weight" />)
         expect(bones(screen.getByRole("status", { name: "Loading weight" })).length).toBeGreaterThan(5)
+    })
+})
+
+// each tab's loading.tsx: what shows the moment the tab is clicked, while its page comes from the server
+describe("tab loading screens", () => {
+    it.each([
+        ["any other tab", MainLoading, "Loading"],
+        ["My Diet", DietLoading, "Loading your diet"],
+        ["My Stats", StatsLoading, "Loading your stats"],
+        ["Weight", WeightLoading, "Loading your weight"],
+        ["Workouts", WorkoutsLoading, "Loading your workouts"],
+        ["Profile", ProfileLoading, "Loading profile"],
+    ])("%s shows its skeleton", (_tab, Loading, label) => {
+        render(<Loading />)
+        expect(bones(screen.getByRole("status", { name: label })).length).toBeGreaterThan(3)
     })
 })

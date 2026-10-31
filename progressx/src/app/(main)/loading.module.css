@@ -1,0 +1,17 @@
+/* the fallback page placeholder (loading.tsx) for tabs without a skeleton of their own */
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+    max-width: 900px;
+    padding: 5vh 5% 0 0;
+    box-sizing: border-box;
+}
+
+.block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+}
