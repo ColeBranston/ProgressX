@@ -19,18 +19,19 @@ export default function StudyPage() {
 
     const getDocument = useCallback(async (): Promise<void> => {
         const id = params.id
-        if (!id) router.push('/research')
+        if (!id) return router.push('/research')
 
         const result = await fetch(`/api/search/doc/${id}`, {
             method: 'GET',
             credentials: 'omit'
         })
 
-        const solrDocument: SolrResponse = await result.json()
+        // an error answer or an unknown id has no document: back to the search
+        const solrDocument: SolrResponse | null = await result.json().catch(() => null)
 
-        const doc = solrDocument.docs[0]
+        const doc = solrDocument?.docs?.[0]
 
-        if (!doc) router.push('/research')
+        if (!doc) return router.push('/research')
 
         console.log(doc)
 
