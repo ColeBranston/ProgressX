@@ -6,8 +6,16 @@
     padding: 100px 0 0 5px;
 }
 
+.searchRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0 16px;
+}
+
 .searchFormContainer {
   width: 20%;
+  min-width: 260px;
 }
 
 .searchForm {
@@ -168,6 +176,10 @@
     .searchFormContainer,
     .resultsScroll {
         width: 100%;
+    }
+
+    .searchFormContainer {
+        min-width: 0;
     }
 
     .searchbar {

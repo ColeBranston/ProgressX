@@ -172,6 +172,8 @@ const ResearchResults = () => {
     return (
         <div className='mainWrapper'>
             <div className={styles.researchContainer}>
+                {/* filters sit beside the search box, so they never push the results down */}
+                <div className={styles.searchRow}>
                 <div className={styles.searchFormContainer}>
                     <form className={styles.searchForm} onSubmit={submitSearch}>
                         <svg xmlns="http://www.w3.org/2000/svg"
@@ -190,6 +192,8 @@ const ResearchResults = () => {
                         <input className={styles.searchbar} placeholder="Search for optimal workouts..." type={"text"} onChange={(e)=>{setQuery(e.target.value)}}/>
                     </form>
                 </div>
+                {lastQuery ? <SearchFacets facets={facets} filters={filters} onToggle={toggleFacet} onClear={clearFacets} /> : null}
+                </div>
 
                 { isLoading? null : 
                     ( docs?.length > 0?
@@ -198,7 +202,6 @@ const ResearchResults = () => {
                                 <p className={styles.searchHeader}>{lastQuery?.toUpperCase()}</p>
                                 <p className={styles.resultsCount}>Search Results: {resultCount}</p>
                             </div>
-                            <SearchFacets facets={facets} filters={filters} onToggle={toggleFacet} onClear={clearFacets} />
                             <div className={styles.resultsScroll} ref={scrollRef}>
                                 <div className={styles.resultsGrid}>
                                     {docs.map((doc: SolrDoc, index:number)=>{
@@ -221,7 +224,6 @@ const ResearchResults = () => {
                                     <p className={styles.resultsCount}>Search Results: {resultCount}</p>
                                     <p>No results found, try changing your search{filtersQuery ? " or clearing the filters" : ""}</p>
                                 </div>
-                                <SearchFacets facets={facets} filters={filters} onToggle={toggleFacet} onClear={clearFacets} />
                             </div>
                         )
                         :
