@@ -245,18 +245,19 @@ describe("GET /api/videos/following", () => {
         expect(await (await load()).json()).toEqual({ videos: [], nextCursor: null, followsAnyone: false })
     })
 
-    it("lists the public, ready videos of people you follow, newest first, in pages", async () => {
+    it("lists the ready videos of people you follow, private profiles included, newest first, in pages", async () => {
         fakeDb.seed("follows", [{ follower_id: carol, following_id: alice }, { follower_id: carol, following_id: bob }])
         for (let n = 1; n <= 9; n++) seedVideo(n, alice)
         seedVideo(10, alice, { status: "uploading" })
         seedVideo(11, bob)
         seedVideo(12, carol)
         const first = await (await load()).json()
-        expect(ids(first.videos)).toEqual([9, 8, 7, 6, 5, 4, 3, 2].map(vid))
+        // bob is private, but carol is an approved follower, so his video is in her feed
+        expect(ids(first.videos)).toEqual([11, 9, 8, 7, 6, 5, 4, 3].map(vid))
         expect(first).toMatchObject({ followsAnyone: true, ads: null })
         expect(first.videos[0].author.following).toBe(true)
         const second = await (await load(`cursor=${first.nextCursor}`)).json()
-        expect(ids(second.videos)).toEqual([vid(1)])
+        expect(ids(second.videos)).toEqual([vid(2), vid(1)])
         expect(second.nextCursor).toBeNull()
     })
 

@@ -97,7 +97,7 @@ describe("FollowList", () => {
             "/api/profiles/ann/following": () => new Response("down", { status: 500 }),
         })
         render(<FollowList username="ann" initial="followers" onClose={() => {}} />)
-        expect(await screen.findByText("This account is private, so its lists are hidden")).toBeInTheDocument()
+        expect(await screen.findByText("This account is private. Only the followers it approves can see its lists.")).toBeInTheDocument()
         await user.click(screen.getByRole("tab", { name: "Following" }))
         expect(await screen.findByText("Couldn't load this list")).toBeInTheDocument()
     })

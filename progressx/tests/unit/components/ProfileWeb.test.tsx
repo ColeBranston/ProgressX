@@ -47,6 +47,7 @@ let routes: Record<string, (init?: RequestInit) => Response>
 function stubApi() {
     routes = {
         "/api/user": () => json({ userData: { followers_count: 10, following_count: 2, likes_count: 3 } }),
+        "/api/user/follow-requests": () => json({ requests: [] }),
         "api/user/userImages/uploadProfileImage": () => json({ imageReference: "https://res.cloudinary.com/demo/image/upload/new.jpg" }),
     }
     const fetch = vi.fn(async (url: string, init?: RequestInit) => routes[url](init))
@@ -159,7 +160,10 @@ describe("your profile", () => {
         expect(screen.getByRole("dialog", { name: "list followers" })).toHaveTextContent("10/2")
         await user.click(screen.getByRole("button", { name: "close list" }))
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
-        await waitFor(() => expect(fetch).toHaveBeenCalledTimes(2))
+        // closing a list refreshes the counts and the pending follow requests, once each
+        const calls = (url: string) => fetch.mock.calls.filter(([called]) => called === url).length
+        await waitFor(() => expect(calls("/api/user")).toBe(2))
+        expect(calls("/api/user/follow-requests")).toBe(2)
         await user.click(screen.getByRole("button", { name: "2Following" }))
         expect(screen.getByRole("dialog", { name: "list following" })).toBeInTheDocument()
     })
