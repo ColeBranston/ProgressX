@@ -1,20 +1,33 @@
+/* .mainWrapper is 100% of the window wide plus padding, beside the navbar, so its right side ran off
+   the screen and cut the results off; here it takes just the space next to the navbar */
+:global(.mainWrapper).researchWrapper {
+    flex: 1;
+    min-width: 0;
+    width: auto !important;
+    box-sizing: border-box;
+}
+
 .researchContainer {
+    box-sizing: border-box;
     width: 100%;
+    min-width: 0;
     height: 89vh;
     display: flex;
     flex-direction: column;
-    padding: 100px 0 0 5px;
+    padding: 100px 40px 0 5px;
 }
 
+/* the search box and its filters, side by side on one line (wrapping on narrow screens) */
 .searchRow {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0 16px;
+  align-items: center;
+  gap: 12px 16px;
+  margin-top: 10px;
 }
 
 .searchFormContainer {
-  width: 20%;
+  flex: 0 1 420px;
   min-width: 260px;
 }
 
@@ -24,8 +37,9 @@
 
 .searchIcon {
   position: absolute;
-  top: 42.5%;
+  top: 50%;
   left: 15px;
+  transform: translateY(-50%);
   stroke: white;
 }
 
@@ -37,8 +51,8 @@
   height: 40px;
   color: grey;
   font-family: var(--primary-font-family);
+  box-sizing: border-box; /* padding and border inside the width, so it never runs under the filters */
   padding-left: 45px;
-  margin-top: 10px;
   border: 2px grey solid;
   transition: width 0.5s ease;
 }
@@ -111,7 +125,7 @@
 
 .resultsScroll {
     overflow-x: auto;
-    width: 75%;
+    width: 100%; /* the cards scroll sideways across the whole page width */
     padding: 2.5% 0 2% 0%;
 
     /* Firefox */
@@ -179,10 +193,7 @@
     }
 
     .searchFormContainer {
+        flex-basis: 100%;
         min-width: 0;
-    }
-
-    .searchbar {
-        box-sizing: border-box;
     }
 }

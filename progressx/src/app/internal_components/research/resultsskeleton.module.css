@@ -1,0 +1,105 @@
+.skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5vh;
+    padding-top: 2.5vh;
+    overflow: hidden;
+}
+
+.visuallyHidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5vh;
+}
+
+/* one grey block, with a highlight sweeping across it */
+.bone {
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgb(30, 30, 30) 25%, rgb(48, 48, 48) 50%, rgb(30, 30, 30) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bone {
+        animation: none;
+    }
+}
+
+.query {
+    width: 140px;
+    height: 28px;
+}
+
+.count {
+    width: 200px;
+    height: 20px;
+}
+
+/* the same size and spacing as the study cards (studycard.module.css, resultsGrid) */
+.cards {
+    display: flex;
+    gap: 25px;
+    padding: 2.5% 0 2% 0;
+}
+
+.card {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    width: 350px;
+    height: 350px;
+    box-sizing: border-box;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    background-color: var(--primary-input-background-color);
+    overflow: hidden;
+}
+
+.journal {
+    padding: 14px 10px;
+    background-color: rgb(20, 20, 20);
+}
+
+.journalLine {
+    width: 55%;
+    height: 14px;
+}
+
+.body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px 10px;
+}
+
+.textLine {
+    height: 12px;
+}
+
+.title {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 10px 18px;
+}
+
+.titleLine {
+    width: 90%;
+    height: 16px;
+}

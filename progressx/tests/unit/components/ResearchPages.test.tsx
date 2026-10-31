@@ -71,6 +71,22 @@ describe("research search", () => {
         expect(push).toHaveBeenCalledWith("/research/0/creatine%20%26%20sleep")
     })
 
+    it("shows placeholder cards while a search loads, then the results", async () => {
+        params = { query: ["0", "creatine"] }
+        let answer: (res: Response) => void = () => {}
+        stubApi({ "/api/search/search/0/creatine": () => new Promise<Response>((resolve) => { answer = resolve }) })
+        render(<ResearchPage />)
+        expect(screen.getByRole("status", { name: "Loading results" })).toHaveAttribute("aria-busy", "true")
+        expect(screen.getAllByTestId("study-card-skeleton")).toHaveLength(4)
+        expect(screen.queryByRole("button", { name: /Study [0-9]/ })).not.toBeInTheDocument()
+
+        answer(json({ docs: [doc(1)], hits: 1, facets }))
+        expect(await screen.findByRole("button", { name: /Study 1/ })).toBeInTheDocument()
+        expect(screen.queryByRole("status", { name: "Loading results" })).not.toBeInTheDocument()
+        // the filters sit in the same row as the search box
+        expect(searchBox().closest("form")?.parentElement?.parentElement).toContainElement(screen.getByRole("group", { name: "Filter results" }))
+    })
+
     it("shows a page of results with filters and page numbers", async () => {
         params = { query: ["12", "creatine"] }
         search = new URLSearchParams("year=2021")

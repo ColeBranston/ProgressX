@@ -4,7 +4,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
-    margin-top: 10px; /* lines up with the search box, which has the same top margin */
+    flex: 0 0 auto;
     font-family: var(--primary-font-family);
 }
 
