@@ -89,6 +89,8 @@ describe("diet page loading", () => {
         stubApi({ "GET /api/diet/log": () => new Promise<Response>((resolve) => { releaseLog = resolve }) })
         renderPage()
         expect(screen.getByRole("status", { name: "Loading your diet" })).toBeInTheDocument()
+        // placeholder shapes, not a spinner
+        expect(screen.getByRole("status", { name: "Loading your diet" }).querySelectorAll("[data-skeleton]").length).toBeGreaterThan(0)
 
         releaseLog(json({ entries: [entry("e1", "Oatmeal")] }))
         expect(await screen.findByRole("heading", { level: 1, name: "Today" })).toBeInTheDocument()

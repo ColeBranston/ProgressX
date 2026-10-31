@@ -34,7 +34,7 @@ describe("FollowList", () => {
         render(<FollowList username="lift daily" initial="followers" counts={{ followers: 2, following: 5 }} onClose={onClose} />)
 
         const dialog = screen.getByRole("dialog", { name: "Followers" })
-        expect(within(dialog).getByRole("status", { name: "Loading" })).toBeInTheDocument()
+        expect(within(dialog).getByRole("status", { name: "Loading followers" }).querySelectorAll("[data-skeleton]").length).toBeGreaterThan(0)
         expect(await within(dialog).findByRole("link", { name: /@ann/ })).toHaveAttribute("href", "/profile/ann")
         expect(within(dialog).getByRole("link", { name: "@me" })).toHaveAttribute("href", "/profile")
         expect(within(dialog).getByText("You")).toBeInTheDocument()

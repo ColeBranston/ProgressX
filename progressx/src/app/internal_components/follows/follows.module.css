@@ -264,19 +264,9 @@
     cursor: pointer;
 }
 
-.spinner {
-    display: block;
-    width: 28px;
-    height: 28px;
-    margin: 24px auto;
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.15);
-    border-top-color: rgba(var(--primary-color));
-    animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
+/* placeholder rows while a list loads */
+.skeletonNames {
+    gap: 6px;
 }
 
 .follow:focus-visible,

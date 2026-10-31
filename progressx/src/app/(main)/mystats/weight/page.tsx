@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import styles from "../mystats.module.css";
 import { ChartCard, LegendItem, LineChart, StatTile } from "@/app/internal_components/mystats/charts";
 import { WeightEntry, WeightUnit, toDisplay } from "@/app/internal_components/weight/weightLog";
+import StatsSkeleton from "../StatsSkeleton";
 
 const RANGES = [
     { days: 30, label: "30 days" },
@@ -66,7 +67,7 @@ export default function WeightStatsPage() {
     if (!entries) {
         return error
             ? <div className={styles.empty}><p className={styles.emptyTitle}>Couldn&apos;t load your weight</p><p className={styles.emptyText}>Check your connection and refresh the page.</p></div>
-            : <div className={styles.loading} role="status" aria-label="Loading your weight"><span className={styles.spinner} /></div>
+            : <StatsSkeleton label="Loading your weight" tiles={5} charts={["wide"]} />
     }
 
     const inRange = series.filter((day) => !day.date.isBefore(from, "day"))

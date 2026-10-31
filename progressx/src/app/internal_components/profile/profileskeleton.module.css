@@ -1,0 +1,48 @@
+.skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    min-width: 0;
+}
+
+/* the real picture has a 5px border inside its 180px circle */
+.photo {
+    border: 5px solid rgba(var(--primary-color), 0.35);
+    box-sizing: border-box;
+}
+
+.info {
+    gap: 12px;
+}
+
+.tabs {
+    display: flex;
+    gap: 20px;
+    width: 70%;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(113, 113, 113, 0.5);
+}
+
+.tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    width: 70%;
+}
+
+.tile {
+    aspect-ratio: 3 / 4;
+    height: auto !important;
+}
+
+@media (max-width: 900px) {
+    .tabs,
+    .tiles {
+        width: 100%;
+    }
+
+    .tiles {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+}

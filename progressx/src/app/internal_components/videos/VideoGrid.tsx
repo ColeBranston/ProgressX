@@ -3,6 +3,7 @@
 import { ReactNode, useCallback, useEffect, useState } from "react";
 import styles from "./VideoGrid.module.css";
 import VideoViewer from "./VideoViewer";
+import { Bone, SkeletonStatus } from "../skeleton/Skeleton";
 import { VideoCard, formatCount, formatDuration } from "./videoTypes";
 
 type VideoGridProps = {
@@ -90,7 +91,14 @@ export default function VideoGrid({ user = "me", tab, search = "", leading, empt
         return <div className={styles.grid}>{leading}<p className={styles.notice}>{error}</p></div>
     }
     if (!videos) {
-        return <div className={styles.grid}>{leading}<span className={styles.spinner} role="status" aria-label="Loading videos" /></div>
+        return (
+            <div className={styles.grid}>
+                {leading}
+                <SkeletonStatus label="Loading videos" className={styles.skeletonTiles}>
+                    {Array.from({ length: 6 }, (_, i) => <div key={i} className={styles.skeletonTile}><Bone width="100%" height="100%" radius={0} /></div>)}
+                </SkeletonStatus>
+            </div>
+        )
     }
 
     const viewable = videos.filter((v) => v.status === "ready" && v.playback)

@@ -11,6 +11,7 @@ import WorkoutLog, { NewSet } from "@/app/internal_components/mystats/WorkoutLog
 import WorkoutProgress from "@/app/internal_components/mystats/WorkoutProgress";
 import { SplitDay, WeightUnit } from "@/app/internal_components/mystats/exercises";
 import { WorkoutSet, WorkoutSplit, normalizeSet } from "@/app/internal_components/mystats/workoutStats";
+import StatsSkeleton from "../StatsSkeleton";
 
 const TABS = [
     { id: "log", label: "Log" },
@@ -184,7 +185,7 @@ export default function WorkoutsPage() {
     }
 
     if (loading) {
-        return <div className={pageStyles.loading} role="status" aria-label="Loading your workouts"><span className={pageStyles.spinner} /></div>
+        return <StatsSkeleton label="Loading your workouts" controls="tabs" charts={["wide", "wide"]} />
     }
 
     if (loadError) {

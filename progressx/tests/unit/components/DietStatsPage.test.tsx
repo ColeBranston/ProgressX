@@ -51,6 +51,8 @@ describe("Diet stats page", { timeout: 20_000 }, () => {
         })
         renderPage()
         expect(screen.getByRole("status", { name: "Loading your stats" })).toBeInTheDocument()
+        // placeholder shapes, not a spinner
+        expect(screen.getByRole("status", { name: "Loading your stats" }).querySelectorAll("[data-skeleton]").length).toBeGreaterThan(0)
         expect(await screen.findByText("Avg daily score")).toBeInTheDocument()
         expect(urls[0]).toMatch(new RegExp(`^/api/stats/diet\\?from=\\d{4}-\\d{2}-\\d{2}&to=${TODAY}$`))
 

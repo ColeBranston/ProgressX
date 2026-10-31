@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import dayjs from "dayjs";
-import styles from "./SharedTracking.module.css";
+import styles from "./SharedTracking.module.css";
+import { Bone, SkeletonStatus } from "../skeleton/Skeleton";
 import { cloudinaryLoader, cloudinaryPlaceholder, cloudinaryThumbLoader } from "./cloudinaryImage";
 import { ChartCard, LineChart, StatTile } from "../mystats/charts";
 import { EXERCISE_BY_ID } from "../mystats/exercises";
@@ -36,7 +37,12 @@ function useTracking<T>(username: string, kind: ShareKind, query: string): Load<
 
 function Status({ load, what }: { load: Load<unknown>, what: string }) {
     return load.state === "loading"
-        ? <span className={styles.spinner} role="status" aria-label={`Loading ${what}`} />
+        ? <SkeletonStatus label={`Loading ${what}`} className={styles.skeleton}>
+            <div className={styles.tiles}>
+                {Array.from({ length: 3 }, (_, i) => <div key={i} className={styles.card}><Bone width="50%" height={12} /><Bone width="70%" height={24} /></div>)}
+            </div>
+            <div className={styles.card}><Bone width="40%" height={16} /><Bone width="100%" height={160} radius={12} /></div>
+        </SkeletonStatus>
         : <p className={styles.empty}>Couldn&apos;t load {what}. Try again later.</p>
 }
 

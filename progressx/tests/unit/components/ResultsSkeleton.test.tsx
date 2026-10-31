@@ -10,7 +10,11 @@ describe("ResultsSkeleton", () => {
         expect(status).toHaveAttribute("aria-busy", "true")
         expect(status).toHaveTextContent("Loading results…")
         expect(screen.getAllByTestId("study-card-skeleton")).toHaveLength(4)
-        for (const card of screen.getAllByTestId("study-card-skeleton")) expect(card.closest("[aria-hidden=true]")).not.toBeNull()
+        // the cards hold no text, and every placeholder shape in them is hidden from screen readers
+        for (const card of screen.getAllByTestId("study-card-skeleton")) {
+            expect(card).toHaveTextContent("")
+            expect([...card.querySelectorAll("[data-skeleton]")].every((bone) => bone.getAttribute("aria-hidden") === "true")).toBe(true)
+        }
     })
 
     it("draws as many cards as asked", () => {

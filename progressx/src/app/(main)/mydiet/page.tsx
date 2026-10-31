@@ -3,6 +3,8 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs'
 import styles from './dietpage.module.css'
+import DietSkeleton from './DietSkeleton'
+import { Bone, SkeletonStatus } from '../../internal_components/skeleton/Skeleton'
 import {
     AnalyticsBar,
     CalorieTarget,
@@ -600,9 +602,7 @@ export default function DietPage() {
     if (initialLoading) {
         return (
             <div className={`mainWrapper ${styles.dietWrapper}`}>
-                <div className={styles.pageLoadingContainer} role="status" aria-label="Loading your diet">
-                    <span className={styles.spinner} />
-                </div>
+                <DietSkeleton />
             </div>
         )
     }
@@ -751,7 +751,9 @@ export default function DietPage() {
                                             </div>
                                             <div className={`${styles.catalogList} ${assistantOpen ? styles.catalogListCompact : ""}`}>
                                                 {loadingCatalog ?
-                                                    <div className={styles.spinnerContainer}><span className={styles.spinner} /></div>
+                                                    <SkeletonStatus label="Loading your saved foods" className={styles.skeletonStack}>
+                                                        {Array.from({ length: 4 }, (_, i) => <Bone key={i} width="100%" height={40} radius={10} />)}
+                                                    </SkeletonStatus>
                                                 : catalogItems.length === 0 ?
                                                     <p>No saved items yet - add one manually and save it to your catalog.</p>
                                                 : matchingCatalogItems.length === 0 ?

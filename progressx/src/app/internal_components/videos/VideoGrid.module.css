@@ -131,28 +131,19 @@
     color: rgba(255, 255, 255, 0.55);
 }
 
-.spinner,
-.smallSpinner {
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.15);
-    border-top-color: rgba(var(--primary-color));
-    animation: spin 0.8s linear infinite;
+/* placeholder tiles while a grid loads: a full-width row that lines up with the real tiles */
+.skeletonTiles {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    gap: inherit;
 }
 
-.spinner {
-    width: 30px;
-    height: 30px;
-    margin: 20px;
-}
-
-.smallSpinner {
-    width: 18px;
-    height: 18px;
-    border-width: 2px;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
+.skeletonTile {
+    aspect-ratio: 3 / 4;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    overflow: hidden;
 }
 
 @media (max-width: 900px) {

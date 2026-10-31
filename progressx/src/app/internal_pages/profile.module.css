@@ -418,20 +418,6 @@
     color: rgba(var(--primary-color));
 }
 
-.profileSpinner {
-    width: 36px;
-    height: 36px;
-    margin: auto;
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.15);
-    border-top-color: rgba(var(--primary-color));
-    animation: profileSpin 0.8s linear infinite;
-}
-
-@keyframes profileSpin {
-    to { transform: rotate(360deg); }
-}
-
 /* people waiting to follow your private profile */
 .requestsButton {
     color: rgba(var(--primary-color));

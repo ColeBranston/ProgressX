@@ -1,0 +1,35 @@
+/* Shared by every skeleton loader: one shimmer, so they all look and move the same */
+.bone {
+    display: block;
+    flex-shrink: 0;
+    max-width: 100%;
+    height: 14px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, rgb(30, 30, 30) 25%, rgb(48, 48, 48) 50%, rgb(30, 30, 30) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.circle {
+    flex-shrink: 0;
+}
+
+@keyframes shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bone {
+        animation: none;
+    }
+}
+
+.visuallyHidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
