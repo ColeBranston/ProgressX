@@ -17,6 +17,7 @@ import {
 } from "@/app/internal_components/index";
 import { BarChart, ChartCard, Heatmap, LineChart, missingDaysLabel, StatTile } from "@/app/internal_components/mystats/charts";
 import { ApiDay, buildDayStats, buildWeekStats, change, WeekStat } from "@/app/internal_components/mystats/dietStats";
+import StatsSkeleton from "./StatsSkeleton";
 
 const RANGES = [
     { weeks: 4, label: "4 weeks" },
@@ -88,7 +89,7 @@ export default function DietStatsPage() {
     if (!data) {
         return error
             ? <div className={styles.empty}><p className={styles.emptyTitle}>Couldn&apos;t load your stats</p><p className={styles.emptyText}>Check your connection and refresh the page.</p></div>
-            : <div className={styles.loading} role="status" aria-label="Loading your stats"><span className={styles.spinner} /></div>
+            : <StatsSkeleton label="Loading your stats" tiles={5} charts={["wide", "half", "half", "wide"]} />
     }
 
     const trackedDays = days.filter((day) => day.tracked).length

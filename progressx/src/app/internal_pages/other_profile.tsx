@@ -10,6 +10,7 @@ import FollowButton from "../internal_components/follows/FollowButton";
 import { useViewer } from "../contexts/viewer";
 import FollowList from "../internal_components/follows/FollowList";
 import SharedTracking from "../internal_components/profile/SharedTracking";
+import ProfileSkeleton from "../internal_components/profile/ProfileSkeleton";
 import sharedStyles from "../internal_components/profile/SharedTracking.module.css";
 import { SHARE_KINDS, SHARE_OPTIONS, ShareKind, Sharing } from "../internal_components/profile/sharing";
 
@@ -71,7 +72,7 @@ export default function OtherProfile({ username }: { username: string }) {
                             <p className={styles.usernameText}>{error}</p>
                             <Link href={signedIn ? "/" : "/explore"} className={styles.privateLink}>Back to For You</Link>
                         </div>
-                    : <span className={styles.profileSpinner} role="status" aria-label="Loading profile" />}
+                    : <ProfileSkeleton />}
                 </div>
             </div>
         )

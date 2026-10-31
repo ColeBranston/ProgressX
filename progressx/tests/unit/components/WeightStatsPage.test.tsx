@@ -45,6 +45,8 @@ describe("weight stats page", () => {
         ])
         render(<WeightStatsPage />)
         expect(screen.getByRole("status", { name: "Loading your weight" })).toBeInTheDocument()
+        // placeholder shapes, not a spinner
+        expect(screen.getByRole("status", { name: "Loading your weight" }).querySelectorAll("[data-skeleton]").length).toBeGreaterThan(0)
 
         expect(await screen.findByText("Latest")).toBeInTheDocument()
         expect(urls[0]).toBe("/api/weight?from=2026-07-10&to=2026-10-14")

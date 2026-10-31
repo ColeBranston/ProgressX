@@ -19,19 +19,17 @@
     text-align: left;
 }
 
-.spinner {
-    display: block;
-    width: 32px;
-    height: 32px;
-    margin: 40px auto;
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.15);
-    border-top-color: rgba(var(--primary-color));
-    animation: sharedSpin 0.8s linear infinite;
+/* placeholder tiles and a chart card while someone's tracking loads */
+.skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-@keyframes sharedSpin {
-    to { transform: rotate(360deg); }
+.skeleton .card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .card {

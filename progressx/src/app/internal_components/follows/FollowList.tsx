@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import styles from "./follows.module.css";
+import styles from "./follows.module.css";
+import { Bone, Circle, SkeletonStatus } from "../skeleton/Skeleton";
 import FollowButton from "./FollowButton";
 import { backdrop } from "../a11y";
 
@@ -126,7 +127,17 @@ export default function FollowList({ username, initial, counts, onClose, onFollo
                     {error && !people ?
                         <p className={styles.empty}>{error}</p>
                     : !people ?
-                        <span className={styles.spinner} role="status" aria-label="Loading" />
+                        <SkeletonStatus label={`Loading ${list === "requests" ? "follow requests" : list}`} className={styles.people}>
+                            {Array.from({ length: 5 }, (_, i) => (
+                                <div key={i} className={styles.person}>
+                                    <span className={styles.who}>
+                                        <Circle size={44} />
+                                        <span className={styles.skeletonNames}><Bone width={120} height={14} /><Bone width={80} height={12} /></span>
+                                    </span>
+                                    <Bone width={84} height={32} radius={99} />
+                                </div>
+                            ))}
+                        </SkeletonStatus>
                     : people.length === 0 ?
                         <p className={styles.empty}>
                             {list === "requests"

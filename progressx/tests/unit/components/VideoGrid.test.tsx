@@ -49,6 +49,8 @@ describe("VideoGrid", () => {
         stubApi({ "/api/videos?user=lifter&tab=videos": page([card("a"), card("b", { caption: "", playback: { src: "https://media.example/b.mp4", poster: null } })]) })
         const { container } = render(<VideoGrid user="lifter" tab="videos" empty={<p>nothing</p>} />)
         expect(screen.getByRole("status", { name: "Loading videos" })).toBeInTheDocument()
+        // placeholder shapes, not a spinner
+        expect(screen.getByRole("status", { name: "Loading videos" }).querySelectorAll("[data-skeleton]").length).toBeGreaterThan(0)
         const tile = await screen.findByRole("button", { name: "Play clip a" })
         expect(tile).toHaveTextContent("1.2K")
         expect(tile).toHaveTextContent("1:05")

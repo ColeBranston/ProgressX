@@ -30,19 +30,40 @@
 }
 
 /* same area as the loaded page (dietWrapper drops the shared left padding), so the spinner is centred in it */
-.pageLoadingContainer {
-    flex: 1;
-    min-width: 0;
-    height: var(--app-height); /* full screen, minus the top bar on phones */
+/* DietSkeleton and the saved-foods placeholder */
+.skeletonDays {
     display: flex;
-    justify-content: center;
     align-items: center;
+    gap: 8px;
+    min-width: 0;
 }
 
-.pageLoadingContainer .spinner {
-    width: 32px;
-    height: 32px;
-    border-width: 4px;
+/* the day pills share the row, so they fit on a phone */
+.skeletonDays > span + span {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 44px;
+}
+
+.skeletonRow {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.skeletonStack {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.skeletonCentre {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
 }
 
 .daysDots {
@@ -304,29 +325,6 @@
 
 .catalogItemButton:hover {
     background: rgba(var(--primary-color), 0.15);
-}
-
-.spinnerContainer {
-    flex: 1;
-    min-height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.spinner {
-    width: 22px;
-    height: 22px;
-    border-radius: 100%;
-    border: 3px solid rgba(var(--primary-color), 0.25);
-    border-top-color: rgba(var(--primary-color));
-    animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
 }
 
 .microsHeaderRow {

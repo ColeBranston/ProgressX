@@ -43,6 +43,8 @@ describe("Workouts page", { timeout: 20_000 }, () => {
         const calls = stubApi({ weightUnit: "kg", sets: [{ ...makeSet({ exercise_id: "barbell-bench-press", performed_on: day(3) }), weight_kg: "100" as unknown as number }] })
         render(<WorkoutsPage />)
         expect(screen.getByRole("status", { name: "Loading your workouts" })).toBeInTheDocument()
+        // placeholder shapes, not a spinner
+        expect(screen.getByRole("status", { name: "Loading your workouts" }).querySelectorAll("[data-skeleton]").length).toBeGreaterThan(0)
         expect(await screen.findByRole("tab", { name: "Log" })).toHaveAttribute("aria-selected", "true")
         expect(screen.getByRole("radio", { name: "kg" })).toHaveAttribute("aria-checked", "true")
         expect(calls.find((c) => c.url.startsWith("/api/workouts/sets"))!.url).toContain(`to=${TODAY}`)
