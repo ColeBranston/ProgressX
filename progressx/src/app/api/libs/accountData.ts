@@ -26,6 +26,8 @@ const USER_TABLES: { table: string, key: string, label: string }[] = [
     { table: "video_favourites", key: "user_id", label: "favouriteVideos" },
     { table: "follows", key: "follower_id", label: "following" },
     { table: "follows", key: "following_id", label: "followers" },
+    { table: "follow_requests", key: "requester_id", label: "followRequestsSent" },
+    { table: "follow_requests", key: "target_id", label: "followRequestsReceived" },
     { table: "consent_events", key: "user_id", label: "consentHistory" },
 ]
 

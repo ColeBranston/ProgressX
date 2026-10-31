@@ -16,7 +16,7 @@ import {
     validateOnboarding,
 } from "@/app/internal_components/profile/profileRules";
 import { VerifyDialog } from "@/app/internal_components/verification/IdVerification";
-import { NO_SHARING, SHARE_KINDS, SHARE_OPTIONS, Sharing } from "@/app/internal_components/profile/sharing";
+import { Audience, AUDIENCES, AUDIENCE_LABELS, audienceNote, DEFAULT_AUDIENCES, SHARE_KINDS, SHARE_OPTIONS, ShareAudiences } from "@/app/internal_components/profile/sharing";
 
 // New accounts land here (the middleware sends anyone who hasn't finished it) after agreeing to the
 // terms. Four short steps (the last is what their profile shows), saved together at the end; then an
@@ -64,7 +64,7 @@ export default function Onboarding() {
     const [activity, setActivity] = useState<number | null>(null)
     const [usernameCheck, setUsernameCheck] = useState<UsernameCheck>({ state: "idle" })
     const [privacy, setPrivacy] = useState<"private" | "public">("private")
-    const [sharing, setSharing] = useState<Sharing>(NO_SHARING)
+    const [sharing, setSharing] = useState<ShareAudiences>(DEFAULT_AUDIENCES)
     const [verifyOpen, setVerifyOpen] = useState(false)
     const [verified, setVerified] = useState(false)
     const headingRef = useRef<HTMLHeadingElement>(null)
@@ -277,28 +277,24 @@ export default function Onboarding() {
                                 </div>
                                 <p id="privacy-hint" className={styles.fieldHint}>
                                     {privacy === "public"
-                                        ? "Anyone can see your profile and videos, and your videos can show in other people's For You feeds."
-                                        : "Only you can see your videos, and they won't show in anyone's For You feed. People can still find your name and picture."}
+                                        ? "Anyone can follow you and see your profile and videos, and your videos can show in other people's For You feeds."
+                                        : "People have to ask to follow you, and only the followers you approve see your videos. They won't show in For You or search. People can still find your name and picture."}
                                 </p>
                             </fieldset>
 
                             <fieldset className={styles.field}>
-                                <legend>What your profile shows</legend>
-                                <p className={styles.fieldHint}>
-                                    {privacy === "public"
-                                        ? "Everything is off unless you turn it on. What you turn on is only shown to people signed in to ProgressX, never to search engines."
-                                        : "These only apply if your profile is public. While it's private, none of this is shown to anyone."}
-                                </p>
+                                <legend>Who sees your tracking</legend>
+                                <p className={styles.fieldHint}>Everything starts as Only me. {audienceNote(privacy)}</p>
                                 <div className={styles.shareList}>
                                     {SHARE_KINDS.map((kind) => (
-                                        <button key={kind} type="button" role="switch" aria-checked={sharing[kind]} className={styles.shareOption}
-                                            onClick={() => setSharing((prev) => ({ ...prev, [kind]: !prev[kind] }))}>
+                                        <div key={kind} className={styles.shareOption}>
                                             <span className={styles.shareText}>
                                                 <strong>{SHARE_OPTIONS[kind].label}</strong>
                                                 <span>{SHARE_OPTIONS[kind].description}</span>
                                             </span>
-                                            <span className={styles.shareSwitch} aria-hidden="true"><i /></span>
-                                        </button>
+                                            <UnitToggle label={`Who sees your ${SHARE_OPTIONS[kind].label.toLowerCase()}`} options={AUDIENCES.map((audience) => [audience, AUDIENCE_LABELS[audience]])} value={sharing[kind]}
+                                                onChange={(audience) => setSharing((prev) => ({ ...prev, [kind]: audience as Audience }))} />
+                                        </div>
                                     ))}
                                 </div>
                             </fieldset>

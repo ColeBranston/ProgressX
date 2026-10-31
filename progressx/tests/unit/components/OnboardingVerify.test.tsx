@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor } from "@testing-library/react"
+import { render, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import Onboarding from "@/app/(secondary)/onboarding/page"
@@ -44,18 +44,20 @@ async function fillDetails() {
 }
 
 describe("onboarding's privacy step", () => {
-    it("starts private with nothing shown, and saves what they choose with the details", async () => {
+    it("starts private with everything only me, and saves what they choose with the details", async () => {
         render(<Onboarding />)
         const user = await fillDetails()
         expect(screen.getByRole("radio", { name: "Private" })).toHaveAttribute("aria-checked", "true")
-        expect(screen.getAllByRole("switch").map((s) => s.getAttribute("aria-checked"))).toEqual(["false", "false", "false", "false"])
+        for (const kind of ["progress photos", "weight", "workouts", "diet"]) {
+            expect(within(screen.getByRole("radiogroup", { name: `Who sees your ${kind}` })).getByRole("radio", { name: "Only me" })).toHaveAttribute("aria-checked", "true")
+        }
 
         await user.click(screen.getByRole("radio", { name: "Public" }))
-        await user.click(screen.getByRole("switch", { name: /Progress photos/ }))
-        await user.click(screen.getByRole("switch", { name: /Workouts/ }))
+        await user.click(within(screen.getByRole("radiogroup", { name: "Who sees your progress photos" })).getByRole("radio", { name: "Everyone" }))
+        await user.click(within(screen.getByRole("radiogroup", { name: "Who sees your workouts" })).getByRole("radio", { name: "Followers" }))
         await user.click(screen.getByRole("button", { name: "Save and continue" }))
         await screen.findByRole("heading", { name: "Verify your ID" })
-        expect(saved).toMatchObject({ privacy: "public", sharing: { photos: true, weight: false, workouts: true, diet: false } })
+        expect(saved).toMatchObject({ privacy: "public", sharing: { photos: "everyone", weight: "only_me", workouts: "followers", diet: "only_me" } })
     })
 })
 

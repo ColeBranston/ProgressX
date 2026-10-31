@@ -45,7 +45,7 @@ export function formatDuration(seconds: number | null): string {
 }
 
 // Follows / unfollows someone; resolves to whether you now follow them and their follower count
-export async function setFollow(username: string, on: boolean): Promise<{ following: boolean, followers: number }> {
+export async function setFollow(username: string, on: boolean): Promise<{ following: boolean, requested?: boolean, followers: number }> {
     const res = await fetch(`/api/profiles/${encodeURIComponent(username)}/follow`, { method: on ? "PUT" : "DELETE" })
     const json = await res.json().catch(() => null)
     if (!res.ok) throw new Error(json?.message ?? "Couldn't save that")

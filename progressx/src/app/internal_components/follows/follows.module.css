@@ -298,3 +298,42 @@
         max-height: 85vh;
     }
 }
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.accept,
+.decline {
+    padding: 6px 14px;
+    border-radius: 999px;
+    font: 600 13px var(--secondary-font-family);
+    cursor: pointer;
+}
+
+.accept {
+    border: none;
+    background: rgba(var(--primary-color));
+    color: white;
+}
+
+.decline {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: none;
+    color: white;
+}
+
+.accept:disabled,
+.decline:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.accept:focus-visible,
+.decline:focus-visible {
+    outline: 2px solid rgba(var(--primary-color));
+    outline-offset: 2px;
+}

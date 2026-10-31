@@ -6,18 +6,20 @@ import styles from "./follows.module.css";
 import FollowButton from "./FollowButton";
 import { backdrop } from "../a11y";
 
-type Person = { username: string, name: string, pfp: string | null, privacy: "public" | "private", isOwner: boolean, following: boolean }
-type List = "followers" | "following"
+type Person = { username: string, name: string, pfp: string | null, privacy?: "public" | "private", isOwner?: boolean, following?: boolean, requested?: boolean }
+type List = "followers" | "following" | "requests"
 
 type FollowListProps = {
     username: string, // "me" for your own lists
     initial: List,
-    counts?: { followers: number, following: number },
+    counts?: { followers: number, following: number, requests?: number },
     onClose: () => void,
     onFollowChange?: () => void, // you followed / unfollowed someone from the list
 }
 
-// The people who follow someone, and the people they follow, in a dialog with a tab for each
+// The people who follow someone, and the people they follow, in a dialog with a tab for each. On your own:
+// a Requests tab (people asking to follow your private profile) to accept or decline, and a way to remove
+// a follower.
 export default function FollowList({ username, initial, counts, onClose, onFollowChange }: FollowListProps) {
     const [ list, setList ] = useState<List>(initial)
     const [ people, setPeople ] = useState<Person[] | null>(null)
@@ -26,11 +28,21 @@ export default function FollowList({ username, initial, counts, onClose, onFollo
     const [ loadingMore, setLoadingMore ] = useState(false)
     const closeRef = useRef<HTMLButtonElement>(null)
 
+    const [ answered, setAnswered ] = useState(0) // requests accepted or declined here (for the tab's count)
+    const [ busy, setBusy ] = useState<string | null>(null)
+    const own = username === "me"
+
     const fetchPage = useCallback(async (next: string | null) => {
+        if (list === "requests") {
+            const res = await fetch("/api/user/follow-requests", { cache: "no-store" })
+            const json = await res.json().catch(() => null)
+            if (!res.ok) throw new Error(json?.message ?? "Couldn't load your follow requests")
+            return { people: json.requests as Person[], nextCursor: null }
+        }
         const query = next ? `?cursor=${encodeURIComponent(next)}` : ""
         const res = await fetch(`/api/profiles/${encodeURIComponent(username)}/${list}${query}`)
         const json = await res.json().catch(() => null)
-        if (res.status === 403) throw new Error("This account is private, so its lists are hidden")
+        if (res.status === 403) throw new Error("This account is private. Only the followers it approves can see its lists.")
         if (!res.ok) throw new Error(json?.message ?? "Couldn't load this list")
         return json as { people: Person[], nextCursor: string | null }
     }, [username, list])
@@ -70,14 +82,33 @@ export default function FollowList({ username, initial, counts, onClose, onFollo
         }
     }
 
+    // accept / decline a request, or remove a follower: they leave this list either way
+    async function act(person: Person, method: "PUT" | "DELETE", path: string) {
+        setBusy(person.username)
+        setError(null)
+        try {
+            const res = await fetch(`${path}/${encodeURIComponent(person.username)}`, { method })
+            const json = await res.json().catch(() => null)
+            if (!res.ok) throw new Error(json?.message ?? "Couldn't save that")
+            setPeople((prev) => (prev ?? []).filter((p) => p.username !== person.username))
+            if (list === "requests") setAnswered((n) => n + 1)
+            onFollowChange?.()
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Couldn't save that")
+        } finally {
+            setBusy(null)
+        }
+    }
+
     const tabs: { id: List, label: string, count?: number }[] = [
         { id: "followers", label: "Followers", count: counts?.followers },
         { id: "following", label: "Following", count: counts?.following },
+        ...(own ? [{ id: "requests" as const, label: "Requests", count: counts?.requests === undefined ? undefined : Math.max(0, counts.requests - answered) }] : []),
     ]
 
     return (
         <div className={styles.backdrop} {...backdrop(onClose)}>
-            <div className={styles.dialog} role="dialog" aria-modal="true" aria-label={list === "followers" ? "Followers" : "Following"}>
+            <div className={styles.dialog} role="dialog" aria-modal="true" aria-label={list === "followers" ? "Followers" : list === "following" ? "Following" : "Follow requests"}>
                 <div className={styles.header}>
                     <div className={styles.tabs} role="tablist">
                         {tabs.map((tab) => (
@@ -98,9 +129,11 @@ export default function FollowList({ username, initial, counts, onClose, onFollo
                         <span className={styles.spinner} role="status" aria-label="Loading" />
                     : people.length === 0 ?
                         <p className={styles.empty}>
-                            {list === "followers"
-                                ? username === "me" ? "No one follows you yet." : "No followers yet."
-                                : username === "me" ? "You're not following anyone yet. Find people with the search box." : "Not following anyone yet."}
+                            {list === "requests"
+                                ? "No follow requests. When your profile is private, people who want to follow you show up here."
+                                : list === "followers"
+                                ? own ? "No one follows you yet." : "No followers yet."
+                                : own ? "You're not following anyone yet. Find people with the search box." : "Not following anyone yet."}
                         </p>
                     :
                         <ul className={styles.people}>
@@ -114,7 +147,20 @@ export default function FollowList({ username, initial, counts, onClose, onFollo
                                             {person.name ? <small>{person.name}</small> : null}
                                         </span>
                                     </Link>
-                                    {person.isOwner ? <span className={styles.you}>You</span> : <FollowButton username={person.username} following={person.following} onChange={() => onFollowChange?.()} />}
+                                    {list === "requests" ?
+                                        <span className={styles.actions}>
+                                            <button type="button" className={styles.accept} onClick={() => act(person, "PUT", "/api/user/follow-requests")} disabled={busy === person.username}>Accept</button>
+                                            <button type="button" className={styles.decline} onClick={() => act(person, "DELETE", "/api/user/follow-requests")} disabled={busy === person.username}>Decline</button>
+                                        </span>
+                                    : person.isOwner ? <span className={styles.you}>You</span>
+                                    :
+                                        <span className={styles.actions}>
+                                            <FollowButton username={person.username} following={Boolean(person.following)} requested={person.requested} onChange={() => onFollowChange?.()} />
+                                            {own && list === "followers" ?
+                                                <button type="button" className={styles.decline} onClick={() => act(person, "DELETE", "/api/user/followers")} disabled={busy === person.username} aria-label={`Remove @${person.username} from your followers`}>Remove</button>
+                                            : null}
+                                        </span>
+                                    }
                                 </li>
                             ))}
                         </ul>

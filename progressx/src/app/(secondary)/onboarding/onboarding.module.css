@@ -523,30 +523,18 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px 16px;
     padding: 12px 14px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.03);
     color: white;
-    text-align: left;
-    cursor: pointer;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-
-.shareOption[aria-checked="true"] {
-    border-color: rgba(var(--primary-color), 0.6);
-    background: rgba(var(--primary-color), 0.08);
-}
-
-.shareOption:focus-visible {
-    outline: 2px solid rgba(var(--primary-color));
-    outline-offset: 2px;
 }
 
 .shareText {
     display: flex;
+    flex: 1 1 220px;
     flex-direction: column;
     gap: 2px;
     font-family: var(--secondary-font-family);
@@ -560,33 +548,4 @@
     font-size: 12px;
     line-height: 1.4;
     opacity: 0.6;
-}
-
-.shareSwitch {
-    flex-shrink: 0;
-    position: relative;
-    width: 38px;
-    height: 22px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.15);
-    transition: background-color 0.15s ease;
-}
-
-.shareSwitch i {
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: white;
-    transition: transform 0.15s ease;
-}
-
-.shareOption[aria-checked="true"] .shareSwitch {
-    background: rgba(var(--primary-color));
-}
-
-.shareOption[aria-checked="true"] .shareSwitch i {
-    transform: translateX(16px);
 }

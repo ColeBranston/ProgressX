@@ -133,18 +133,21 @@ export default function PrivacyPolicyPage() {
                     on the internet can see it, including people who don&apos;t have a ProgressX account: your username, name, profile
                     picture, bio, follower, following and like counts, the lists of who follows you and who you follow, and the videos you
                     post (on your profile, in the public feed and in search). Public profiles and videos can also be found through search
-                    engines such as Google. While your profile is <strong>private</strong>, only you can see your videos; people signed in to
-                    ProgressX can still see your username, name, profile picture, bio and counts, but people without an account can&apos;t see
-                    your profile at all. You can switch between public and private at any time in Settings; search engines may take some
+                    engines such as Google. While your profile is <strong>private</strong>, people have to ask to follow you, and only the
+                    followers you approve can see your videos and the lists of who follows you and who you follow; your videos don&apos;t
+                    appear in the public feed or search. Other people signed in to ProgressX can still see your username, name, profile
+                    picture, bio and counts, but people without an account can&apos;t see your profile at all. You can remove a follower at
+                    any time. When you switch from private to public, anyone waiting for you to accept their request starts following you. You can switch between public and private at any time in Settings; search engines may take some
                     time to drop pages they have already stored. The videos you like or favourite are visible only to you.
                 </li>
                 <li>
-                    <strong>Your tracking, only if you turn it on.</strong> You can choose to show your progress photos, your weight
+                    <strong>Your tracking, only to the people you choose.</strong> You can choose to show your progress photos, your weight
                     (weigh-ins and how it has changed), your workouts (exercises, sets, reps and weights) and your diet (the foods you log
-                    and how your calories and macros compare to your targets) on your profile. Each one is off unless you turn it on, when
-                    you create your account or later in Settings &gt; Profile privacy, and you can turn it off again at any time. What you
-                    turn on is shown only while your profile is public, and only to people signed in to ProgressX: never to people without
-                    an account, and it is kept out of search engines. Your diet targets are worked out from your age, sex, height, weight and
+                    and how your calories and macros compare to your targets) on your profile, each to its own audience: <strong>Only
+                    me</strong> (the default for all of them), <strong>Followers</strong>, or <strong>Everyone</strong>, which means anyone
+                    signed in to ProgressX while your profile is public, and only your approved followers while it&apos;s private. You
+                    choose when you create your account or later in Settings &gt; Profile privacy, and you can change it at any time. Your
+                    tracking is never shown to people without an account, and it is kept out of search engines. Your diet targets are worked out from your age, sex, height, weight and
                     activity level, so someone who sees them may be able to estimate those details. People who can see your tracking could
                     copy or screenshot it, which we can&apos;t prevent.
                 </li>

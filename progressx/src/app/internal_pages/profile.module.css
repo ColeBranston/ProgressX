@@ -431,3 +431,8 @@
 @keyframes profileSpin {
     to { transform: rotate(360deg); }
 }
+
+/* people waiting to follow your private profile */
+.requestsButton {
+    color: rgba(var(--primary-color));
+}

@@ -19,7 +19,7 @@ afterEach(() => vi.unstubAllGlobals())
 
 describe("Settings personalized ads", () => {
     it("is off until the user turns it on, and saves the choice", async () => {
-        let saved = { blurProgressPhotos: false, waterGoalMl: null, profilePrivacy: "private", weightUnit: "lb", activityLevel: 2, personalizedAds: false, sharing: { photos: false, weight: false, workouts: false, diet: false } }
+        let saved = { blurProgressPhotos: false, waterGoalMl: null, profilePrivacy: "private", weightUnit: "lb", activityLevel: 2, personalizedAds: false, sharing: { photos: "only_me", weight: "only_me", workouts: "only_me", diet: "only_me" } }
         const fetch = vi.fn(async (_url: string, init?: RequestInit) => {
             if (init?.method === "PATCH") saved = { ...saved, ...JSON.parse(String(init.body)) }
             return json({ settings: saved, email: "me@example.com" })

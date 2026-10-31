@@ -8,7 +8,7 @@ import VideoGrid from "../videos/VideoGrid";
 import { formatCount } from "../videos/videoTypes";
 import FollowButton from "../follows/FollowButton";
 
-type ProfileResult = { username: string, name: string, pfp: string | null, privacy: "public" | "private", followers: number, isOwner: boolean, following: boolean }
+type ProfileResult = { username: string, name: string, pfp: string | null, privacy: "public" | "private", followers: number, isOwner: boolean, following: boolean, requested?: boolean }
 
 const TABS = [ { id: "videos", label: "Videos" }, { id: "profiles", label: "Profiles" } ] as const
 type Tab = typeof TABS[number]["id"]
@@ -146,7 +146,8 @@ function ProfileResults({ q }: { q: string }) {
                             <FollowButton
                                 username={p.username}
                                 following={p.following}
-                                onChange={(following, followers) => setProfiles((prev) => (prev ?? []).map((x) => (x.username === p.username ? { ...x, following, followers } : x)))}
+                                requested={p.requested}
+                                onChange={(following, followers, requested) => setProfiles((prev) => (prev ?? []).map((x) => (x.username === p.username ? { ...x, following, followers, requested } : x)))}
                             />
                         )}
                     </li>
