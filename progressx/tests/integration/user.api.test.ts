@@ -85,16 +85,16 @@ describe("/api/user/settings", () => {
 
     it("has defaults until something is saved", async () => {
         expect(await (await load()).json()).toEqual({
-            settings: { blurProgressPhotos: false, waterGoalMl: null, profilePrivacy: "private", weightUnit: "lb", activityLevel: 3, personalizedAds: false, sharing: { photos: false, weight: false, workouts: false, diet: false } },
+            settings: { blurProgressPhotos: false, waterGoalMl: null, profilePrivacy: "private", weightUnit: "lb", activityLevel: 3, personalizedAds: false, sharing: { photos: "only_me", weight: "only_me", workouts: "only_me", diet: "only_me" } },
             email: "Alice@Example.com",
         })
     })
 
     it("saves only the fields sent, and returns everything", async () => {
         await save({ waterGoalMl: 2500 })
-        const res = await save({ blurProgressPhotos: true, weightUnit: "kg", profilePrivacy: "public", activityLevel: 5, sharing: { weight: true } })
+        const res = await save({ blurProgressPhotos: true, weightUnit: "kg", profilePrivacy: "public", activityLevel: 5, sharing: { weight: "followers" } })
         expect((await res.json()).settings).toEqual({
-            blurProgressPhotos: true, waterGoalMl: 2500, profilePrivacy: "public", weightUnit: "kg", activityLevel: 5, personalizedAds: false, sharing: { photos: false, weight: true, workouts: false, diet: false },
+            blurProgressPhotos: true, waterGoalMl: 2500, profilePrivacy: "public", weightUnit: "kg", activityLevel: 5, personalizedAds: false, sharing: { photos: "only_me", weight: "followers", workouts: "only_me", diet: "only_me" },
         })
         expect(fakeDb.rows("user_settings")).toHaveLength(1)
         await save({ waterGoalMl: null })
@@ -157,10 +157,10 @@ describe("/api/user/onboarding", () => {
     })
 
     it("saves the details with the privacy choices and marks onboarding done", async () => {
-        const res = await finish({ ...details, privacy: "public", sharing: { photos: true, diet: false }, weightUnit: "kg" })
+        const res = await finish({ ...details, privacy: "public", sharing: { photos: "everyone", diet: "followers" }, weightUnit: "kg" })
         expect(res.status).toBe(201)
         expect(fakeDb.rows("profiles")[0]).toMatchObject({ display_username: "jordan.lifts", height_cm: 175, weight_lbs: 171, activity_level: 3, profile_privacy: "public", isOnboarded: true })
-        expect(fakeDb.rows("user_settings")).toEqual([expect.objectContaining({ user_id: alice, share_progress_photos: true, share_diet: false, weight_unit: "kg" })])
+        expect(fakeDb.rows("user_settings")).toEqual([expect.objectContaining({ user_id: alice, photos_audience: "everyone", diet_audience: "followers", weight_unit: "kg" })])
     })
 
     it("starts private, showing nothing", async () => {

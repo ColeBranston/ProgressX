@@ -48,7 +48,7 @@ describe("GET /api/find?type=profiles", () => {
     it("ranks the exact username, then starts-with, then names, then the rest", async () => {
         const body = await (await search("type=profiles&q=Lifts")).json()
         expect(body.profiles.map((p: { username: string }) => p.username)).toEqual(["lifts", "lifts_bob", "carol", "alice_lifts"])
-        expect(body.profiles[3]).toEqual({ username: "alice_lifts", name: "Alice Anderson", pfp: null, privacy: "public", followers: 3, isOwner: false, following: true })
+        expect(body.profiles[3]).toEqual({ username: "alice_lifts", name: "Alice Anderson", pfp: null, privacy: "public", followers: 3, isOwner: false, following: true, requested: false })
         expect(body.profiles[2]).toMatchObject({ isOwner: true })
         expect(body.nextCursor).toBeNull()
     })
