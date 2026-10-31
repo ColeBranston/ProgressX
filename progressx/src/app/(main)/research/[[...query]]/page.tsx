@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import styles from "./research.module.css"
 import { useParams, useRouter, useSearchParams } from "next/dist/client/components/navigation";
-import { SearchFacets, StudyCard } from "@/app/internal_components";
+import { ResultsSkeleton, SearchFacets, StudyCard } from "@/app/internal_components";
 import { FacetField, Facets, Filters, filterQuery, noFilters, readFilters, toggleFilter } from "@/app/internal_components/research/researchFilters";
 import { pressable } from "@/app/internal_components/a11y";
 
@@ -170,7 +170,7 @@ const ResearchResults = () => {
     const scrollRef = useHorizontalScroll()
 
     return (
-        <div className='mainWrapper'>
+        <div className={`mainWrapper ${styles.researchWrapper}`}>
             <div className={styles.researchContainer}>
                 {/* filters sit beside the search box, so they never push the results down */}
                 <div className={styles.searchRow}>
@@ -195,7 +195,7 @@ const ResearchResults = () => {
                 {lastQuery ? <SearchFacets facets={facets} filters={filters} onToggle={toggleFacet} onClear={clearFacets} /> : null}
                 </div>
 
-                { isLoading? null : 
+                { isLoading? <ResultsSkeleton /> : 
                     ( docs?.length > 0?
                         <div className={styles.resultsContainer}>
                             <div className={styles.resultsHeaderContainer}>
